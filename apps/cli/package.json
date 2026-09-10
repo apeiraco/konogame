@@ -4,14 +4,21 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@konogame/contracts": "workspace:*",
     "@konogame/workspace": "workspace:*",
-    "@konogame/application": "workspace:*",
+    "@konogame/game": "workspace:*",
     "@konogame/extension-filesystem": "workspace:*",
+    "@konogame/extension-steam": "workspace:*",
     "@konogame/save": "workspace:*",
-    "@oclif/core": "^5.1.8",
-    "@clack/prompts": "^1.8.1",
-    "uuid": "^14.0.3",
-    "@konogame/local-runtime": "workspace:*"
+    "@optique/core": "catalog:",
+    "@optique/run": "catalog:",
+    "@optique/standard-schema": "catalog:",
+    "@clack/prompts": "catalog:",
+    "@konogame/infrastructure": "workspace:*",
+    "@konogame/workspace-configuration": "workspace:*",
+    "@konogame/extension-discovery-node": "workspace:*",
+    "effect": "catalog:",
+    "@effect/platform-node": "catalog:"
   },
   "scripts": {
     "build": "tsdown"
@@ -29,15 +36,6 @@
   "bin": {
     "konogame": "./dist/main.js"
   },
-  "oclif": {
-    "bin": "konogame",
-    "topicSeparator": " ",
-    "commands": {
-      "strategy": "explicit",
-      "target": "./dist/commands.js",
-      "identifier": "commands"
-    }
-  },
   "license": "MPL-2.0",
   "repository": {
     "type": "git",
@@ -45,6 +43,6 @@
   },
   "konogame": {
     "releaseGroup": "core",
-    "contractRange": ">=0.1.0 <0.2.0"
+    "contractRange": ">=0.2.0 <0.3.0"
   }
 }

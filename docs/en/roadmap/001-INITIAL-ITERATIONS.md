@@ -1,6 +1,6 @@
 # Initial iterations
 
-Status: iterative plan, updated 2026-10-17. The current implementation includes a TypeScript contract/application skeleton, streaming filesystem save-store, CLI/daemon prototypes, and the [TOML Workspace inspection/rename experiment](../002-WORKSPACE-EXPERIMENT.md). Broader Workspace editing, game discovery, configuration history, graphical UI, and durable jobs remain unimplemented. Experimental schemas/APIs may break; historical migration and backward-compatibility layers are out of scope.
+Status: iterative plan, updated 2026-10-17. The current implementation includes a TypeScript contract/application skeleton, streaming filesystem save-store, CLI/daemon prototypes, and the [TOML Workspace inspection/rename experiment](../002-WORKSPACE-EXPERIMENT.md). Bounded Steam/standalone discovery, previewed admission and explicit import recovery are also implemented. Initialization, limited reviewed Workspace editing and library maintenance are implemented in ADR 0008. Arbitrary editing, configuration history, graphical UI and durable jobs remain unimplemented. Experimental schemas/APIs may break; historical migration and backward-compatibility layers are out of scope.
 
 ## Proposal index
 
@@ -18,15 +18,15 @@ The proposals recover useful intent from the archive and adapt it to the current
 
 Harden error types, cancellation, progress, stream ownership, capability parameters, current-contract checks, and Extension manifest validation as required by the first workflows. Add inspection of full Binding Plans, preserving visible failure for incompatible explicit preferences. Do not build backward-compatibility scaffolding during this experiment.
 
-The slice uses TOML 1.0 schema 3, lowercase UUIDv7 identities, original uniform names, equivalent flat/directory layouts, separate portable/local files, seven override layers, and validation with provenance. Workspace inspection and dedicated rename share Save's binding resolver and Extension/Adapter descriptors. Explicit clears, arbitrary Host root aliases, typed installation locations, Unicode filename encoding, and comment-preserving rename are accepted in ADR 0002. Application writer locks, revision/hash checks, and targeted recovery keep rename narrow; arbitrary external-editor races remain a documented limit. Automated discovery remains unimplemented; public fixtures are synthetic.
+The slice uses TOML 1.0 schema 4, lowercase UUIDv7 identities, original uniform names, equivalent flat/directory layouts, separate portable/local files, seven override layers, and validation with provenance. Workspace inspection and dedicated rename share Save's binding resolver; the configuration Adapter belongs to the Workspace Module. Explicit clears, Unicode filename encoding and comment-preserving rename remain accepted in ADR 0002; ADR 0005 refines Location behavior and Host-root context. Application writer locks, revision/hash checks, and targeted recovery keep rename narrow; arbitrary external-editor races remain a documented limit. Bounded local discovery/admission is accepted in [ADR 0004](../adr/0004-LOCAL-DISCOVERY-AND-INJECTION.md); public fixtures are synthetic.
 
-Next review synthetic standalone-directory and multi-installation cases, then add broader previewed edits with explicit revision/recovery limits. Keep filesystem use independent of Git and a running daemon. Accept breaking schema revisions without a migration subsystem; changes to existing files must still be deliberate and reviewable.
+Initialization, Host/source maintenance and limited reviewed edits are implemented in ADR 0008. Next define concrete additional edit intents with explicit revision/recovery limits. Keep filesystem use independent of Git and a running daemon. Accept breaking schema revisions without a migration subsystem; changes to existing files must still be deliberate and reviewable.
 
 Exit: a local CLI can inspect and rename an entity, then extend reviewed updates, explain its effective values, and reject a stale edit without losing user changes. Contract and stream behavior have focused regression tests.
 
 ### 2. Discovery admission and the first save workflow
 
-Define Game discovery/identity boundaries and their distinction from `save.discover`. Start with one bounded local source, streamed candidates, evidence, cancellation, and review before admission. After Steam/manual observations, expand to Epic, Xbox managed locations, and Ubisoft/EA cases. Preserve distinct source references when several launchers describe one installation. Use a second source fixture to verify deterministic merging and partial failure; do not change the existing single-request resolution rule implicitly.
+Game discovery is now distinct from `save.discover`: Steam and standalone Adapters implement bounded observations, completed candidate previews and explicit admission. Streaming updates remain future work. Effect 4.0.6 Layer composition and replaceable dependencies are documented in the [development guide](../004-DEVELOPMENT.md). Next expand to Epic, Xbox managed locations, and Ubisoft/EA cases. Preserve distinct source references when several launchers describe one installation. Use a second source fixture to verify deterministic merging and partial failure; do not change the existing single-request resolution rule implicitly.
 
 Connect save location discovery, export, filesystem storage, and explicit import/restore policies for one supported case. Handle multi-file streams and explain partial effects. Add conversion only when a concrete format pair defines its semantics. Evaluate Ludusavi-backed save knowledge as the next source; defer online metadata and AI until local review and admission work.
 
@@ -58,8 +58,30 @@ Exit: each delivery increment has a runnable scope, a published compatibility bo
 
 ## Decision and documentation policy
 
-Node 26 ESM entry modules export functions and use `import.meta.main` guards. Packages build separate tsdown JavaScript/declarations without bundling and export `dist`; shared composition is `@konogame/local-runtime`, and repository tooling is the `scripts/dev-cli` workspace. The oclif/clack CLI supports TTY menus and missing arguments while JSON/non-TTY runs never prompt. Vitest supplies tests. `just check` forwards to `pnpm check`, which runs build, typecheck, tests, and docs.
+Node 26 ESM entry modules export functions and use `import.meta.main` guards. Packages build separate tsdown JavaScript/declarations without bundling and export `dist`; CLI and daemon each compose owner Layers, and repository tooling is the `scripts/dev-cli` workspace. The Optique/clack CLI supports TTY menus and missing arguments while JSON/non-TTY runs never prompt. Vitest supplies tests. `just check` forwards to `pnpm check`, which runs build, typecheck, tests, and docs.
 
 Each implementation stage should produce a runnable vertical slice and focused tests against its acceptance targets. Keep proposed work in `roadmap/`, record durable accepted decisions in `adr/`, and document implemented experimental behavior in current topic documents. Preserve archived records as background; their Rust server, fixed plugin tiers, and mandatory daemon assumptions do not become requirements. Keep private observations in the lab and publish only synthetic or deliberately anonymized fixtures.
+
+## Location boundary update
+
+[ADR 0005](../adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md) completes generic Location envelopes, validated type/implementation registries and core-owned Workspace persistence in schema 4. Future managed integrations must add their own definitions and compatible behavior; marketplace/download, independent host isolation remain future work; explicit installed-root discovery is implemented. See the [Location guide](../005-LOCATION-AND-REGISTRIES.md) for current registration and version examples.
+
+## Lifecycle boundary
+
+Owner-level services, single-source contributions, lazy activation and safe live catalog changes are implemented in [ADR 0006](../adr/0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md). Next lifecycle work may add an independent host, marketplace integration only with concrete requirements; explicit installed-root discovery now complements bundled/injected sources.
+
+## Discovery and robustness follow-up
+
+Installed discovery, strict boundaries, consistent catalog commits, refresh deltas and bounded lifecycle waits are accepted in ADR 0007. Next prioritize persistent enablement only when cross-session selections are required; watcher, distribution and independent-host work need explicit policies and protocols. See [ADR 0007](../adr/0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md) and the [source comparison](../007-EXTENSION-SYSTEM-COMPARISON.md) for evidence and implementation triggers.
+
+## Workspace management increment
+
+[ADR 0008](../adr/0008-WORKSPACE-MANAGEMENT.md) implements existing-root initialization, Host/source/root maintenance, reviewed metadata/settings replacement and library list/show/explain. See the [management guide](../008-WORKSPACE-MANAGEMENT.md) for the finite supported intents and targeted recovery. These management operations do not grant discovery scope or mutate game resources. Next work remains asset backup/restore, optional configuration history, broader launcher integrations and UI; arbitrary editing/deletion and launch need separate contracts.
+
+## Test and task graph baseline
+
+[ADR 0010](../adr/0010-TEST-BOUNDARIES-AND-TASK-GRAPH.md) accepts purpose-based test boundaries, differentiated Vitest projects and Turborepo build prerequisites. Current validation distinguishes injected integration contracts from built executable Workspace workflows. Future vertical slices must extend the appropriate boundary with synthetic fixtures; the task graph prepares artifacts and never caches test success.
+
+Effect contracts, owner Layers, Scope lifetimes and Stream Artifacts are the current foundation under [ADR 0011](../adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md). Future integrations must implement protocol `0.2.0` (`>=0.2.0 <0.3.0`) and native Effect Ports. Schema 4 and release versions remain unchanged; future independent hosting still needs a separate decision.
 
 [English](001-INITIAL-ITERATIONS.md) | [中文](../../zh/roadmap/001-INITIAL-ITERATIONS.md)

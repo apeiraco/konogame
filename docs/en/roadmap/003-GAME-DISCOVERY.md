@@ -1,94 +1,63 @@
 # Game discovery and candidate admission
 
-Status: proposal, 2026-10-17. No Game Module or discovery pipeline is implemented. The existing `save.discover` definition is a contract boundary only. Feature names below are candidates, not CLI commands.
+Status: partially implemented, 2026-10-17. Steam and filesystem standalone discovery, read-only preview, explicit admission and targeted import recovery are implemented. [ADR 0004](../adr/0004-LOCAL-DISCOVERY-AND-INJECTION.md) records accepted decisions; the [experiment guide](../002-WORKSPACE-EXPERIMENT.md) documents exact CLI behavior and limits. `save.discover` remains a separate unimplemented contract. The rest of this document proposes later work.
 
-This proposal builds on the [current architecture](../001-ARCHITECTURE.md), [Workspace proposal](002-WORKSPACE-CONFIGURATION.md), and [iteration plan](001-INITIAL-ITERATIONS.md).
+## Implemented baseline
 
-## Intent inherited from the archive
+`@konogame/game` defines `game.discover` through `game.discovery/discover`. An existing configured Host/source selects the required source capability, and a Binding Plan checks the Contract, Operation and active implementation. `filesystem.game-discovery` handles standalone directories; `steam.game-discovery` is shipped by independently versioned `konogame.steam@0.1.0-alpha.0` with software compatibility `steam = "generic"`.
 
-Retain explicit initiation, bounded local discovery, optional network enrichment, engine rules, and optional AI assistance from the [old discovery design](../archive/005-DISCOVERY-ENGINE.md). Turn 15 of the [original discussion, available in Chinese](../../zh/archive/100-INIT-DISCUSSION-BACKUP.md) describes the intended user choices.
+Users explicitly provide scope. CLI resolves paths to absolute scope, defaults standalone depth to 1, accepts exact-directory depth 0 and relative prefix exclusions, and never infers scanning permission from Host roots or source declarations. Steam scans only selected libraries; `libraryfolders.vdf` references do not expand scope. Links, malformed manifests, missing/incomplete installations and access failures produce bounded failures or diagnostics. Data-only KeyValues parsing is limited and validated with synthetic fixtures, without an all-version Steam guarantee.
 
-Replace the fixed four-level, language-specific funnel with independently selectable stages. A filename or engine signature supplies evidence, not proof of a game's identity. An AI response supplies a candidate, not a verified location or permission to edit a Workspace.
+Preview returns candidate observations, evidence, diagnostics, dispositions and selected bindings without writing records. Directory candidates do not prove game identity; confirmation records the user's selected association. Candidate keys identify observations rather than Game entities. Reliable Steam App ID may reuse a Game; titles cannot merge Games. An equal Location on the same Host under another source is a conflict.
 
-## User intents and domain boundaries
+Admission strictly validates preview input, independently anchors root, re-reads revision and source evidence with the original bindings, and reconstructs validated records. The digest detects changes, not authenticated signatures; no TTL applies. Fresh duplicate previews can confirm unchanged; successfully consumed old previews become stale. New installations have empty `launchEntries`. Multi-file Game/Installation creation uses a shared writer lock, hashes and a journal with explicit forward recovery; it is not atomic or a general transaction API, and external modifications stop recovery. Existing Host/source bytes and comments remain intact. No network enrichment, executable discovery, launch or game-file mutation occurs.
 
-| Candidate Feature | Proposed owner | Result |
+## Proposed domain stages
+
+| Feature | Owner | Future result |
 | --- | --- | --- |
-| `game.discover` | Game Module | Candidate installations within explicitly selected sources or locations. |
-| `game.identify` | Game Module | Proposed identity and external-ID matches for candidates. |
-| `game.enrich` | Game Module | Proposed metadata, such as titles or artwork, with provenance. |
-| `save.discover` | Save Module | Candidate save or settings locations for a known game/installation. |
+| `game.identify` | Game Module | Reviewable identity proposals for ambiguous candidates. |
+| `game.enrich` | Game Module | Metadata/artwork proposals with provenance. |
+| `save.discover` | Save Module | Save/settings location candidates for a known game/installation. |
 
-Game Module owns the discovery workflow and game identity semantics. Save Module understands save locations and export semantics. Workspace services validate and persist admitted records. Admission can initially be an application command; it does not require a new public Feature for every internal step.
+Game discovery, identity and metadata stages should remain independently selectable. Workspace services validate and persist admitted records; Save owns save locations and export semantics. Broader source creation and editing need reviewed workflows, not implicit mutations during scanning. Keep Game identity separate from multiple local installations.
 
-A user may import a known store library, identify an already selected directory, or enrich an existing Game independently. Do not require every request to run all stages. Whether game-settings discovery stays in Save remains linked to the Workspace proposal.
+## Next discovery increments
 
-## Scope and execution flow
+Add progressive candidate delivery, cancellation feedback, bounded concurrency and per-source partial outcomes before durable scan sessions. Current results are a completed in-memory collection; streaming updates and restart checkpoints are future work. Keep first launch free of automatic discovery. A broader scan is an explicit user request.
 
-The proposed flow is select scope, collect candidates, identify/enrich as requested, review evidence and conflicts, then admit selected changes. A dry run ends with candidates and a proposed configuration diff.
+Add Epic, Xbox managed locations and Ubisoft/EA only with concrete local format fixtures. The current resolver selects one Adapter per request. Future multi-source workflows can make several requests and merge observations deterministically at the application boundary; a composite public plan requires its own contract decision. Preserve provenance, user corrections and conflicting identities. Completion order must not silently change results, and partial source failure must remain visible.
 
-The accepted schema uses Host `roots` only as arbitrary absolute-path aliases for `fs.relative` installation locations; `fs.absolute` is the default and `managed` references remain supported. Sources no longer have `roots`. Store libraries, scan roots, depth, and exclusions need an independently selected discovery scope; neither a source declaration nor a Host root authorizes scanning. Admission allocates lowercase UUIDv7 IDs and original `uniformName`; filename suffixes never establish identity. See [ADR 0002](../adr/0002-WORKSPACE-TOML-AND-TOOLING.md).
+Evaluate the [Ludusavi Manifest](https://github.com/mtkennerly/ludusavi-manifest) or a Ludusavi process Adapter for save-location knowledge. Neither upstream details nor registry semantics should leak into storage. Define typed save locators for filesystem paths/patterns and registry keys, with explicit platform/expansion context. Finding an expected path differs from verifying existing save data; export produces a streamed Artifact.
 
-Start no discovery automatically on first launch. The entry point should offer configured store libraries and selected folders first; a whole-disk request is an explicit broader scope. Specify traversal depth, exclusions, symbolic-link/reparse-point handling, and access-error reporting. Local-only mode does not contact metadata services or remote models. Network enrichment and local/remote AI have separately visible options.
+Online metadata and local/remote AI remain optional Adapters. Specify caching, rate handling, network policy and source-specific matching. A local-only request must never upload content through fallback. Scanned text is untrusted data; require schema-valid proposals, supporting evidence and an explicit unknown outcome. Model output cannot establish identity or authorize writes. A store SDK DLL or one title match is insufficient evidence.
 
-Enumerating configured Workspace members is distinct from searching unknown locations. Discovering a library must not execute candidate game binaries. Reading detailed files or registry locations should be limited to the selected task and its rules.
+## Review and remaining acceptance targets
 
-Stream candidate updates so users can inspect partial results and cancel. Keep stable candidate IDs within a session, bounded concurrency, and per-source failures. Cancellation leaves already displayed candidates available for review but does not admit them. Durable checkpoints and resume after process restart can follow a reliable initial session model.
+Future UI can group candidates, edit proposed fields, ignore/exclude observations and choose enrichment independently through the same application services. Ignoring a candidate must not remove existing Games. Decide observation retention, rule versions, source ranking and cross-source matching before durable indexing. Automated admission, whole-disk background indexing and durable jobs require separate policy decisions.
 
-## Candidate and evidence model
+- Preserve explicit scope and offline behavior as more sources arrive.
+- Keep deterministic merge/provenance and visible partial failure across several requests.
+- Preserve user corrections and distinguish contradictory Game identities from multiple installations.
+- Validate typed filesystem/registry save locators without coupling storage to them.
+- Keep writes reviewed and revision-aware; AI never bypasses admission checks.
 
-A candidate should contain a proposed entity kind, installation location when known, possible external identifiers, proposed fields, supporting evidence, and conflicts. Each observation records its source Adapter, rule/manifest version, relevant path or source reference, and observation time. Represent certainty as an explainable match category; do not present an arbitrary numerical score as a calibrated probability.
+See the [configuration proposal](002-WORKSPACE-CONFIGURATION.md), [iteration plan](001-INITIAL-ITERATIONS.md), [frontend proposal](004-FRONTEND-EXPERIENCE.md) and [historical discovery design](../archive/005-DISCOVERY-ENGINE.md).
 
-Separate observations from user-approved facts. User corrections take precedence unless the user explicitly accepts a replacement. Keep installation identity distinct from Game identity: two directories may be installations of the same game, and similar names may still describe different games or editions. Admission should be repeatable without duplicating an already admitted installation.
+## Location boundary update
 
-Save discovery needs typed locators, such as a filesystem path/pattern or a registry key, rather than forcing every location into a file-path string. Platform and expansion context must be explicit. An export Adapter interprets a locator and produces a streamed Artifact; storage Adapters remain unaware of registry semantics. Discovering an expected path is different from confirming that save data currently exists there.
+[ADR 0005](../adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md) makes candidate and installation locations generic values. All existing/candidate comparisons use bound behavior supporting both operands; fresh admission needs valid/comparable locations. Future non-filesystem sources must supply type definitions and compatible Adapters rather than inventing path strings or treating unknown comparison as different. See the [Location guide](../005-LOCATION-AND-REGISTRIES.md).
 
-## Multiple adapters and Binding Plans
+## Lifecycle boundary
 
-The [current binding ADR](../adr/0001-CAPABILITY-BINDING.md) selects one compatible Adapter per request. Keep that behavior explicit for the prototype. A future discovery workflow can issue several binding requests and merge observations at the Module/application layer; it must not rely on registration order to select one source and silently discard the rest.
+Discovery I/O is a Game-owned boundary. Steam obtains shared filesystem I/O from a declared active dependency scope; new sources follow [ADR 0006](../adr/0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md), with pure manifests/providers and lazy implementation modules. Registering a source does not authorize scanning or require eager activation.
 
-The workflow selects source roles according to platform, supported stores/engines, requested scope, network policy, and configured adapters. Capabilities describe support; policy determines eligibility. An explicit incompatible preference remains a reported failure. Binding Plans identify the selected implementations and unavailable source roles. A new composite-plan schema, if needed, requires a separate contract decision.
+## Discovery and robustness follow-up
 
-Proposed merge policy: preserve provenance; prefer explicit user decisions and verified identifiers over filename heuristics; apply field-specific source preferences; report contradictory evidence rather than silently replacing it. Results should remain deterministic for the same evidence and policy regardless of adapter completion order. Losing one optional source should report a partial result, not erase observations from successful sources.
+Installed Extension discovery is separate from game discovery and never authorizes game scanning. Future source watchers need partial-write/error policies; they must preserve explicit Host/source/scope and admission review. See [ADR 0007](../adr/0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md) and the [source comparison](../007-EXTENSION-SYSTEM-COMPARISON.md) for evidence and implementation triggers.
 
-## Adapter and rule strategy
+## Workspace management increment
 
-Begin with explicitly configured store libraries and local directory rules. Keep engine signatures and save-location rules independently versioned from core, with fixtures for representative directory layouts. Cache rule versions so a diagnosis can explain which data was used. Cloud-save support, an installed game, and a successfully located local save are separate observations.
-
-Prefer reuse of existing save knowledge through a Ludusavi Extension. The [Ludusavi Manifest](https://github.com/mtkennerly/ludusavi-manifest) describes files, registry entries, platform/store conditions, and identifiers; its primary data is compiled from PCGamingWiki with Steam information. It is designed for other backup tools to implement. Evaluate invoking Ludusavi and consuming its manifest as alternative Adapter implementations; neither path should leak upstream format details into core. Source reference reviewed on 2026-10-17.
-
-Online metadata sources should enter through their own Adapters with caching, rate handling, and source-specific matching. Prefer documented interfaces when available. A store SDK DLL, a directory name, or one third-party title match alone must not establish a final identity.
-
-## AI-assisted discovery
-
-AI is an optional adapter for ambiguous names, manual/readme interpretation, or suggested save locations. Its runtime may be TypeScript, a Python tool, or a local/remote model endpoint. The domain contract does not require a bundled model or a particular language.
-
-Treat scanned text as source data, never executable instructions. Require schema-conforming proposals with supporting excerpts or references and an explicit unknown result when evidence is insufficient. Validate suggested paths against the allowed context and check existence where possible; retain uncertainty when a game has not created its saves yet. A local-only request must not upload content through an AI fallback.
-
-The same admission service handles rule-derived and AI-derived changes. Reviewable results and user corrections should be available without AI. Automatic admission policies, if later needed, require explicit scope and conflict behavior; they are not part of the first delivery.
-
-## Admission and user experience
-
-The review presents candidate groups, source evidence, unresolved matches, and the Workspace changes that would result. Users can accept, edit, ignore, or exclude candidates and choose enrichment separately. Ignoring a candidate should not remove an existing Game.
-
-Admission validates the target Workspace revision as described in the [configuration proposal](002-WORKSPACE-CONFIGURATION.md). If configuration changed during discovery, recompute the diff and report conflicts before writing. Store approved associations and relevant provenance; the separate retention policy for verbose scan observations remains open. Admission does not launch games, apply patches, move saves, or perform backups.
-
-The [frontend proposal](004-FRONTEND-EXPERIENCE.md) covers progressive results and tasks. CLI and UI should expose the same candidate IDs, review decisions, and errors through shared application services.
-
-## First delivery and open decisions
-
-Deliver one bounded local discovery source plus a fake second adapter in contract fixtures to exercise merge behavior. Support explicit review and revision-aware admission before online enrichment. Add a Ludusavi-based save locator next, then optional metadata and AI adapters.
-
-Build on the accepted UUIDv7, original uniform-name, and installation-location rules; resolve cross-source identity matching, save locator representation, provenance storage, cancellation boundaries, source ranking, and whether multiple bindings need a public aggregate contract. Contract fixtures should test semantic results rather than vendor-specific output shapes. Broad background indexing and all-disk automation remain later policy decisions.
-
-## Acceptance targets
-
-- First launch performs no unrequested discovery; local-only sessions make no network requests.
-- A bounded scan can be cancelled and report inaccessible directories without changing Workspace records.
-- Two adapters reporting one installation merge evidence; ambiguous identities and distinct installations remain distinguishable.
-- Results are stable when adapter completion order changes, and partial source failure remains visible.
-- Filesystem and registry save locators can both be represented without forcing storage to understand either.
-- Review protects existing user corrections, and repeat admission does not duplicate records.
-- A changed Workspace revision prevents stale admission; AI output alone never bypasses validation and review.
+[ADR 0008](../adr/0008-WORKSPACE-MANAGEMENT.md) implements existing-root initialization, Host/source/root maintenance, reviewed metadata/settings replacement and library list/show/explain. See the [management guide](../008-WORKSPACE-MANAGEMENT.md) for the finite supported intents and targeted recovery. These management operations do not grant discovery scope or mutate game resources. Next work remains asset backup/restore, optional configuration history, broader launcher integrations and UI; arbitrary editing/deletion and launch need separate contracts.
 
 [English](003-GAME-DISCOVERY.md) | [中文](../../zh/roadmap/003-GAME-DISCOVERY.md)

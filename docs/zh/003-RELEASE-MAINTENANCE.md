@@ -4,9 +4,9 @@
 
 ## 版本与兼容性
 
-所有 Core 可执行程序与包共享 `project.version`：仓库根、contracts、Workspace、Save、application、共享运行时、CLI、Daemon 和 dev-cli。每个 `[[extension]]` 独立维护 `version`；Core 升版不会修改 Extension 版本。初始版本号相同，不代表发布节奏绑定。
+所有 Core 可执行程序与包共享 `project.version`：仓库根、contracts、Workspace、Save、application、应用组装、CLI、Daemon 和 dev-cli。每个 `[[extension]]` 独立维护 `version`；Core 升版不会修改 Extension 版本。初始版本号相同，不代表发布节奏绑定。
 
-Contract **协议**目前保持 `0.1.0`，与软件包发行号分开。Core 和 filesystem Extension 声明 `>=0.1.0 <0.2.0`，因此 npm 包 `@konogame/contracts@0.1.0-alpha.0` 与其描述的协议版本是两件事。Module 与 Adapter 声明 `contractRange`，解析时先用 SemVer 检查当前协议是否在范围内，再执行操作。Binding Plan 保留实际 `contractVersion` 和选中 Adapter 的范围。非法或不兼容范围不可用，显式偏好不会回退。预发布协议版本必须按普通 SemVer 规则由范围显式接纳。
+Contract **协议**为 `0.2.0`，与软件包发行号分开。Core 和内置 Extension 声明 `>=0.2.0 <0.3.0`，因此 npm 包 `@konogame/contracts@0.1.0-alpha.0` 与其描述的协议版本是两件事。Module 与 Adapter 声明 `contractRange`，解析时先用 SemVer 检查当前协议是否在范围内，再执行操作。Binding Plan 保留实际 `contractVersion` 和选中 Adapter 的范围。非法或不兼容范围不可用，显式偏好不会回退。预发布协议版本必须按普通 SemVer 规则由范围显式接纳。 Effect Port/Artifact/Extension API 的破坏性变化要求协议升版；core 与 Extension 发布版本仍为 `0.1.0-alpha.0`。不提供旧 Promise/DI 兼容层；Schema 4 与 `extension.package.1` 数据布局不变。参见 [ADR 0011](adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md)。
 
 Extension 对应软件的兼容性直接写在自己的 `software` 映射中，取值为：
 

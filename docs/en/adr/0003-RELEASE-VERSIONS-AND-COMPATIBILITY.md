@@ -1,5 +1,7 @@
 # ADR 0003: Release versions and Contract compatibility
 
+> Protocol update: [ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) changes the current Contract protocol to `0.2.0` and range to `>=0.2.0 <0.3.0`. Original version examples below preserve the decision at its date; release/version ownership and Location/schema rules remain.
+
 Status: accepted, 2026-10-17. Refines the release and exact-version assumptions in [ADR 0001](0001-CAPABILITY-BINDING.md).
 
 ## Decision
@@ -12,7 +14,7 @@ Software compatibility belongs to each Extension's `software` map, using a SemVe
 
 ## Sources and maintenance
 
-`konogame-metadata.toml` owns project/release identity, package inventory, protocol/range declarations, and Extension metadata. dev-cli synchronizes manifests/generated runtime sources, sets core or selected Extension versions independently, validates drift/compatibility, and extracts exact bilingual changelog sections. English changelog is a root canonical source with a tracked relative symlink projection; translations are regular files.
+`konogame-metadata.toml` owns project/release identity, package inventory, protocol/range declarations, and Extension metadata. dev-cli synchronizes manifests/generated release sources, sets core or selected Extension versions independently, validates drift/compatibility, and extracts exact bilingual changelog sections. English changelog is a root canonical source with a tracked relative symlink projection; translations are regular files.
 
 These are local maintenance commands. Publishing, signing, packaging, and registry/tag policy require their own concrete delivery work. See the [release guide](../003-RELEASE-MAINTENANCE.md).
 

@@ -2,6 +2,8 @@
 
 Status: accepted for the initial skeleton (2026-10-17).
 
+Later refinements: [ADR 0005](0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md) adds Module/Extension Adapter ownership; [ADR 0006](0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md) implements core-owned lazy activation and asynchronous binding. The deferred-loading statement below records the original slice, while capability negotiation remains effective.
+
 ## Context
 
 `save.store` must remain a user-visible task even when one adapter has version history and another merely copies files. Calling versioning a sub-feature would blur the boundary between an optional adapter property and a separately requested workflow.

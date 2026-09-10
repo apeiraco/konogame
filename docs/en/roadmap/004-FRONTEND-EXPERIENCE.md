@@ -12,7 +12,7 @@ Replace fixed library versions and blanket rules against native DOM focus with a
 
 ## Implemented CLI baseline
 
-[ADR 0002](../adr/0002-WORKSPACE-TOML-AND-TOOLING.md) accepts `@oclif/core` explicit commands with `@clack/prompts` TTY assistance. A TTY session without a command offers a menu and can request missing arguments. Flags > environment > TTY determines interaction; `--non-interactive`, `--interactive=false`, or `INTERACTIVE=false` disables prompts. JSON/non-TTY runs never prompt and cancellation performs no write. `workspace rename <root> <id> <name>` is the narrow current editing workflow, preserving comments, UUID references, and layout while reporting conflicts/recovery requirements. A graphical editor and discovery review remain proposed.
+[ADR 0002](../adr/0002-WORKSPACE-TOML-AND-TOOLING.md) accepts Optique command parsers with `@clack/prompts` TTY assistance. A TTY session without a command offers a menu and can request missing arguments. Flags > environment > TTY determines interaction; `--non-interactive`, `--interactive=false`, or `INTERACTIVE=false` disables prompts. JSON/non-TTY runs never prompt and cancellation performs no write. `workspace rename <root> <id> <name>` is the dedicated uniform-name workflow, preserving comments, UUID references, and layout while reporting conflicts/recovery requirements. CLI discovery review is now available as read-only `game discover` JSON plus selected `game import --yes`, with explicit `workspace recover-import --yes` for pending journals. [ADR 0004](../adr/0004-LOCAL-DISCOVERY-AND-INJECTION.md) records current scope; graphical editing/review remain proposed. No launch entry discovery is implemented.
 
 ## Two modes, shared actions
 
@@ -96,5 +96,19 @@ Decide the first host and packaging, application-client transport, task lifetime
 - Reconnecting to a running task host restores task state without creating a duplicate operation; the supported lifetime is visible.
 - Completion notifications offer explicit actions and do not launch games automatically or steal focus.
 - Reduced-motion settings and missing artwork remain usable; derived artwork can be distinguished from its source.
+
+## Location boundary update
+
+Present the original Location and its validation, availability, reasons and Binding Plan, as specified in [ADR 0005](../adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md). Unknown types/schemas stay visible and preserved; a path is optional because resolution may return a non-path typed resource. Explain unknown/incomparable comparisons and block fresh admission until required behavior is available. Configuration inspection and approved journal recovery remain usable without Location registration. See the [Location guide](../005-LOCATION-AND-REGISTRIES.md).
+
+## Lifecycle boundary
+
+Use core read-only catalog/activation observables and diagnostics to distinguish declared, inactive, blocked, failed and active implementations. Present `restart-service-required` without implying automatic or Extension-only reload. [ADR 0006](../adr/0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md) supplies lifecycle APIs; marketplace/download and installation UI remain future work.
+
+## Discovery and robustness follow-up
+
+Catalog list/status/refresh and structured phase diagnostics are implemented. Future UI must show incomplete cleanup and restart requirements without implying code was killed; installation/marketplace UI, persisted enablement and independent-host controls remain separate work. See [ADR 0007](../adr/0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md) and the [source comparison](../007-EXTENSION-SYSTEM-COMPARISON.md) for evidence and implementation triggers.
+
+Workspace initialization, reviewed single-record edits, library queries and settings explanation are now available in the CLI; [ADR 0008](../adr/0008-WORKSPACE-MANAGEMENT.md) and the [management guide](../008-WORKSPACE-MANAGEMENT.md) define their review and recovery boundaries. Future graphical UI should reuse these services and distinguish preview/apply unavailable, unchanged, conflict and recovery-required without implying general undo.
 
 [English](004-FRONTEND-EXPERIENCE.md) | [中文](../../zh/roadmap/004-FRONTEND-EXPERIENCE.md)

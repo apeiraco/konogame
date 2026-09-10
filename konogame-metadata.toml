@@ -11,8 +11,8 @@ repository_url = "https://github.com/apeiraco/konogame"
 
 # Protocol versions evolve separately from npm package release versions.
 [contract]
-version = "0.1.0"
-supported_range = ">=0.1.0 <0.2.0"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
 package = "@konogame/contracts"
 source = "packages/contracts/src/version.ts"
 
@@ -33,20 +33,28 @@ name = "@konogame/contracts"
 manifest = "packages/contracts/package.json"
 
 [[core_package]]
+name = "@konogame/infrastructure"
+manifest = "packages/infrastructure/package.json"
+
+[[core_package]]
+name = "@konogame/extension-discovery-node"
+manifest = "packages/extension-discovery-node/package.json"
+
+[[core_package]]
 name = "@konogame/workspace"
 manifest = "packages/workspace/package.json"
 
 [[core_package]]
+name = "@konogame/workspace-configuration"
+manifest = "packages/workspace-configuration/package.json"
+
+[[core_package]]
+name = "@konogame/game"
+manifest = "packages/game/package.json"
+
+[[core_package]]
 name = "@konogame/save"
 manifest = "packages/save/package.json"
-
-[[core_package]]
-name = "@konogame/application"
-manifest = "packages/application/package.json"
-
-[[core_package]]
-name = "@konogame/local-runtime"
-manifest = "apps/shared/package.json"
 
 [[core_package]]
 name = "@konogame/cli"
@@ -66,6 +74,15 @@ id = "konogame.filesystem"
 package = "@konogame/extension-filesystem"
 manifest = "extensions/filesystem/package.json"
 version = "0.1.0-alpha.0"
-contract_range = ">=0.1.0 <0.2.0"
+contract_range = ">=0.2.0 <0.3.0"
 source = "extensions/filesystem/src/metadata.ts"
 software = { node = ">=26" }
+
+[[extension]]
+id = "konogame.steam"
+package = "@konogame/extension-steam"
+manifest = "extensions/steam/package.json"
+version = "0.1.0-alpha.0"
+contract_range = ">=0.2.0 <0.3.0"
+source = "extensions/steam/src/metadata.ts"
+software = { steam = "generic" }

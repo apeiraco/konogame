@@ -1,14 +1,17 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "./tsconfig.test-base.json",
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "./dist-tsc/test",
     "tsBuildInfoFile": "./dist-tsc/test.tsbuildinfo"
   },
   "files": [],
-  "include": ["tests/e2e/**/*.test.ts", "tests/support/**/*.ts"],
-  "exclude": ["node_modules", "dist", "dist-tsc", "projections"],
+  "include": ["tests/e2e/**/*.test.ts", "tests/integration/**/*.test.ts"],
+  "exclude": ["node_modules", "dist", "dist-tsc", "projections", "tests/support/**"],
   "references": [
+    {
+      "path": "./tests/support/tsconfig.json"
+    },
     {
       "path": "./packages/contracts/tsconfig.test.json"
     },
@@ -19,13 +22,10 @@
       "path": "./packages/save/tsconfig.test.json"
     },
     {
-      "path": "./packages/application/tsconfig.test.json"
-    },
-    {
       "path": "./extensions/filesystem/tsconfig.test.json"
     },
     {
-      "path": "./apps/shared/tsconfig.test.json"
+      "path": "./apps/cli/tsconfig.app.json"
     },
     {
       "path": "./apps/cli/tsconfig.test.json"
@@ -35,6 +35,21 @@
     },
     {
       "path": "./scripts/dev-cli/tsconfig.test.json"
+    },
+    {
+      "path": "./packages/game/tsconfig.test.json"
+    },
+    {
+      "path": "./extensions/steam/tsconfig.test.json"
+    },
+    {
+      "path": "./packages/workspace-configuration/tsconfig.test.json"
+    },
+    {
+      "path": "./packages/infrastructure/tsconfig.test.json"
+    },
+    {
+      "path": "./packages/extension-discovery-node/tsconfig.test.json"
     }
   ]
 }

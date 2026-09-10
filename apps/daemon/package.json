@@ -4,9 +4,19 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@konogame/local-runtime": "workspace:*",
-    "@oclif/core": "^5.1.8",
-    "@konogame/contracts": "workspace:*"
+    "@optique/core": "catalog:",
+    "@optique/run": "catalog:",
+    "@konogame/contracts": "workspace:*",
+    "@konogame/infrastructure": "workspace:*",
+    "@konogame/game": "workspace:*",
+    "@konogame/save": "workspace:*",
+    "@konogame/workspace": "workspace:*",
+    "@konogame/workspace-configuration": "workspace:*",
+    "@konogame/extension-filesystem": "workspace:*",
+    "@konogame/extension-steam": "workspace:*",
+    "@konogame/extension-discovery-node": "workspace:*",
+    "effect": "catalog:",
+    "@effect/platform-node": "catalog:"
   },
   "scripts": {
     "build": "tsdown"
@@ -28,7 +38,7 @@
   },
   "konogame": {
     "releaseGroup": "core",
-    "contractRange": ">=0.1.0 <0.2.0"
+    "contractRange": ">=0.2.0 <0.3.0"
   },
   "bin": {
     "konogame-daemon": "./dist/main.js"

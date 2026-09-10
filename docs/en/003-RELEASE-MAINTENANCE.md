@@ -1,18 +1,18 @@
 # 03 Release metadata and maintenance
 
-`konogame-metadata.toml` is the canonical source for project identity, the core version, Contract protocol version/range, managed package inventory, and independently versioned Extensions. Package manifests and generated runtime metadata are projections maintained by dev-cli. The release commands prepare local files; registry publishing and Git tags are separate delivery work.
+`konogame-metadata.toml` is the canonical source for project identity, the core version, Contract protocol version/range, managed package inventory, and independently versioned Extensions. Package manifests and generated release metadata are projections maintained by dev-cli. The release commands prepare local files; registry publishing and Git tags are separate delivery work.
 
 ## Versions and compatibility
 
-All core binaries and packages share `project.version`: the repository root, contracts, Workspace, Save, application, shared runtime, CLI, daemon, and dev-cli. Each `[[extension]]` owns its own `version`; changing the core version does not change an Extension version. Equal initial numbers do not couple their release schedules.
+All core binaries and packages share `project.version`: the repository root, contracts, Workspace, Save, application, application composition, CLI, daemon, and dev-cli. Each `[[extension]]` owns its own `version`; changing the core version does not change an Extension version. Equal initial numbers do not couple their release schedules.
 
-The Contract **protocol** currently remains `0.1.0`, independently of the package release number. Core and the filesystem Extension declare `>=0.1.0 <0.2.0`. This distinguishes the npm package `@konogame/contracts@0.1.0-alpha.0` from the protocol it describes. Modules and Adapters declare `contractRange`; resolution checks it against the actual protocol using SemVer before any operation executes. Binding Plans retain the actual `contractVersion` and the selected Adapter range. Invalid/incompatible ranges are unavailable, and explicit preferences never fall back. Prerelease protocol versions require a range that explicitly admits them under ordinary SemVer rules.
+The Contract **protocol** is `0.2.0`, independently of the package release number. Core and bundled Extensions declare `>=0.2.0 <0.3.0`. This distinguishes the npm package `@konogame/contracts@0.1.0-alpha.0` from the protocol it describes. Modules and Adapters declare `contractRange`; resolution checks it against the actual protocol using SemVer before any operation executes. Binding Plans retain the actual `contractVersion` and the selected Adapter range. Invalid/incompatible ranges are unavailable, and explicit preferences never fall back. Prerelease protocol versions require a range that explicitly admits them under ordinary SemVer rules. The Effect Port/Artifact/Extension API break requires the protocol bump; core and Extension release versions remain `0.1.0-alpha.0`. There is no old Promise/DI compatibility layer. Schema 4 and `extension.package.1` data layout are unchanged. See [ADR 0011](adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md).
 
 Extension software compatibility belongs to its `software` map. Its values are:
 
 | Value | Meaning |
 | --- | --- |
-| SemVer range, such as `>=26` | A declared software/runtime constraint. |
+| SemVer range, such as `>=26` | A declared software constraint. |
 | `latest` | Version is unpinned or insufficiently tested; it is not a promise that every version works. |
 | `generic` | The adapter targets a protocol or format without a software release-number constraint. |
 

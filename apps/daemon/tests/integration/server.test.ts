@@ -1,30 +1,32 @@
+import { expect, it } from "@effect/vitest";
 import { startDaemon } from "@konogame/daemon";
-import { expect, test } from "vitest";
+import { Effect } from "effect";
 
-test("daemon exposes health and planning on an ephemeral local port", async () => {
-  const server = await startDaemon({ port: 0 });
-  try {
+it.live("daemon exposes health and planning on an ephemeral local port", () =>
+  Effect.gen(function* () {
+    const server = yield* startDaemon({ port: 0 });
     const address = server.address();
     if (!address || typeof address === "string") throw new Error("Expected TCP listener");
     const base = `http://127.0.0.1:${address.port}`;
-    expect(await (await fetch(`${base}/health`)).json()).toEqual({ status: "ok" });
-    expect(
-      (
-        (await (await fetch(`${base}/plan?feature=save.store`)).json()) as {
-          bindings: { adapterId: string }[];
-        }
-      ).bindings[0]?.adapterId
-    ).toBe("filesystem.save-store");
-    expect((await fetch(`${base}/plan?feature=unknown`)).status).toBe(400);
-    expect((await fetch(`${base}/missing`)).status).toBe(404);
-  } finally {
-    await new Promise<void>((resolve, reject) =>
-      server.close((error) => (error ? reject(error) : resolve()))
-    );
-  }
-});
+    const json = (path: string) =>
+      Effect.promise(async () => (await fetch(`${base}${path}`)).json());
+    expect(yield* json("/health")).toEqual({ status: "ok" });
+    expect(yield* json("/plan?feature=save.store")).toMatchObject({
+      bindings: [{ adapterId: "filesystem.save-store" }]
+    });
+    expect((yield* Effect.promise(() => fetch(`${base}/plan?feature=unknown`))).status).toBe(400);
+    expect((yield* Effect.promise(() => fetch(`${base}/missing`))).status).toBe(404);
+  })
+);
 
-test("daemon rejects invalid ports before creating a listener", async () => {
-  for (const port of [-1, 65536, NaN, 1.5])
-    await expect(startDaemon({ port })).rejects.toThrow(/port/);
-});
+it.effect("daemon rejects invalid ports before creating a listener", () =>
+  Effect.gen(function* () {
+    for (const port of [-1, 65536, NaN, 1.5]) {
+      const result = yield* Effect.result(startDaemon({ port }));
+      expect(result).toMatchObject({
+        _tag: "Failure",
+        failure: { _tag: "DaemonError", message: expect.stringContaining("port") }
+      });
+    }
+  })
+);

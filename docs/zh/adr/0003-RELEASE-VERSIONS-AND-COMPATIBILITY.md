@@ -1,5 +1,7 @@
 # ADR 0003：发行版本与 Contract 兼容性
 
+> 协议更新：[ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 将当前 Contract 协议改为 `0.2.0`、范围 `>=0.2.0 <0.3.0`。下文原始版本示例保留决策当时事实，发布版本归属与 Location/Schema 规则继续有效。
+
 状态：已采纳，2026-10-17。细化 [ADR 0001](0001-CAPABILITY-BINDING.md) 中的发行策略与精确版本假设。
 
 ## 决策
@@ -12,7 +14,7 @@ Module、Extension 和 Adapter 声明 `contractRange`。应用拒绝不兼容的
 
 ## 真源与维护
 
-`konogame-metadata.toml` 管理项目/发行身份、包清单、协议/兼容范围和 Extension metadata。dev-cli 同步 manifest/生成的运行时源码，分别设置 Core 或指定 Extension 的版本，检查漂移/兼容性，并提取准确的双语 changelog 小节。英文 changelog 以仓库根文件为真源，通过受跟踪的相对符号链接投影；翻译为普通文件。
+`konogame-metadata.toml` 管理项目/发行身份、包清单、协议/兼容范围和 Extension metadata。dev-cli 同步 manifest/生成的发行源码，分别设置 Core 或指定 Extension 的版本，检查漂移/兼容性，并提取准确的双语 changelog 小节。英文 changelog 以仓库根文件为真源，通过受跟踪的相对符号链接投影；翻译为普通文件。
 
 这些命令仅处理本地维护。发布、签名、打包、仓库/tag 策略需要后续具体交付方案。用法见[发布指南](../003-RELEASE-MAINTENANCE.md)。
 

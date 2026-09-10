@@ -10,7 +10,7 @@ setup:
     mise install
     pnpm install
 
-# Build workspace packages into their dist artifacts.
+# Build workspace packages through the Turbo dependency graph and local cache.
 build:
     pnpm build
 
@@ -28,12 +28,13 @@ lint *args:
 format *args:
     pnpm format {{recipe_args}}
 
-# Build, then run Vitest. Filter with --project unit, integration, or e2e.
+# Run Vitest with graph-scheduled builds. Filter with --project unit, integration, or e2e.
+# Slice a CI run with --shard=1/N; each slice still waits for one cached ^build.
 [positional-arguments]
 test *args:
     pnpm test {{recipe_args}}
 
-# Lint, build, typecheck, test, and validate docs and release metadata.
+# Schedule lint, build, typecheck, tests, docs, and release checks through Turbo.
 check:
     pnpm check
 

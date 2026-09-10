@@ -11,13 +11,22 @@
       "path": "./packages/save/tsconfig.lib.json"
     },
     {
-      "path": "./packages/application/tsconfig.lib.json"
-    },
-    {
       "path": "./extensions/filesystem/tsconfig.lib.json"
     },
     {
-      "path": "./apps/shared/tsconfig.lib.json"
+      "path": "./packages/game/tsconfig.lib.json"
+    },
+    {
+      "path": "./extensions/steam/tsconfig.lib.json"
+    },
+    {
+      "path": "./packages/workspace-configuration/tsconfig.lib.json"
+    },
+    {
+      "path": "./packages/infrastructure/tsconfig.lib.json"
+    },
+    {
+      "path": "./packages/extension-discovery-node/tsconfig.lib.json"
     }
   ]
 }

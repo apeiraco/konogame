@@ -543,7 +543,7 @@ name = "Mtool Hook Injector"
 version = "1.0.0"
 author = "Community"
 
-[runtime]
+[program]
 
 # 告诉 Rust 如何拉起这个插件
 

@@ -1,6 +1,6 @@
 # 初始迭代计划
 
-状态：迭代计划，更新于 2026-10-17。当前实现包括 TypeScript 契约/应用骨架、流式 filesystem save-store、CLI/Daemon 原型和[TOML Workspace 检查/重命名实验](../002-WORKSPACE-EXPERIMENT.md)。更广泛的 Workspace 编辑、游戏发现、配置历史、图形 UI 和持久任务尚未实现。实验 Schema/API 允许 breaking change，不实现历史 migration 或向后兼容层。
+状态：迭代计划，更新于 2026-10-17。当前实现包括 TypeScript 契约/应用骨架、流式 filesystem save-store、CLI/Daemon 原型和[TOML Workspace 检查/重命名实验](../002-WORKSPACE-EXPERIMENT.md)。有界 Steam/散装发现、预览录入与显式导入恢复也已实现。ADR 0008 已实现初始化、有限审核 Workspace 编辑和游戏库维护；任意编辑、配置历史、图形 UI 和持久任务仍未实现。实验 Schema/API 允许 breaking change，不实现历史 migration 或向后兼容层。
 
 ## 提案索引
 
@@ -18,15 +18,15 @@
 
 围绕首批流程完善错误类型、取消、进度、流所有权、带参数的 Capability、当前契约检查和 Extension 清单校验。增加完整 Binding Plan 检查，保留显式偏好不兼容时的可见失败；实验期间不搭建向后兼容框架。
 
-当前切片采用 TOML 1.0 Schema 3、小写 UUIDv7 身份、原文统一名、等价平铺/目录布局、便携/本机文件分离、七层覆盖及带来源校验。Workspace 检查与专用重命名复用 Save 的绑定解析器和 Extension/Adapter 描述。ADR 0002 已采纳显式清除、任意 Host 根别名、类型化安装位置、Unicode 文件名编码及保留注释的重命名。应用写入锁、修订/哈希检查和定向恢复限定重命名范围，任意外部编辑器竞争仍有明确限制。自动发现尚未实现，公开夹具使用合成数据。
+当前切片采用 TOML 1.0 Schema 4、小写 UUIDv7 身份、原文统一名、等价平铺/目录布局、便携/本机文件分离、七层覆盖及带来源校验。Workspace 检查与专用重命名复用 Save 的绑定解析器，配置 Adapter 属于 Workspace Module。ADR 0002 中显式清除、Unicode 文件名编码及保留注释的重命名继续有效；ADR 0005 调整 Location 行为和 Host 根上下文。应用写入锁、修订/哈希检查和定向恢复限定重命名范围，任意外部编辑器竞争仍有明确限制。有界本地发现/录入已由 [ADR 0004](../adr/0004-LOCAL-DISCOVERY-AND-INJECTION.md) 采纳，公开夹具使用合成数据。
 
-下一步审核合成散装目录和多安装案例，再增加更广泛的可预览编辑并说明修订/恢复限制。filesystem 使用不依赖 Git 或运行中的 Daemon。接受破坏性的 Schema 调整，不建立 migration 子系统；修改已有文件仍需明确且可审核。
+初始化、来源/Host 维护及有限审核编辑已由 ADR 0008 实现；下一步按具体意图扩展并明确修订/恢复限制。filesystem 使用不依赖 Git 或运行中的 Daemon。接受破坏性的 Schema 调整，不建立 migration 子系统；修改已有文件仍需明确且可审核。
 
 完成条件：本地 CLI 能查看和重命名实体，随后扩展可审核更新、解释有效值，并拒绝过期编辑而不丢失用户改动；契约与流行为有针对性的回归测试。
 
 ### 2. 发现录入与首个存档流程
 
-定义 Game 发现/身份边界及其与 `save.discover` 的区别。先支持一个有范围的本地来源、流式候选、证据、取消和录入前审核。Steam/manual 观察之后扩展到 Epic、Xbox 受管位置及 Ubisoft/EA 场景；多个启动器描述同一安装时保留各自来源引用。用第二个来源的夹具验证确定性合并与部分失败，不隐式改变当前单请求解析规则。
+Game 发现现已与 `save.discover` 区分：Steam 与散装 Adapter 实现有界观察、完成后的候选预览与显式录入；流式更新仍待实现。Effect 4.0.6 Layer 组装与可替换依赖见[开发指南](../004-DEVELOPMENT.md)。下一步扩展到 Epic、Xbox 受管位置及 Ubisoft/EA 场景；多个启动器描述同一安装时保留各自来源引用。用第二个来源的夹具验证确定性合并与部分失败，不隐式改变当前单请求解析规则。
 
 针对一个支持的场景串联存档位置发现、导出、filesystem 存储与显式导入/恢复策略，处理多文件流并说明部分生效的影响。有明确格式对及语义后再增加转换。下一步评估基于 Ludusavi 的存档知识；联网元数据与 AI 在本地审核和录入流程可用后推进。
 
@@ -58,8 +58,30 @@
 
 ## 决策与文档规则
 
-Node 26 ESM 入口导出函数并使用 `import.meta.main` 守卫。各包通过 tsdown 非打包构建独立 JavaScript/声明并导出 `dist`；共享组装为 `@konogame/local-runtime`，仓库工具为 `scripts/dev-cli` workspace。oclif/clack CLI 支持 TTY 菜单与补问，JSON/非 TTY 执行不提示。测试使用 Vitest。`just check` 转发到 `pnpm check`，执行构建、类型检查、测试和文档检查。
+Node 26 ESM 入口导出函数并使用 `import.meta.main` 守卫。各包通过 tsdown 非打包构建独立 JavaScript/声明并导出 `dist`；CLI 与 Daemon 各自组装所有者 Layer，仓库工具为 `scripts/dev-cli` workspace。Optique/clack CLI 支持 TTY 菜单与补问，JSON/非 TTY 执行不提示。测试使用 Vitest。`just check` 转发到 `pnpm check`，执行构建、类型检查、测试和文档检查。
 
 每个实施阶段应形成可运行的纵向切片，并围绕验收目标提供针对性测试。未来设计保留在 `roadmap/`，持久的已采纳决策进入 `adr/`，已实现实验行为记录到当前主题文档。历史记录继续作为背景保留，其中 Rust 服务端、固定插件层级和强制 Daemon 等假设不自动成为需求。私人观察留在实验仓库，只公开合成或经过有意脱敏的夹具。
+
+## 位置边界更新
+
+[ADR 0005](../adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)已完成 Schema 4 通用 Location 封装、校验型类型/运行注册表及核心 Workspace 持久化归属。未来受管集成需要自己的定义和兼容行为；marketplace/下载、独立 host 隔离仍待实现，显式安装根发现已实现。当前注册及版本示例见 [Location 指南](../005-LOCATION-AND-REGISTRIES.md)。
+
+## 生命周期边界
+
+Owner 服务归属、单来源贡献、惰性激活与安全运行期目录变更已由 [ADR 0006](../adr/0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md)实现。后续按具体需求增加独立 host、marketplace 集成；显式安装根发现现已补充内置/注入 source。
+
+## 发现与稳健性后续
+
+已安装发现、严格边界、一致目录提交、refresh 差异和有界生命周期等待已由 ADR 0007 采纳。跨会话选择有需求时再优先设计持久启停；watcher、分发和独立 host 需要明确策略/协议。证据及实施触发条件见 [ADR 0007](../adr/0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md)和[源码对照](../007-EXTENSION-SYSTEM-COMPARISON.md)。
+
+## Workspace 管理增量
+
+[ADR 0008](../adr/0008-WORKSPACE-MANAGEMENT.md)已实现已有根初始化、Host/source/root 维护、审核元数据/settings 替换及游戏库 list/show/explain。有限意图及定向恢复见[管理指南](../008-WORKSPACE-MANAGEMENT.md)。管理操作不授予发现范围，不修改游戏资源；下一步仍是资产备份/恢复、可选配置历史、更多启动器和 UI，任意编辑/删除与启动需独立契约。
+
+## 测试与任务图基线
+
+[ADR 0010](../adr/0010-TEST-BOUNDARIES-AND-TASK-GRAPH.md) 接受按目的划分测试边界、差异化 Vitest 项目与 Turborepo 构建依赖。当前验证区分注入式集成契约与已构建程序的 Workspace 用户流程。后续纵向切片应以合成夹具扩展相应边界；任务图准备产物，始终执行测试而不缓存测试成功。
+
+[ADR 0011](../adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 的 Effect 契约、owner Layer、Scope 生命周期和 Stream Artifact 是当前基础。后续集成须实现协议 `0.2.0`（`>=0.2.0 <0.3.0`）与原生 Effect Port。Schema 4 和发布版本不变，未来独立托管仍需单独决策。
 
 [English](../../en/roadmap/001-INITIAL-ITERATIONS.md) | [中文](001-INITIAL-ITERATIONS.md)

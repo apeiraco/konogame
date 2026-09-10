@@ -2,6 +2,8 @@
 
 状态：作为初始骨架的已采纳决策（2026-10-17）。
 
+后续细化：[ADR 0005](0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)增加 Module/Extension Adapter 归属；[ADR 0006](0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md)实现核心惰性激活与异步绑定。下文暂缓动态加载的表述记录最初切片，能力协商决策继续有效。
+
 ## 背景
 
 无论 Adapter 提供历史版本还是仅复制文件，`save.store` 都应是用户可见的任务。把版本化叫作 sub-feature，会混淆可选的 Adapter 性质与独立请求的流程。

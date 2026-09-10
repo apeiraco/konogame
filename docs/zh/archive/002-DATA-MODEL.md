@@ -21,8 +21,8 @@ members = [
 ]
 
 [plugins]
-node_runtime = "tools/node/node.exe"
-python_runtime = "tools/python/python.exe"
+node_program = "tools/node/node.exe"
+python_program = "tools/python/python.exe"
 
 [storage]
 backend = "opendal_s3"

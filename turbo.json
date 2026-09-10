@@ -1,0 +1,48 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "globalDependencies": [
+    "konogame-metadata.toml",
+    "mise.toml",
+    "tsconfig.base.json",
+    "tsdown.shared.ts"
+  ],
+  "globalEnv": ["NODE_ENV", "NODE_OPTIONS"],
+  "globalPassThroughEnv": [
+    "CI",
+    "TERM",
+    "NO_COLOR",
+    "FORCE_COLOR",
+    "SystemRoot",
+    "SYSTEMROOT",
+    "COMSPEC",
+    "PATHEXT",
+    "TEMP",
+    "TMP",
+    "VITEST_*"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": ["dist/**"]
+    },
+    "//#test:run": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "//#lint:run": {
+      "cache": false
+    },
+    "//#typecheck:run": {
+      "cache": false
+    },
+    "//#check:docs": {
+      "dependsOn": ["@konogame/dev-cli#build"],
+      "cache": false
+    },
+    "//#check:release": {
+      "dependsOn": ["@konogame/dev-cli#build"],
+      "cache": false
+    }
+  }
+}

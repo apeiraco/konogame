@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.2/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -15,7 +15,8 @@
       "!!projections",
       // These projections belong to dev-cli release sync.
       "!packages/contracts/src/version.ts",
-      "!extensions/filesystem/src/metadata.ts"
+      "!extensions/filesystem/src/metadata.ts",
+      "!extensions/steam/src/metadata.ts"
     ]
   },
   "formatter": {
@@ -24,6 +25,10 @@
     "indentWidth": 2,
     "lineEnding": "lf",
     "lineWidth": 100
+  },
+  // Documentation layout remains owned by its authors; dev-cli validates bilingual links.
+  "markdown": {
+    "formatter": { "enabled": false }
   },
   "javascript": {
     "formatter": {
@@ -38,6 +43,30 @@
       "preset": "recommended",
       "suspicious": { "noConstEnum": "error" },
       "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "reflect-metadata": "Use owner Effect Context.Service tags and Layers without reflection metadata.",
+              "injection-js": "Use owner Effect Context.Service tags and Layers.",
+              "rxjs": "Use native Effect Streams and scoped fibers."
+            },
+            "patterns": [
+              {
+                "group": ["reflect-metadata/**"],
+                "message": "Use owner Effect Context.Service tags and Layers without reflection metadata."
+              },
+              {
+                "group": ["injection-js/**"],
+                "message": "Use owner Effect Context.Service tags and Layers."
+              },
+              {
+                "group": ["rxjs/**"],
+                "message": "Use native Effect Streams and scoped fibers."
+              }
+            ]
+          }
+        },
         // Record graphs and AST indices are validated before these assertions.
         "noNonNullAssertion": "off",
         "noEnum": "error",
@@ -60,6 +89,11 @@
     }
   },
   "overrides": [
+    {
+      // pnpm owns the generated lockfile serialization.
+      "includes": ["pnpm-lock.yaml"],
+      "formatter": { "enabled": false }
+    },
     {
       // Preserve the release synchronizer's deterministic JSON serialization.
       "includes": ["**/package.json"],
