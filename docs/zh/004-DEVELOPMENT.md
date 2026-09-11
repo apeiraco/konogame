@@ -6,7 +6,7 @@
 
 Game、Host、Installation 是 UUID 实体，名称和路径变化不改变身份。范围、证据和外部引用描述值。候选键标识观察，不是 Game。可靠 Steam App ID 可复用 Game；相似标题与目录名不能建立身份。新增对象明确区分实体与值对象：实体使用稳定 ID，值对象按值比较；Schema 与领域服务承载当前不变量，复杂行为采用类封装。
 
-领域服务表达领域决策；拥有该能力的模块编排配置读取、绑定、发现、审核与写入；Extension 负责厂商解析和位置相关 I/O。核心 Workspace 持久化拥有 TOML 与元数据算法，保留已有 Node 读取/重命名 transport，录入 I/O 可注入。[Game 契约](../../packages/game/src/index.ts)定义范围/证据/候选；[准入](../../packages/game/src/admission.ts)校验录入并重建记录；[Steam](../../extensions/steam/src/index.ts)和 [filesystem 发现](../../extensions/filesystem/src/game-discovery.ts)实现 Port；[WorkspaceConfigurationImporter](../../packages/workspace-configuration/src/workspace-import.ts)负责 journal 与前向恢复。
+领域服务表达领域决策；拥有该能力的模块编排配置读取、绑定、发现、审核与写入；Extension 负责厂商解析和位置相关 I/O。核心 Workspace 持久化拥有 TOML 与元数据算法，保留已有 Node 读取/重命名 transport，录入 I/O 可注入。[Game 契约](../../packages/game/src/index.ts)定义范围/证据/候选；[准入](../../packages/game/src/admission.ts)校验录入并重建记录；[Steam](../../extensions/steam/src/index.ts)和 [filesystem 发现](../../extensions/filesystem/src/game-discovery/adapter.ts)实现 Port；[WorkspaceConfigurationImporter](../../packages/workspace-configuration/src/workspace-import.ts)负责 journal 与前向恢复。
 
 ## 类与函数
 

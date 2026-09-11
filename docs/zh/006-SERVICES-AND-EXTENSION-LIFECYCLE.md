@@ -72,7 +72,7 @@ Contribution 未声明 revision 时，未变扫描必须保持 load 函数 ident
 
 ## Filesystem 存档发布
 
-内部[发布 helper](../../extensions/filesystem/src/publication.ts) 只重试 Windows 原生 rename 的 EPERM。它发布已写好的 staging 目录，不重放 Artifact 输入、不重新复制、不生成新 ID。最多五次总尝试，退避为可取消的 25/50/100/200ms，累计 375ms。基于 Effect Clock 的 500ms 软预算从 helper 入口计时，仅约束后续重试；首次尝试始终允许，包括初次 lstat 较慢时。在允许重试时检查预算，并在后续 rename 前、目标检查后再次检查。每个原生 rename 仅在单次调用中屏蔽中断并等待 settle；已开始的调用可能超过软预算。
+内部[发布 helper](../../extensions/filesystem/src/save-store/publication.ts) 只重试 Windows 原生 rename 的 EPERM。它发布已写好的 staging 目录，不重放 Artifact 输入、不重新复制、不生成新 ID。最多五次总尝试，退避为可取消的 25/50/100/200ms，累计 375ms。基于 Effect Clock 的 500ms 软预算从 helper 入口计时，仅约束后续重试；首次尝试始终允许，包括初次 lstat 较慢时。在允许重试时检查预算，并在后续 rename 前、目标检查后再次检查。每个原生 rename 仅在单次调用中屏蔽中断并等待 settle；已开始的调用可能超过软预算。
 
 每次尝试以 lstat 预检目标，任何既存目标立即失败；除 ENOENT 外的目标检查错误不重试。耗尽保留 SaveError/原生 cause，失败清理只移除自己拥有的 staging 目录，绝不删除目标。目标预检存在 TOCTOU 窗口，不是可移植的原子 no-replace 操作或通用事务。已观察到的原生 EPERM 根因仍未知，此有界策略不构成根因证明。
 

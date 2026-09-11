@@ -22,7 +22,7 @@ ExtensionModule 提供可选原生 layer（或接收激活上下文的 Layer 工
 
 原生 Scope/Fiber/Deferred/Clock 拥有清理、取消与截止。默认 discovery/load 15 秒、activation 30 秒、总 shutdown 5 秒、单 cleanup 1 秒。这些预算是协作式的：同步/不让出代码、刻意不可中断 Effect 和不可取消外部操作可能超时。不引入自制游离清理 scheduler、fiber 内部补丁或同进程 sandbox。
 
-Filesystem 存档发布采用内部 Windows-only 原生 rename EPERM 重试策略：最多五次总尝试，可取消退避 25/50/100/200ms（累计 375ms），以 Clock 从 helper 入口计时的 500ms 软预算仅约束后续重试启动，在等待/目标检查后及后续 rename 前复检。首次尝试始终允许，包括初次 lstat 较慢时。每个原生 rename 窄范围屏蔽中断并等待 settle，可能超过预算。每次 lstat 预检目标，已有目标立即失败，非 ENOENT 检查错误不重试。耗尽保留 SaveError/原生 cause，不重放 Artifact 输入、不生成新 ID、不重新复制或删除目标；失败清理只移除自己的 staging。预检存在 TOCTOU，并非原子 no-replace 或通用事务；已观察的 EPERM 根因未知。参见[发布 helper](../../../extensions/filesystem/src/publication.ts)。
+Filesystem 存档发布采用内部 Windows-only 原生 rename EPERM 重试策略：最多五次总尝试，可取消退避 25/50/100/200ms（累计 375ms），以 Clock 从 helper 入口计时的 500ms 软预算仅约束后续重试启动，在等待/目标检查后及后续 rename 前复检。首次尝试始终允许，包括初次 lstat 较慢时。每个原生 rename 窄范围屏蔽中断并等待 settle，可能超过预算。每次 lstat 预检目标，已有目标立即失败，非 ENOENT 检查错误不重试。耗尽保留 SaveError/原生 cause，不重放 Artifact 输入、不生成新 ID、不重新复制或删除目标；失败清理只移除自己的 staging。预检存在 TOCTOU，并非原子 no-replace 或通用事务；已观察的 EPERM 根因未知。参见[发布 helper](../../../extensions/filesystem/src/save-store/publication.ts)。
 
 Workspace read/rename/import/initialize/edit/recovery 保持 Schema 4、TOML/布局/注释、UUIDv7/uniformName/unicode-fs-v1、source 与 Location 不变量，以及新鲜 root/revision/evidence/binding 检查和定向 journal。Writer 锁归 Scope，仅释放自己的锁。最小原生文件系统发布可屏蔽中断直到该单步完成。恢复完成批准元数据，不执行 Location；这不是通用事务或原子目录发布。
 

@@ -58,7 +58,7 @@ Core 无需注册此类型即可读取封装并保留数据。检查输出保留
 
 ## 注册与使用行为
 
-[契约](../../packages/contracts/src/location.ts)定义封装、可移植类型定义、Location Port 可选方法和类型化资源结果。[Core 注册表](../../packages/infrastructure/src/registry.ts)校验声明并公开目录/运行状态，[绑定](../../packages/infrastructure/src/binding.ts)按需激活兼容实现。[Filesystem 位置值](../../extensions/filesystem/src/location-values.ts)、[manifest](../../extensions/filesystem/src/manifest.ts)和[行为](../../extensions/filesystem/src/location.ts)区分定义、声明与代码。[LocationBehaviorService](../../packages/infrastructure/src/location.ts)按操作绑定，[准入](../../packages/game/src/admission.ts)用它检查录入及重复项。
+[契约](../../packages/contracts/src/location.ts)定义封装、可移植类型定义、Location Port 可选方法和类型化资源结果。[Core 注册表](../../packages/infrastructure/src/registry.ts)校验声明并公开目录/运行状态，[绑定](../../packages/infrastructure/src/binding.ts)按需激活兼容实现。[Filesystem 位置值](../../extensions/filesystem/src/location/values.ts)、[manifest](../../extensions/filesystem/src/manifest.ts)和[行为](../../extensions/filesystem/src/location/behavior.ts)区分定义、声明与代码。[LocationBehaviorService](../../packages/infrastructure/src/location.ts)按操作绑定，[准入](../../packages/game/src/admission.ts)用它检查录入及重复项。
 
 通过所属包 provider 或发现 source 注册含 manifest 与惰性 loader 的 Contribution。Manifest 在 `contributes.locations` 声明稳定位置 ID、独立 Schema 版本/范围和 `dataSchema`，在 `contributes.adapters` 声明兼容 Adapter。边界的 `dataSchema` 接受 Standard Schema 或 JSON Schema，存储/传输为 JSON Schema，使用 arktype 求值并通过 `@ark/json-schema`/`toJsonSchema` 转换。进程内 Standard Schema 是显式可执行边界，其 Schema hook 可能运行；普通声明禁止 getter 不表示 Schema 转换是被动数据或已隔离。外部安装清单使用纯 JSON。激活调用 `context.registerAdapter(id, locationImplementation, implementation)`，core 在成功后统一发布暂存运行实例。定义不是配置实例，`checkLocation` 只检查注册类型/范围，不做实际数据校验；依赖问题保留为目录诊断和受阻激活。Provider 归属、子作用域及运行期管理见[服务/生命周期指南](006-SERVICES-AND-EXTENSION-LIFECYCLE.md)。
 

@@ -7,14 +7,32 @@
       "monorepo-tsc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./manifest": {
+      "monorepo-tsc": "./src/manifest.ts",
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
+    },
+    "./providers": {
+      "monorepo-tsc": "./src/providers.ts",
+      "types": "./dist/providers.d.ts",
+      "import": "./dist/providers.js"
+    },
+    "./location": {
+      "monorepo-tsc": "./src/location/values.ts",
+      "types": "./dist/location/values.d.ts",
+      "import": "./dist/location/values.js"
     }
   },
   "dependencies": {
-    "@konogame/workspace": "workspace:*",
     "@konogame/contracts": "workspace:*",
     "@konogame/save": "workspace:*",
-    "uuid": "^14.0.3",
-    "toml-eslint-parser": "^1.0.3"
+    "arktype": "catalog:",
+    "uuid": "catalog:",
+    "@konogame/game": "workspace:*",
+    "semver": "catalog:",
+    "@konogame/infrastructure": "workspace:*",
+    "effect": "catalog:"
   },
   "scripts": {
     "build": "tsdown"
@@ -30,7 +48,7 @@
   "konogame": {
     "releaseGroup": "extension",
     "extensionId": "konogame.filesystem",
-    "contractRange": ">=0.1.0 <0.2.0",
+    "contractRange": ">=0.2.0 <0.3.0",
     "software": {
       "node": ">=26"
     }
