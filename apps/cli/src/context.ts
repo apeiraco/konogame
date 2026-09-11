@@ -5,6 +5,7 @@ import {
   type FEATURE_PLAN,
   type ID_SERVICE
 } from "@konogame/infrastructure";
+import { type Artifact, type ArtifactError } from "@konogame/infrastructure/contracts";
 import { type SAVE_STORE_WORKFLOW } from "@konogame/save/store";
 import { type WORKSPACE_MANAGEMENT } from "@konogame/workspace/management";
 import { Context, Data, Effect } from "effect";
@@ -84,9 +85,17 @@ export interface CliContext {
   readonly stdout: (text: string) => Effect.Effect<void>;
   readonly stderr: (text: string) => Effect.Effect<void>;
 }
+export interface CliArtifactInput {
+  fromDirectory(directory: string): Effect.Effect<Artifact, ArtifactError | CliError | Cancelled>;
+}
+export class CLI_ARTIFACT_INPUT extends Context.Service<CLI_ARTIFACT_INPUT, CliArtifactInput>()(
+  "cli.artifact-input"
+) {}
+
 export class CLI_CONTEXT extends Context.Service<CLI_CONTEXT, CliContext>()("cli.io") {}
 export type CliServices =
   | CLI_CONTEXT
+  | CLI_ARTIFACT_INPUT
   | FEATURE_PLAN
   | EXTENSION_CATALOG
   | WORKSPACE_MANAGEMENT

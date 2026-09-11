@@ -13,9 +13,6 @@
       "path": "./tsconfig.app.json"
     },
     {
-      "path": "../../packages/contracts/tsconfig.lib.json"
-    },
-    {
       "path": "../../packages/infrastructure/tsconfig.lib.json"
     },
     {

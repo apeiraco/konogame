@@ -1,0 +1,33 @@
+{
+  "name": "@konogame/extension-discovery-node",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "monorepo-tsc": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@konogame/infrastructure": "workspace:*",
+    "arktype": "catalog:",
+    "effect": "catalog:"
+  },
+  "scripts": {
+    "build": "tsdown"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apeiraco/konogame.git"
+  },
+  "konogame": {
+    "releaseGroup": "core",
+    "contractRange": ">=0.2.0 <0.3.0"
+  }
+}

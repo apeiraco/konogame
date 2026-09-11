@@ -14,7 +14,7 @@
 
 ## 决策
 
-增加基础层 `@konogame/infrastructure`，依赖 contracts 与基础设施，不依赖业务 Module/Extension。它拥有注册表、激活、生命周期、绑定、Temporal/ID 服务及其 token/provider。领域包拥有领域 Port/token/provider，application 拥有应用服务/token，配置实现拥有其 I/O，Game 拥有发现 I/O。可替换且并存的 Adapter 使用独立实现 token。Apps 选择 source/provider 与参数，再启动及清理。
+增加基础层 `@konogame/infrastructure`，依赖 contracts 与基础设施，不依赖业务 Module/Extension。它拥有注册表、激活、生命周期、绑定、Temporal/ID 服务及其 token/provider。领域包拥有领域 Port/token/provider，application 拥有应用服务/token，配置实现拥有其 I/O，Game 拥有发现端口。文件系统扩展拥有目录发现 I/O。可替换且并存的 Adapter 使用独立实现 token。Apps 选择 source/provider 与参数，再启动及清理。
 
 采用单个内部 multi 发现来源贡献流。Source 返回 manifest 与惰性 loader，manifest 声明 `activationEvents`、`contributes.adapters`/`contributes.locations`。需求发生前先登记所有已发现声明；AdapterRegistry 订阅声明成功结果，描述登记独立于激活。纯 manifest/provider 入口不导入运行实现。内置 filesystem/Steam 不声明 `onStartup`。
 

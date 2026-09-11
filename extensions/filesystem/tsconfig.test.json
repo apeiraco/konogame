@@ -19,7 +19,7 @@
       "path": "../../packages/workspace/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/contracts/tsconfig.lib.json"
+      "path": "../../packages/infrastructure/tsconfig.lib.json"
     },
     {
       "path": "../../packages/save/tsconfig.lib.json"
@@ -29,9 +29,6 @@
     },
     {
       "path": "../../packages/game/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/infrastructure/tsconfig.lib.json"
     }
   ]
 }

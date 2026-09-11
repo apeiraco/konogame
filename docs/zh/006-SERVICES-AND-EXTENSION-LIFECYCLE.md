@@ -38,7 +38,7 @@ if (import.meta.main) {
 }
 ```
 
-参见 [infrastructure Layer](../../packages/infrastructure/src/providers.ts)、[绑定计划](../../packages/infrastructure/src/binding-plan.ts)、[Workspace 管理](../../packages/workspace/src/management.ts)、[准入](../../packages/game/src/admission.ts)和[存档写入](../../packages/save/src/store.ts)。用例不导入入口。CLI 入口是 [apps/cli/src/main.ts](../../apps/cli/src/main.ts)，daemon 入口是 [apps/daemon/src/main.ts](../../apps/daemon/src/main.ts)。CLI 的 `context.ts` 拥有交互/输出。Optique 在所属 Effect 内解析参数；官方 Effect Runtime API 保留上游名称。Daemon 构建、监听和请求使用原生作用域。进程退出只发生在 `import.meta.main`。CLI JSON/非 TTY 不提示；取消不写入已批准业务变更，除非发布已越过不可取消边界。
+参见 [infrastructure Layer](../../packages/infrastructure/src/providers.ts)、[绑定计划](../../packages/infrastructure/src/binding/plan.ts)、[Workspace 管理](../../packages/workspace/src/management/service.ts)、[准入](../../packages/game/src/admission/service.ts)和[存档写入](../../packages/save/src/store/workflow.ts)。用例不导入入口。CLI 入口是 [apps/cli/src/main.ts](../../apps/cli/src/main.ts)，daemon 入口是 [apps/daemon/src/main.ts](../../apps/daemon/src/main.ts)。CLI 的 `context.ts` 拥有交互/输出。Optique 在所属 Effect 内解析参数；官方 Effect Runtime API 保留上游名称。Daemon 构建、监听和请求使用原生作用域。进程退出只发生在 `import.meta.main`。CLI JSON/非 TTY 不提示；取消不写入已批准业务变更，除非发布已越过不可取消边界。
 
 已知 Schema/规则拒绝使用结构化 owner tag/issue；infrastructureRule、workspaceRule、admissionRule 和 configurationRule 把已识别对象保留为 Fail，可信代码未知 throw 保持 Die。UnexpectedBoundaryError 仅用于明确的第三方边界，不使任意 Extension/Schema 行为变得可穷尽。WorkspaceConfigurationError 包含已知 Schema/规则错误、文件系统/配置输入/writer 冲突与恢复数据协议、明确边界错误及新录入的 LocationError；实现类及原生 code/cause 保持原 owner。Cause-aware 结果处理不能把 Die/Interrupt 转为普通流程 status。参见[开发错误指南](004-DEVELOPMENT.md#类型化规则失败与缺陷)。
 
@@ -58,7 +58,7 @@ Artifact 文件集合是 Stream，每个字节 Stream 按需打开，句柄归 S
 
 `ExtensionModule.layer` 是可选 Layer 或接收激活上下文返回 Layer 的函数，`activate(context)` 返回 Effect。Core 每代构建一个原生 Layer/Scope，显式 root 替身优先且 root 固定。`context.dependencyServices(id)` 只返回已声明 active 依赖的 Context；Steam 以此取得 filesystem 服务。`context.registerAdapter` 暂存实现直到激活成功。同代并发激活共享原生完成状态，失败按代缓存；缺失/版本/循环依赖诊断可重新评估。不引入第二服务注册表。
 
-Filesystem 惰性 loader 调用 `createFilesystemExtensionModule`，传入 composition 提供的 saveRoot。参见 [filesystem source](../../extensions/filesystem/src/providers.ts)、[filesystem module](../../extensions/filesystem/src/index.ts)、[Steam module](../../extensions/steam/src/index.ts)与[激活实现](../../packages/infrastructure/src/activation.ts)。
+Filesystem 惰性 loader 调用 `createFilesystemExtensionModule`，传入 composition 提供的 saveRoot。参见 [filesystem source](../../extensions/filesystem/src/providers.ts)、[filesystem module](../../extensions/filesystem/src/index.ts)、[Steam module](../../extensions/steam/src/index.ts)与[激活实现](../../packages/infrastructure/src/extension/activation.ts)。
 
 ## 目录管理与安装代码
 
@@ -81,7 +81,7 @@ Contribution 未声明 revision 时，未变扫描必须保持 load 函数 ident
 
 `coreOptions.budgets` 默认 discovery/load 各 15 秒、activation 30 秒、总 shutdown 5 秒、单 cleanup 1 秒；demandCacheLimit 默认 256。原生 Clock/Fiber/Scope 管理等待与清理。阶段诊断在可用时说明 source/贡献/代、cause 与耗时。单项失败后继续逆序清理，报告未完成清理，封闭迟到发布。
 
-可协作的自定义 Extension cleanup 推荐通过 [addLifetimeFinalizer](../../packages/infrastructure/src/services.ts) 注册。它在代际 Scope 内使用原生 Effect.addFinalizer，以 interruptible cleanup 应用 LifetimePolicy 的单项与剩余总预算，不建立第二执行器。普通 Effect.acquireRelease/addFinalizer 的 release 和库资源 finalizer 保留原生 Scope 语义；其释放通常默认受不可中断保护，并不要求 Extension 显式屏蔽中断。1 秒/5 秒策略不是这些 finalizer 的通用硬截止，中断也不能证明句柄已关闭。
+可协作的自定义 Extension cleanup 推荐通过 [addLifetimeFinalizer](../../packages/infrastructure/src/foundation/services.ts) 注册。它在代际 Scope 内使用原生 Effect.addFinalizer，以 interruptible cleanup 应用 LifetimePolicy 的单项与剩余总预算，不建立第二执行器。普通 Effect.acquireRelease/addFinalizer 的 release 和库资源 finalizer 保留原生 Scope 语义；其释放通常默认受不可中断保护，并不要求 Extension 显式屏蔽中断。1 秒/5 秒策略不是这些 finalizer 的通用硬截止，中断也不能证明句柄已关闭。
 
 这些截止是协作式的。同步不让出的代码、刻意不可中断 Effect 和不可取消外部操作可能超过截止；同进程调度不能强制终止或 sandbox。没有游离清理 scheduler。最小原生文件系统发布步骤可能屏蔽中断直到单步完成。
 

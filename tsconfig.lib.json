@@ -2,7 +2,7 @@
   "files": [],
   "references": [
     {
-      "path": "./packages/contracts/tsconfig.lib.json"
+      "path": "./packages/infrastructure/tsconfig.lib.json"
     },
     {
       "path": "./packages/workspace/tsconfig.lib.json"
@@ -21,9 +21,6 @@
     },
     {
       "path": "./packages/workspace-configuration/tsconfig.lib.json"
-    },
-    {
-      "path": "./packages/infrastructure/tsconfig.lib.json"
     },
     {
       "path": "./packages/extension-discovery-node/tsconfig.lib.json"

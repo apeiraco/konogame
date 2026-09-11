@@ -1,5 +1,7 @@
 # ADR 0004：本地发现、审核录入与显式注入
 
+> 当前身份/Port 更新：[ADR 0012](0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md) 以 owner 签发的不透明身份替代厂商匹配，分开 observationKey/candidateId/实体 UUID，契约移至 owner /contracts 入口并逐 Port 独立版本化。game.discovery 现为 0.3.0，声明协议保持 0.2.0。
+
 > 继任说明：[ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 以 Effect 4.0.6 替代本文的依赖注入、异步 Port、观察、组装与生命周期细节。本文保留原日期的决策记录，其余领域与归属约束继续适用。
 
 状态：已采纳，2026-10-17。
@@ -10,7 +12,7 @@
 
 ## 决策
 
-新增 core `@konogame/game`，使用共享 core 版本 `0.1.0-alpha.0`。`game.discover` 解析 `game.discovery/discover`，要求 `discovery.local`、`discovery.scoped` 及配置来源 Capability。filesystem 提供 `filesystem.game-discovery`；独立版本 `konogame.steam@0.1.0-alpha.0` 提供 `steam.game-discovery`。Steam 软件兼容标记为 `generic`，通过合成夹具验证，不承诺覆盖所有 Steam 版本。
+新增 core `@konogame/game`，使用共享 core 版本 `0.1.0-alpha.0`。`game.discover` 解析 `game.discovery/discover`，要求 `discovery.local`、`discovery.scoped`，以及由配置来源 token 组成的 `discovery.source.${kind}`。Game 不枚举厂商或目录项种类。filesystem 提供 `filesystem.game-discovery` 并拥有目录 scope 校验；独立版本 `konogame.steam@0.1.0-alpha.0` 提供 `steam.game-discovery`，通过已声明依赖使用文件系统扩展的发现服务。Steam 软件兼容标记为 `generic`，通过合成夹具验证，不承诺覆盖所有 Steam 版本。
 
 必须已有 Host 及 `configured` 的 `steam` 或 `standalone` 来源。调用者显式选择范围；Host roots、来源声明和 Steam 库引用都不扩大范围。本轮不联网补全、不探测可执行入口、不启动、不创建来源、不修改游戏文件。目录候选只有弱身份；新增安装的 `launchEntries` 为空。
 

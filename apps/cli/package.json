@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@konogame/contracts": "workspace:*",
     "@konogame/workspace": "workspace:*",
     "@konogame/game": "workspace:*",
     "@konogame/extension-filesystem": "workspace:*",

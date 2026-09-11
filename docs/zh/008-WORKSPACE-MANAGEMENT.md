@@ -98,7 +98,7 @@ List/show 关联 Game、安装、Host/source 声明、原始 Location 和校验/
 
 ## 持久化与恢复限制
 
-核心配置通过 `workspace.configuration` 的 `initialize`、`recover-initialize`、`edit`、`recover-edit` Operation 拥有这些算法，对应 Capability 为 `configuration.initialize`、`configuration.initialize-recovery`、`configuration.edit`、`configuration.edit-recovery`；已有 read/rename/import/recovery 继续区分。Workspace 审核见 [management.ts](../../packages/workspace/src/management.ts)，[领域编辑计划](../../packages/workspace/src/index.ts)重建有效记录，[持久化](../../packages/workspace-configuration/src/workspace-management.ts)和 [TOML token 编辑](../../packages/workspace-configuration/src/toml-edit.ts)负责 I/O 与原文保留。
+核心配置通过 `workspace.configuration` 的 `initialize`、`recover-initialize`、`edit`、`recover-edit` Operation 拥有这些算法，对应 Capability 为 `configuration.initialize`、`configuration.initialize-recovery`、`configuration.edit`、`configuration.edit-recovery`；已有 read/rename/import/recovery 继续区分。Workspace 审核见 [service.ts](../../packages/workspace/src/management/service.ts)，[领域编辑计划](../../packages/workspace/src/model/edits.ts)重建有效记录，[持久化](../../packages/workspace-configuration/src/operations/management.ts)和 [TOML token 编辑](../../packages/workspace-configuration/src/toml/edit.ts)负责 I/O 与原文保留。
 
 编辑通过 AST token 修改保留未触及字节/注释、换行风格及已有平铺/目录布局；删除受影响 table token 时保留独立注释，变更字段可采用新格式。记录仍限制为 1 MiB UTF-8，管理 journal 上限 16 MiB。已接受的 unchanged 保留记录字节，但消费 operation ID，可能写入协调 receipt、准备恢复目录及取得/释放写锁。同一请求重试返回 unchanged，同 operation ID 换用不同 payload 或 revision 则冲突，不承诺零文件系统写入。同父目录短暂存名支持达到已有长度上限的合法记录文件名组件，不放宽已有文件名限制。
 

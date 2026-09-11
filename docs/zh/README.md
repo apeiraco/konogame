@@ -50,7 +50,7 @@ TypeScript 共享选项位于 `tsconfig.base.json`，各 workspace 有独立的 
 
 - `packages/infrastructure`：运行注册表、惰性激活、生命周期、绑定、Temporal/ID、绑定计划和扩展目录。
 - `packages/extension-discovery-node`：显式安装根 JSON 扫描与复查后的惰性 factory 加载，随 core 统一版本。
-- `packages/contracts`：版本化概念与流式 Artifact 契约。
+- infrastructure、Game、Workspace 与 Save 的 owner `/contracts` 入口：纯声明与逐 Port 独立协议。
 - `packages/workspace`：Workspace Module、配置/历史契约、记录 Schema、覆盖规则，以及检查和编辑用例。
 - `packages/workspace-configuration`：核心 TOML 持久化、元数据布局、读取/重命名/录入/初始化/编辑与定向恢复；提供 Module 所属的 `core.workspace-configuration`。
 - `packages/game`：本地发现契约、候选/证据值、来源能力和准入用例，可以依赖 `workspace`。
@@ -106,5 +106,7 @@ Workspace 管理现支持从已有目录以禁用历史初始化、新增 Host�
 ## 测试与任务图
 
 测试按验证边界分类：隔离规则/服务属于单元测试；服务组合、注入 CLI 派发/提示以及进程/模块契约属于集成测试；启动已构建程序入口，以正常组装和真实一次性 Workspace 执行用户流程属于端到端测试。使用子进程本身不能定义端到端测试。`just test --project unit`、`integration` 或 `e2e` 选择 Vitest 项目。Turborepo 通过 pnpm 为测试调度所需 `dist` 构建，构建产物使用本地缓存，测试始终执行。直接运行 `just cli`、`just daemon`、`just dev-cli` 仍需显式构建。见 [ADR 0010](adr/0010-TEST-BOUNDARIES-AND-TASK-GRAPH.md)和[开发指南](004-DEVELOPMENT.md)。
+
+当前身份与契约边界见 [ADR 0012](adr/0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md)：Extension 观察、UUID 准入候选和 Workspace 实体分别建模；Extension 签发用途明确的不透明身份，各 owner /contracts 入口维护独立 Port 协议。game.discovery 为 0.3.0，声明协议和其余已有 Port 保持 0.2.0。
 
 [English](../../README.md) | [中文](README.md)

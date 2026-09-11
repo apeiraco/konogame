@@ -91,14 +91,14 @@ export function executeGame(command: GameCommand): CliCommandEffect {
           while (remaining.length) {
             const value = yield* context.prompts.select("Candidate to import", [
               ...remaining.map((item) => ({
-                value: item.key,
+                value: item.candidateId,
                 label: `${item.title} — ${item.disposition} — ${item.location.type}: ${JSON.stringify(item.location.data)}`
               })),
               ...(selected.length ? [{ value: "", label: "Finish selection" }] : [])
             ]);
             if (!value) break;
             selected.push(value);
-            const index = remaining.findIndex((item) => item.key === value);
+            const index = remaining.findIndex((item) => item.candidateId === value);
             if (index < 0)
               return yield* Effect.fail(new CliError({ message: "Unknown candidate selection" }));
             remaining.splice(index, 1);
@@ -117,7 +117,7 @@ export function executeGame(command: GameCommand): CliCommandEffect {
         const result = yield* (yield* GAME_ADMISSION).import({
           root,
           preview,
-          selectedCandidateKeys: selected,
+          selectedCandidateIds: selected,
           operationId: command.operationId,
           hostId: command.hostId,
           sourceId: command.sourceId

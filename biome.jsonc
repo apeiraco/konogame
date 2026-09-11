@@ -14,7 +14,11 @@
       "!!**/dist-tsc",
       "!!projections",
       // These projections belong to dev-cli release sync.
-      "!packages/contracts/src/version.ts",
+      "!packages/infrastructure/src/contracts/version.ts",
+      "!packages/infrastructure/src/contracts/port-versions.ts",
+      "!packages/game/src/version.ts",
+      "!packages/workspace/src/version.ts",
+      "!packages/save/src/version.ts",
       "!extensions/filesystem/src/metadata.ts",
       "!extensions/steam/src/metadata.ts"
     ]

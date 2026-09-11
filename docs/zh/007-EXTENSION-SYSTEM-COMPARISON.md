@@ -19,7 +19,7 @@
 
 进程内 Location `dataSchema` 可显式提供 Standard Schema，其求值/转换可能调用 Schema hook，包括约定的 getter 接口。普通声明严格校验不是不执行代码或 sandbox 保证；外部 Node 包元数据为纯 JSON，没有可执行 Schema hook。
 
-本机实现见[严格契约 Schema](../../packages/contracts/src/manifest.ts)、[目录校验](../../packages/infrastructure/src/manifest-validation.ts)、[注册表](../../packages/infrastructure/src/registry.ts)、[生命周期/refresh](../../packages/infrastructure/src/lifecycle.ts)、[激活](../../packages/infrastructure/src/activation.ts)及 [Node 发现](../../packages/extension-discovery-node/src/source.ts)。合成测试覆盖错误输入、观察者重入、迟到声明、待完成任务及安装包变化；完整仓库验收随实现工作记录，不从参考项目推断测试结论。
+本机实现见[严格契约 Schema](../../packages/infrastructure/src/contracts/manifest/declarations.ts)、[目录校验](../../packages/infrastructure/src/extension/validation.ts)、[注册表](../../packages/infrastructure/src/registry/registry.ts)、[生命周期/refresh](../../packages/infrastructure/src/extension/lifecycle.ts)、[激活](../../packages/infrastructure/src/extension/activation.ts)及 [Node 发现](../../packages/extension-discovery-node/src/source.ts)。合成测试覆盖错误输入、观察者重入、迟到声明、待完成任务及安装包变化；完整仓库验收随实现工作记录，不从参考项目推断测试结论。
 
 ## 安装包与目录操作
 

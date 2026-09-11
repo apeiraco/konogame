@@ -8,11 +8,22 @@
       "monorepo-tsc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./management": {
+      "monorepo-tsc": "./src/management/service.ts",
+      "types": "./dist/management/service.d.ts",
+      "import": "./dist/management/service.js"
+    },
+    "./contracts": {
+      "monorepo-tsc": "./src/contracts.ts",
+      "types": "./dist/contracts.d.ts",
+      "import": "./dist/contracts.js"
     }
   },
   "dependencies": {
-    "@konogame/contracts": "workspace:*",
-    "zod": "^4.6.7"
+    "arktype": "catalog:",
+    "@konogame/infrastructure": "workspace:*",
+    "effect": "catalog:"
   },
   "scripts": {
     "build": "tsdown"
@@ -20,6 +31,9 @@
   "files": [
     "dist"
   ],
+  "devDependencies": {
+    "@ark/json-schema": "catalog:"
+  },
   "license": "MPL-2.0",
   "repository": {
     "type": "git",
@@ -27,6 +41,6 @@
   },
   "konogame": {
     "releaseGroup": "core",
-    "contractRange": ">=0.1.0 <0.2.0"
+    "contractRange": ">=0.2.0 <0.3.0"
   }
 }

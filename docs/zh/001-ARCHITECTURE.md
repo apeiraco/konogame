@@ -59,7 +59,7 @@ Save 首批定义六个 Port/Feature：`save.discover`、`save.export`、`save.i
 
 ## Game 发现与录入
 
-`@konogame/game` 是共享版本 `0.1.0-alpha.0` 的 core Module。`game.discover` 绑定 `game.discovery/discover`，要求 `discovery.local`、`discovery.scoped` 与配置来源 Capability。`filesystem.game-discovery` 处理散装目录；独立版本 `konogame.steam@0.1.0-alpha.0` 提供 `steam.game-discovery`，软件兼容 `steam = "generic"` 基于合成夹具。应用组装使用 owner Context.Service tag 与原生 Effect Layer，服务构建不替代能力协商。
+`@konogame/game` 是共享版本 `0.1.0-alpha.0` 的 core Module。`game.discover` 绑定 `game.discovery/discover`，要求 `discovery.local`、`discovery.scoped`，以及由配置来源 token 组成的 `discovery.source.${kind}`。Game 保留候选、证据、诊断、预览和准入，并把发现 scope 当作有界的不透明对象。文件系统扩展拥有目录项种类、目录 scope 校验和共享的发现文件系统服务。`filesystem.game-discovery` 处理散装目录；独立版本 `konogame.steam@0.1.0-alpha.0` 提供 `steam.game-discovery`，并通过已声明依赖读取该文件系统服务，软件兼容 `steam = "generic"` 基于合成夹具。应用组装使用 owner Context.Service tag 与原生 Effect Layer，服务构建不替代能力协商。
 
 应用服务要求已有 configured Host/source、显式范围、只读预览和选择确认。Host roots、来源声明、库引用不扩大扫描。可靠 Steam App ID 可复用 Game 身份，名称不能合并实体。目录候选仍为弱观察，新增安装的 `launchEntries` 为空。确认严格校验不可信预览、独立锚定 root，重查修订、证据和绑定。摘要用于变更检测，不认证签名，无 TTL。新预览重复录入可返回 unchanged，成功消费的旧预览重放会过期。
 
@@ -114,5 +114,13 @@ Core 在关系检查/loader 前严格校验声明，安全隔离错误 source �
 ## Effect 契约与作用域执行
 
 有副作用 Port 返回带 owner 具名错误的 `Effect<Success, Error, Requirements>`，纯规则与 Schema 保持纯。Composition 返回原生 Layer，Scope 拥有流、句柄、listener 和激活代。原生 Fiber/Deferred/Clock 替代自制调度与取消；Promise/run 桥接仅在真实进程/框架/测试边界。清理预算是协作式的，不是强制终止；中断无法携带附加 finalizer 失败时，恢复 journal 与结构化 stderr 日志保留可处理证据。Contract 协议 `0.2.0` 要求 `>=0.2.0 <0.3.0`，Schema 4 和发布版本不变。参见 [ADR 0011](adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 与[生命周期指南](006-SERVICES-AND-EXTENSION-LIFECYCLE.md)。
+
+## 身份、领域视角与契约归属
+
+当前决策见 [ADR 0012](adr/0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md)。Workspace/Game/Host/Installation 是按 UUID 比较的实体；DiscoveryObservation、ExternalIdentity、scope、证据、来源、LocationContract 与 Binding Plan 是按定义内容比较的值。Extension 观察、Game 准入候选和 Workspace 持久记录使用各自专名并显式转换。observationKey 定位观察，UUID candidateId 定位审核候选；两者不作为 Game 身份。DTO 负责传输，领域值/Schema 维护不变量，领域服务判断匹配/冲突，应用服务协调绑定、审核和持久化。
+
+Extension 签发不透明 {issuer,purpose,value}，issuer 必须等于绑定 owner ID，purpose 区分 game/installation；core 泛化比较完整值，不解析厂商 key。externalRefs 只作展示。Steam 有证据的 AppID 签发 issuer konogame.steam、value app:<AppID> 的 game 身份，不推导账户或安装身份。filesystem 在有正数卷/文件对象 ID 时，结合 Host 与可用出生时间签发 installation 身份；缺少可靠 ID 时省略。路径与 size/mtime/ctime、目录内容指纹都不是稳定身份。
+
+公共纯契约从 owner 包 /contracts 子路径导入；infrastructure 拥有声明/Artifact/Location，Game、Workspace、Save 各自拥有业务 Port，移除独立共享 contracts 包。声明协议 contractRange 与逐 Port 协议分开：Feature portContractVersion、Adapter portContractRange 在执行前协商；game.discovery 为 0.3.0（>=0.3.0 <0.4.0），其余已有 Port 为 0.2.0。Core 仍统一发包，各 Extension 独立发行。Core/业务不包含厂商枚举、身份解析、路径规则、默认优先级或实现导入；CLI/Daemon 组合可选内置来源，并通过窄服务注入本地 Artifact 输入转换。
 
 [English](../en/001-ARCHITECTURE.md) | [中文](001-ARCHITECTURE.md)

@@ -24,7 +24,6 @@
   },
   "devDependencies": {
     "@konogame/cli": "workspace:*",
-    "@konogame/contracts": "workspace:*",
     "@konogame/infrastructure": "workspace:*",
     "@konogame/daemon": "workspace:*",
     "@konogame/dev-cli": "workspace:*",

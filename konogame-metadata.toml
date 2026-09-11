@@ -13,8 +13,8 @@ repository_url = "https://github.com/apeiraco/konogame"
 [contract]
 version = "0.2.0"
 supported_range = ">=0.2.0 <0.3.0"
-package = "@konogame/contracts"
-source = "packages/contracts/src/version.ts"
+package = "@konogame/infrastructure"
+source = "packages/infrastructure/src/contracts/version.ts"
 
 [tooling.typescript]
 config = "tsconfig.json"
@@ -27,10 +27,6 @@ translations = { zh = "docs/zh/CHANGELOG.md" }
 [[core_package]]
 name = "konogame"
 manifest = "package.json"
-
-[[core_package]]
-name = "@konogame/contracts"
-manifest = "packages/contracts/package.json"
 
 [[core_package]]
 name = "@konogame/infrastructure"
@@ -77,6 +73,7 @@ version = "0.1.0-alpha.0"
 contract_range = ">=0.2.0 <0.3.0"
 source = "extensions/filesystem/src/metadata.ts"
 software = { node = ">=26" }
+port_contract_ranges = { "filesystem.save-store" = ">=0.2.0 <0.3.0", "filesystem.location" = ">=0.2.0 <0.3.0", "filesystem.game-discovery" = ">=0.3.0 <0.4.0" }
 
 [[extension]]
 id = "konogame.steam"
@@ -86,3 +83,97 @@ version = "0.1.0-alpha.0"
 contract_range = ">=0.2.0 <0.3.0"
 source = "extensions/steam/src/metadata.ts"
 software = { steam = "generic" }
+port_contract_ranges = { "steam.game-discovery" = ">=0.3.0 <0.4.0" }
+
+# Each Port evolves independently of the declaration protocol and package releases.
+
+[[port_contract]]
+id = "location.behavior"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/infrastructure"
+source = "packages/infrastructure/src/contracts/port-versions.ts"
+
+[[port_contract]]
+id = "blob"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/infrastructure"
+source = "packages/infrastructure/src/contracts/port-versions.ts"
+
+[[port_contract]]
+id = "snapshot"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/infrastructure"
+source = "packages/infrastructure/src/contracts/port-versions.ts"
+
+[[port_contract]]
+id = "replication"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/infrastructure"
+source = "packages/infrastructure/src/contracts/port-versions.ts"
+
+[[port_contract]]
+id = "game.discovery"
+version = "0.3.0"
+supported_range = ">=0.3.0 <0.4.0"
+package = "@konogame/game"
+source = "packages/game/src/version.ts"
+
+[[port_contract]]
+id = "workspace.configuration"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/workspace"
+source = "packages/workspace/src/version.ts"
+
+[[port_contract]]
+id = "workspace.history"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/workspace"
+source = "packages/workspace/src/version.ts"
+
+[[port_contract]]
+id = "save.discover"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/save"
+source = "packages/save/src/version.ts"
+
+[[port_contract]]
+id = "save.export"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/save"
+source = "packages/save/src/version.ts"
+
+[[port_contract]]
+id = "save.import"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/save"
+source = "packages/save/src/version.ts"
+
+[[port_contract]]
+id = "save.convert"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/save"
+source = "packages/save/src/version.ts"
+
+[[port_contract]]
+id = "save.store"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/save"
+source = "packages/save/src/version.ts"
+
+[[port_contract]]
+id = "save.history"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/save"
+source = "packages/save/src/version.ts"

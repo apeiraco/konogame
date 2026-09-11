@@ -6,7 +6,7 @@
 
 Game、Host、Installation 是 UUID 实体，名称和路径变化不改变身份。范围、证据和外部引用描述值。候选键标识观察，不是 Game。可靠 Steam App ID 可复用 Game；相似标题与目录名不能建立身份。新增对象明确区分实体与值对象：实体使用稳定 ID，值对象按值比较；Schema 与领域服务承载当前不变量，复杂行为采用类封装。
 
-领域服务表达领域决策；拥有该能力的模块编排配置读取、绑定、发现、审核与写入；Extension 负责厂商解析和位置相关 I/O。核心 Workspace 持久化拥有 TOML 与元数据算法，保留已有 Node 读取/重命名 transport，录入 I/O 可注入。[Game 契约](../../packages/game/src/index.ts)定义范围/证据/候选；[准入](../../packages/game/src/admission.ts)校验录入并重建记录；[Steam](../../extensions/steam/src/index.ts)和 [filesystem 发现](../../extensions/filesystem/src/game-discovery/adapter.ts)实现 Port；[WorkspaceConfigurationImporter](../../packages/workspace-configuration/src/workspace-import.ts)负责 journal 与前向恢复。
+领域服务表达领域决策；拥有该能力的模块编排配置读取、绑定、发现、审核与写入；Extension 负责厂商解析和位置相关 I/O。核心 Workspace 持久化拥有 TOML 与元数据算法，保留已有 Node 读取/重命名 transport，录入 I/O 可注入。[Game 契约](../../packages/game/src/index.ts)定义候选、证据和不透明发现 scope；[准入](../../packages/game/src/admission/service.ts)校验录入并重建记录；[filesystem 发现](../../extensions/filesystem/src/game-discovery/adapter.ts)拥有目录项种类和目录 scope 校验；[Steam](../../extensions/steam/src/index.ts)通过已声明的 filesystem 依赖实现其来源；[WorkspaceConfigurationImporter](../../packages/workspace-configuration/src/operations/import.ts)负责 journal 与前向恢复。
 
 ## 类与函数
 
@@ -66,11 +66,11 @@ Effect 行为测试通过 `@effect/vitest` 的 `it.effect` 返回 Effect，以 T
 
 `infrastructureRule`、`workspaceRule`、`admissionRule` 和 `configurationRule` 桥接同步规则时，把已识别错误对象原样保留为 Fail；可信纯代码的未知 throw 保持 Die。Operation annotation 只提供诊断上下文。Port Effect 保留自然错误 union，包括文件系统 tag/code/cause；Schema 或规则拒绝不能伪装为 I/O。在明确标识的外部解析器/求值器边界，已知语法拒绝使用结构化输入类别，第三方未知 throw 才可成为带 boundary 与原 cause 的 `UnexpectedBoundaryError`。该类不是业务流程、Port 或全部 Schema hook 的通用兜底；穷尽处理仅覆盖声明的已知 union，不涵盖任意第三方行为或 defect。
 
-配置结果处理只恢复全部由 Fail reason 构成的 Cause；任何 Die 或 Interrupt 通过 failCause 继续传播。既有 conflict/recovery status 保持普通结果，保留 recovery-required 清理诊断。测试断言 tag 与 issue 字段，对已知 union 验证 catchTag/穷尽处理，并分别验证 defect/中断。参见[共享校验](../../packages/contracts/src/validation.ts)、[Workspace 协议](../../packages/workspace/src/errors.ts)、[绑定规则](../../packages/infrastructure/src/binding-errors.ts)、[准入规则](../../packages/game/src/admission-errors.ts)与[配置规则](../../packages/workspace-configuration/src/workflow-errors.ts)。
+配置结果处理只恢复全部由 Fail reason 构成的 Cause；任何 Die 或 Interrupt 通过 failCause 继续传播。既有 conflict/recovery status 保持普通结果，保留 recovery-required 清理诊断。测试断言 tag 与 issue 字段，对已知 union 验证 catchTag/穷尽处理，并分别验证 defect/中断。参见[共享校验](../../packages/infrastructure/src/contracts/schema/validation.ts)、[Workspace 协议](../../packages/workspace/src/model/errors.ts)、[绑定规则](../../packages/infrastructure/src/binding/errors.ts)、[准入规则](../../packages/game/src/admission/errors.ts)与[配置规则](../../packages/workspace-configuration/src/operations/errors.ts)。
 
 ## 测试边界与任务图
 
-先按所证明的流程分类，再选择目录和执行工具。单元测试负责一条规则或一个服务，包括正常路径和失败；在内存中组合其已声明依赖，或用真实目录验证一个 Adapter，仍是单元测试。集成测试是完整用户流程，或该流程中已经识别的失败，例如发现准入、Workspace 重命名/导入/编辑恢复、写入协调，以及写入前取消。集成测试不启动进程。端到端测试只保留测试进程观察不到的一种行为，并让这一组观察只启动一次进程：导入副作用、已构建 argv、真实终端、进程崩溃，或会污染后续导入的解析钩子。已构建 argv 冒烟和真实终端不接收注入的服务，也不伪造 `isTTY`。子进程不能决定类别。
+先按所证明的流程分类，再选择目录和执行工具。单元测试负责一条规则或一个服务，包括正常路径和失败；在内存中组合其已声明依赖，或用真实目录验证一个 Adapter，仍是单元测试。集成测试是完整用户流程，或该流程中已经识别的失败，例如发现准入、Workspace 重命名/导入/编辑恢复、写入协调，以及写入前取消。集成测试不启动进程。端到端测试只保留测试进程观察不到的一种行为，并让这一组观察只启动一次进程：已构建 argv、真实终端、进程崩溃，或会污染后续导入的解析钩子。已构建 argv 冒烟和真实终端不接收注入的服务，也不伪造 `isTTY`。子进程不能决定类别。不要添加复述源码路径、包导出或构建入口的测试。用写死的模块清单证明产物存在，或这些导入保持沉默，检查的是工具链，而且每次调整布局都要改测试。
 
 | Vitest 项目 | 位置 | 测试 / hook 时限 | 文件调度 |
 | --- | --- | --- | --- |
@@ -82,7 +82,7 @@ Effect 行为测试通过 `@effect/vitest` 的 `it.effect` 返回 Effect，以 T
 
 运行 `just test --project unit`、`just test --project integration` 或 `just test --project e2e`，可组合 Vitest 支持的筛选参数；`just test` 执行全部项目。这些命令进入 pnpm 的 Turborepo 图：workspace `build` 依赖 `^build`，输出 `dist/**`，根 `test:run` 依赖相关包构建。测试任务关闭缓存，命中构建缓存不能替代测试执行。共享构建配置与相关环境输入进入本地构建缓存计算。测试筛选参数仅传给 Vitest。切换实际 Node/工具环境后，若本地缓存可能来自旧环境，使用 `pnpm exec turbo run build --cache=local:rw --force` 强制重建。`just check` 保留 Biome、构建任务图、根 `tsc --build`、测试、文档与发布检查。TypeScript 继续由根目录单次 references 构建管理，避免争写 `dist-tsc/`。直接运行 CLI/daemon/dev-cli 仍需先 `just build`，然后执行已构建 Node 模块。
 
-CLI 语法、帮助和补全使用 Optique 的解析器与运行辅助。注入的提示和服务在进程内调用导出的运行函数。命令矩阵留在这个运行函数上。一次新进程只覆盖测试进程观察不到的一种行为：导入副作用、已构建 argv、真实终端、进程崩溃，或会污染后续导入的解析钩子，并且这次进程属于端到端测试。已构建入口作为真实进程运行。进程不能决定类别。所有者端口的替换实现留在进程内，不挂载虚拟文件系统。Effect 延时使用 TestClock。
+CLI 语法、帮助和补全使用 Optique 的解析器与运行辅助。注入的提示和服务在进程内调用导出的运行函数。命令矩阵留在这个运行函数上。一次新进程只覆盖测试进程观察不到的一种行为：已构建 argv、真实终端、进程崩溃，或会污染后续导入的解析钩子，并且这次进程属于端到端测试。已构建入口作为真实进程运行。进程不能决定类别。所有者端口的替换实现留在进程内，不挂载虚拟文件系统。Effect 延时使用 TestClock。
 
 包只通过 `test` 条件导出测试替身，其余目标为 null。`@konogame/infrastructure/tests/support` 按服务各导出一个 Layer：`deterministicIdLayer` 对应 `ID_SERVICE`，`fixedTemporalLayer` 对应 `TEMPORAL_SERVICE`。测试项目从 `tsconfig.test-base.json` 继承该条件，并放在 `monorepo-tsc` 之前。Vitest 会用服务器默认条件覆盖 `resolve.conditions`，因此其配置把 `test` 加回实际解析测试导入的服务器环境。导出指向源码，包入口不再导出它，因此 tsdown 不会发布它。
 

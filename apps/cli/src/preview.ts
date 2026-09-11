@@ -16,10 +16,17 @@ export function readBoundedJson(path: string) {
               message: "Discovery preview must be a regular JSON file no larger than 8 MiB"
             })
           );
-        // A fixed buffer also bounds reads when an external writer grows the file after stat.
-        const buffer = Buffer.alloc(MAX_PREVIEW_BYTES + 1);
+        // Grow only up to MAX_PREVIEW_BYTES + 1 if an external writer appends after stat.
+        let buffer = Buffer.allocUnsafe(
+          Math.min(MAX_PREVIEW_BYTES + 1, Math.max(info.size + 1, 4096))
+        );
         let size = 0;
-        while (size < buffer.length) {
+        while (size <= MAX_PREVIEW_BYTES) {
+          if (size === buffer.length) {
+            const next = Buffer.allocUnsafe(Math.min(MAX_PREVIEW_BYTES + 1, buffer.length * 2));
+            buffer.copy(next, 0, 0, size);
+            buffer = next;
+          }
           const result = yield* cliExternal(() =>
             file.read(buffer, size, buffer.length - size, size)
           );

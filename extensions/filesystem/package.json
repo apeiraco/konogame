@@ -25,7 +25,6 @@
     }
   },
   "dependencies": {
-    "@konogame/contracts": "workspace:*",
     "@konogame/save": "workspace:*",
     "arktype": "catalog:",
     "uuid": "catalog:",
@@ -49,6 +48,11 @@
     "releaseGroup": "extension",
     "extensionId": "konogame.filesystem",
     "contractRange": ">=0.2.0 <0.3.0",
+    "portContractRanges": {
+      "filesystem.save-store": ">=0.2.0 <0.3.0",
+      "filesystem.location": ">=0.2.0 <0.3.0",
+      "filesystem.game-discovery": ">=0.3.0 <0.4.0"
+    },
     "software": {
       "node": ">=26"
     }

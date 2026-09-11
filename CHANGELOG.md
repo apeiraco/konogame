@@ -6,6 +6,8 @@ Core binaries and packages share a version. Extensions have independent versions
 
 ### Changed
 
+- Separate Extension observations, UUID admission candidates and Workspace entities; compare opaque owner-issued Game/Installation identities without vendor parsing. Steam issues evidence-backed AppID Game identity; filesystem issues Host/volume/file-object Installation identity when reliable IDs exist. Move pure public contracts into owner /contracts entries and negotiate each Port independently (game.discovery 0.3.0; other existing Ports 0.2.0). Remove the standalone contracts package, retain unified core releases, independent Extensions and Schema 4, add bilingual ADR 0012, and inject CLI directory-to-Artifact input in composition.
+
 - Replace oclif with Optique 1.3 command parsers for the CLI, daemon, and dev-cli. Public arguments stay the same, including space-separated commands, `--json`, `--non-interactive`, `--interactive=false`, `-h`, and `-v`. Completion covers Bash, zsh, fish, PowerShell, and Nushell. Injected tests call the exported runner; built entries run as processes.
 
 - Retire the Application aggregate and `packages/application-composition`. Workflows live in the owning module: binding plans and the extension catalog in infrastructure, Workspace inspection and edits in workspace, discovery admission in game, and save writes in save. CLI and daemon each merge those Layers. Add `packages/layer-composition` only when several cross-feature combinations cannot live in an existing module. `packages/core` is now `packages/infrastructure`; the shared release group name `core` is unchanged.

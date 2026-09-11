@@ -7,10 +7,21 @@
       "monorepo-tsc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./store": {
+      "monorepo-tsc": "./src/store/workflow.ts",
+      "types": "./dist/store/workflow.d.ts",
+      "import": "./dist/store/workflow.js"
+    },
+    "./contracts": {
+      "monorepo-tsc": "./src/contracts.ts",
+      "types": "./dist/contracts.d.ts",
+      "import": "./dist/contracts.js"
     }
   },
   "dependencies": {
-    "@konogame/contracts": "workspace:*"
+    "@konogame/infrastructure": "workspace:*",
+    "effect": "catalog:"
   },
   "scripts": {
     "build": "tsdown"
@@ -25,6 +36,6 @@
   },
   "konogame": {
     "releaseGroup": "core",
-    "contractRange": ">=0.1.0 <0.2.0"
+    "contractRange": ">=0.2.0 <0.3.0"
   }
 }

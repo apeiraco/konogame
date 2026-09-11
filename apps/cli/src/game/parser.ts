@@ -55,8 +55,8 @@ export const gameParser = command(
     leaf("import", "Confirm selected candidates from a saved discovery preview", gameImport, {
       root: argument(text("ROOT")).optional(),
       previewFile: argument(text("FILE")).optional(),
-      candidate: option("--candidate", text("KEY"), {
-        description: message`Candidate key to import (repeatable)`
+      candidate: option("--candidate", text("ID"), {
+        description: message`Preview candidate UUID to import (repeatable)`
       }).multiple(),
       yes: option("--yes", { description: message`Explicitly confirm Workspace writes` }),
       hostId: option("--host-id", text("UUID"), {

@@ -6,7 +6,6 @@
   "dependencies": {
     "@optique/core": "catalog:",
     "@optique/run": "catalog:",
-    "@konogame/contracts": "workspace:*",
     "@konogame/infrastructure": "workspace:*",
     "@konogame/game": "workspace:*",
     "@konogame/save": "workspace:*",

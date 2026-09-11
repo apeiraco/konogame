@@ -1,5 +1,7 @@
 # ADR 0004: Local discovery, reviewed admission and explicit injection
 
+> Current identity/Port update: [ADR 0012](0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md) replaces vendor-aware matching with owner-issued opaque identity, separates observationKey/candidateId/entity UUID, moves contracts to owner /contracts entries and versions each Port independently. game.discovery is now 0.3.0; the declaration protocol remains 0.2.0.
+
 > Successor: [ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) replaces the dependency injection, asynchronous Port, observation, composition and lifetime details with Effect 4.0.6. This record preserves the decision at its original date; its remaining domain and ownership constraints still apply.
 
 Status: accepted, 2026-10-17.
@@ -10,7 +12,7 @@ The local experiment needs Steam and standalone directory discovery followed by 
 
 ## Decision
 
-Add core `@konogame/game` at the shared core version `0.1.0-alpha.0`. `game.discover` resolves `game.discovery/discover`, requiring `discovery.local`, `discovery.scoped` and the configured source capability. Filesystem supplies `filesystem.game-discovery`; independently versioned `konogame.steam@0.1.0-alpha.0` supplies `steam.game-discovery`. Steam software compatibility is `generic`, verified with synthetic fixtures rather than a guarantee covering all Steam versions.
+Add core `@konogame/game` at the shared core version `0.1.0-alpha.0`. `game.discover` resolves `game.discovery/discover`, requiring `discovery.local`, `discovery.scoped`, and `discovery.source.${kind}` from the configured source token. Game does not enumerate vendors or directory entry kinds. Filesystem supplies `filesystem.game-discovery` and owns directory scope validation; independently versioned `konogame.steam@0.1.0-alpha.0` supplies `steam.game-discovery` and uses the filesystem extension's discovery service through its declared dependency. Steam software compatibility is `generic`, verified with synthetic fixtures rather than a guarantee covering all Steam versions.
 
 Require an existing Host and `configured` source of kind `steam` or `standalone`. The caller explicitly selects scope; Host roots, source declarations and Steam library references never expand it. No network enrichment, executable probing, launch, source creation or game-file mutation is included. Directory candidates have weak identity. New installations have empty `launchEntries`.
 

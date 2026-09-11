@@ -2,7 +2,6 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { NodeRuntime } from "@effect/platform-node";
-import { CORE_VERSION } from "@konogame/contracts";
 import {
   installedExtensionFileSystemLayer,
   nodeInstalledExtensionsSource,
@@ -19,6 +18,7 @@ import {
   provideFeaturePlan,
   provideInfrastructure
 } from "@konogame/infrastructure";
+import { CORE_VERSION } from "@konogame/infrastructure/contracts";
 import { saveModuleSource } from "@konogame/save";
 import { workspaceModuleSource } from "@konogame/workspace";
 import { tomlWorkspaceConfigurationSource } from "@konogame/workspace-configuration/providers";

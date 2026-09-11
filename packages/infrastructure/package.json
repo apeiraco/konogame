@@ -1,0 +1,47 @@
+{
+  "name": "@konogame/infrastructure",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "monorepo-tsc": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./tests/support": {
+      "test": {
+        "types": "./src/testing/supports.ts",
+        "default": "./src/testing/supports.ts"
+      },
+      "default": null
+    },
+    "./contracts": {
+      "monorepo-tsc": "./src/contracts/index.ts",
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    }
+  },
+  "dependencies": {
+    "arktype": "catalog:",
+    "uuid": "catalog:",
+    "semver": "catalog:",
+    "effect": "catalog:",
+    "@ark/json-schema": "catalog:"
+  },
+  "scripts": {
+    "build": "tsdown"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apeiraco/konogame.git"
+  },
+  "konogame": {
+    "releaseGroup": "core",
+    "contractRange": ">=0.2.0 <0.3.0"
+  }
+}

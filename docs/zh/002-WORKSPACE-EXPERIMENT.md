@@ -36,7 +36,7 @@ CLI 使用 Optique 命令解析器和 clack TTY 提示。无命令时显示菜�
 | kind | 公共字段之外的字段 | `.konogame/` 内路径 |
 | --- | --- | --- |
 | `workspace` | `name`、`defaults`、`history` | `workspace.toml` |
-| `game` | `uniformName`、`title`、可选 `edition`、`externalRefs`、`settings` | `games/<id>-<name>.toml` 或 `games/<id>-<name>/game.toml` |
+| `game` | `uniformName`、`title`、可选 `edition`、`externalRefs`、可选 `externalIdentities`、`settings` | `games/<id>-<name>.toml` 或 `games/<id>-<name>/game.toml` |
 | `host` | `uniformName`、`label`、`platform`、`roots`、`defaults`、`gameOverrides`、`sources` | `local/<id>-<name>.toml` 或 `local/<id>-<name>/host.toml` |
 | `installation` | `uniformName`、`gameId`、`hostId`、`sourceId`、`location`、`launchEntries`、`settings` | `local/<host-id>-<name>/installations/<id>-<name>.toml`，或同一 installations 目录内的 `<id>-<name>/installation.toml` |
 
@@ -75,7 +75,7 @@ Host 必须已声明 `status = "configured"`、`kind = "steam"` 或 `"standalone
 
 ```sh
 just cli game discover /synthetic/workspace --host-id <host-id> --source-id loose --scope /synthetic/games --json > /synthetic/preview.json
-just cli game import /synthetic/workspace /synthetic/preview.json --candidate <candidate-key> --yes --json
+just cli game import /synthetic/workspace /synthetic/preview.json --candidate <candidate-id> --yes --json
 just cli workspace recover-import /synthetic/workspace <operation-id> --yes --json
 ```
 
@@ -87,7 +87,7 @@ filesystem 候选只是目录观察，以目录名为标题，无便携外部身
 
 Steam 范围显式选择每个库/root 或其 `steamapps` 目录。只读取所选 `appmanifest_*.acf` 并校验 `common/<installdir>`，不按 `maxDepth` 递归。`libraryfolders.vdf` 提供证据与未选择库的诊断，不扩大扫描权限。App ID 须为正 uint32 且匹配文件名；StateFlags 须包含 fully-installed bit 4，安装目录必须安全、存在且无链接/越界。清单读取上限 1 MiB，条目/候选数量有界。数据型 KeyValues 子集接受引号/裸字符串、花括号对象、`//` 注释及支持的反斜杠转义；指令、条件、重复键、不支持的转义失败。这是经合成夹具验证的实验格式 Adapter，不承诺所有 Steam 版本兼容。[ADR 0004](adr/0004-LOCAL-DISCOVERY-AND-INJECTION.md)链接主格式参考。
 
-预览包含证据、诊断、Binding Plan 与 `new-game`、`reuse-game`、`existing-installation`、`conflict` 处置。可靠 Steam App ID 可在不同安装间复用 Game，名称不能合并。同 Host 的相等 Location 来自其他 source，或已占用 Location 的 Steam 身份矛盾时报告冲突。新记录使用 UUIDv7，`launchEntries` 为空；本轮不发现启动入口、不启动、不联网补全、不修改游戏文件。
+预览包含证据、诊断、Binding Plan 与 `new-game`、`reuse-game`、`existing-installation`、`conflict` 处置。Extension 签发用途明确的 `externalIdentities`，业务服务比较完整 issuer/purpose/value，不解析厂商数据。Steam 由已验证 AppID 签发 issuer `konogame.steam`、value `app:<AppID>` 的 Game 身份，支持跨安装复用 Game，不推导账户或安装身份。预览候选具有 UUID `candidateId` 与明确 Adapter/Port/Host/source 来源；观察键保持来源值。名称不能合并。同 Host 的相等 Location 来自其他 source，或已占用 Location 的 Steam 身份矛盾时报告冲突。新记录使用 UUIDv7，`launchEntries` 为空；本轮不发现启动入口、不启动、不联网补全、不修改游戏文件。
 
 位置类型未知或 Schema 版本不受支持的候选仍保留在预览中，标记为 `unverified` 校验、`conflict` 处置并附 `location-unavailable` 诊断；此类候选不可录入，同批有效候选可以独立选择并录入。
 

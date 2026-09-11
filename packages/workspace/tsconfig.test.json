@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.test-base.json",
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "./dist-tsc/test",
@@ -13,7 +13,22 @@
       "path": "./tsconfig.lib.json"
     },
     {
-      "path": "../contracts/tsconfig.lib.json"
+      "path": "../infrastructure/tsconfig.lib.json"
+    },
+    {
+      "path": "../save/tsconfig.lib.json"
+    },
+    {
+      "path": "../game/tsconfig.lib.json"
+    },
+    {
+      "path": "../workspace-configuration/tsconfig.lib.json"
+    },
+    {
+      "path": "../../extensions/filesystem/tsconfig.lib.json"
+    },
+    {
+      "path": "../../tests/support/tsconfig.json"
     }
   ]
 }

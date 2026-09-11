@@ -3,10 +3,10 @@ import { SAVE_STORE_WORKFLOW } from "@konogame/save/store";
 import { Effect } from "effect";
 import {
   Cancelled,
+  CLI_ARTIFACT_INPUT,
   CLI_CONTEXT,
   type CliCommandEffect,
   CliError,
-  cliExternal,
   output,
   required
 } from "../context.ts";
@@ -28,12 +28,10 @@ export function executeSave(command: SaveCommand): CliCommandEffect {
       return yield* Effect.fail(
         new CliError({ message: plan.unavailable[0]?.reason ?? "Save store unavailable" })
       );
-    const { artifactFromDirectory } = yield* cliExternal(
-      () => import("@konogame/extension-filesystem")
-    );
+    const input = yield* CLI_ARTIFACT_INPUT;
     return yield* output(
       yield* (yield* SAVE_STORE_WORKFLOW).storeSave(
-        yield* artifactFromDirectory(directory),
+        yield* input.fromDirectory(directory),
         command.adapter
       )
     );

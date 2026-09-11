@@ -3,7 +3,13 @@ import { EXTENSION_CATALOG, FEATURE_PLAN, ID_SERVICE } from "@konogame/infrastru
 import { SAVE_STORE_WORKFLOW } from "@konogame/save/store";
 import { WORKSPACE_MANAGEMENT } from "@konogame/workspace/management";
 import { Effect } from "effect";
-import { CLI_CONTEXT, type CliContext, type CliServices, type Prompts } from "../../context.ts";
+import {
+  CLI_ARTIFACT_INPUT,
+  CLI_CONTEXT,
+  type CliContext,
+  type CliServices,
+  type Prompts
+} from "../../context.ts";
 
 export interface TestCliContext {
   readonly context: CliContext;
@@ -53,6 +59,7 @@ export interface TestCliServices {
   readonly admission?: unknown;
   readonly save?: unknown;
   readonly ids?: unknown;
+  readonly artifactInput?: unknown;
 }
 
 // CliCommandEffect declares every CLI service, so tests stub the ones they do not exercise.
@@ -63,6 +70,7 @@ export function provideTestCli<A, E>(
 ) {
   return effect.pipe(
     Effect.provideService(CLI_CONTEXT, context),
+    Effect.provideService(CLI_ARTIFACT_INPUT, (services.artifactInput ?? {}) as never),
     Effect.provideService(FEATURE_PLAN, (services.plan ?? {}) as never),
     Effect.provideService(EXTENSION_CATALOG, (services.catalog ?? {}) as never),
     Effect.provideService(WORKSPACE_MANAGEMENT, (services.workspace ?? {}) as never),

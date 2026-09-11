@@ -2,7 +2,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { NodeRuntime } from "@effect/platform-node";
-import { CORE_VERSION } from "@konogame/contracts";
 import {
   installedExtensionFileSystemLayer,
   nodeInstalledExtensionsSource,
@@ -24,6 +23,7 @@ import {
   provideIdService,
   provideInfrastructure
 } from "@konogame/infrastructure";
+import { CORE_VERSION } from "@konogame/infrastructure/contracts";
 import { saveModuleSource } from "@konogame/save";
 import { provideSaveStoreWorkflow, SAVE_STORE_WORKFLOW } from "@konogame/save/store";
 import { workspaceModuleSource } from "@konogame/workspace";
@@ -44,16 +44,25 @@ import {
 import { executeCli, executeWorkspaceSchema } from "./command.ts";
 import {
   Cancelled,
+  CLI_ARTIFACT_INPUT,
   CLI_CONTEXT,
   CLI_PROMPTS,
   CliError,
   type CliServices,
   cliChecked,
+  cliExternal,
   interactionFlags,
   interactionPolicy,
   terminalPrompts
 } from "./context.ts";
 import { cliCommandMenu, cliParser, normalizeCliTokens } from "./parser/index.ts";
+
+const localArtifactInput = {
+  fromDirectory: (directory: string) =>
+    cliExternal(() => import("@konogame/extension-filesystem")).pipe(
+      Effect.flatMap(({ artifactFromDirectory }) => artifactFromDirectory(directory))
+    )
+};
 
 class RunnerStop {
   readonly code: number;
@@ -83,7 +92,11 @@ export function composeCli<Error = never>(
   } = {}
 ) {
   const overrides = options.overrides ?? Layer.empty;
-  const dependencies = Layer.merge(installedExtensionFileSystemLayer, overrides);
+  const dependencies = Layer.mergeAll(
+    installedExtensionFileSystemLayer,
+    Layer.succeed(CLI_ARTIFACT_INPUT, localArtifactInput),
+    overrides
+  );
   return Layer.unwrap(
     Effect.gen(function* () {
       const installed = options.extensionRoots?.length
@@ -176,7 +189,9 @@ export function runCli<Error = never>(argv: string[], options: CliOptions<Error>
         const boundary = args.indexOf("--");
         args.splice(boundary < 0 ? args.length : boundary, 0, ...leading);
       }
-      const services = Context.make(CLI_CONTEXT, io);
+      const services = Context.make(CLI_CONTEXT, io).pipe(
+        Context.add(CLI_ARTIFACT_INPUT, localArtifactInput)
+      );
       const ids = yield* Layer.build(
         provideIdService(Context.getOrUndefined(overrides, ID_SERVICE))
       );

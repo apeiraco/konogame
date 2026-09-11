@@ -18,7 +18,7 @@ Core root 组装保持单个原生 `Layer.effectContext`。访问器类型为 `E
 
 ExtensionModule 提供可选原生 layer（或接收激活上下文的 Layer 工厂）与 Effect activate。每代拥有 Scope 和构建后的服务 Context，显式 root 替身优先；dependencyServices 仅可访问已声明 active 依赖 Context。严格声明校验、双注册表原子目录提交、惰性绑定、暂存运行发布、按代完成/失败缓存、缺失/版本/循环重评、重放/刷新归属与 restart-after-load 约束保持。私有 PubSub 暴露只读 Stream 观察和 snapshot，观察者不驱动注册表同步。
 
-可协作的自定义 Extension cleanup 推荐使用 [addLifetimeFinalizer](../../../packages/infrastructure/src/services.ts)，通过原生 Scope finalizer 应用 interruptible 单项/剩余总预算而不建立第二执行器；普通 acquireRelease/addFinalizer 和库资源 release 保留原生 Scope 的中断保护，因此 1 秒/5 秒不是通用硬截止，中断不能证明句柄已关闭。
+可协作的自定义 Extension cleanup 推荐使用 [addLifetimeFinalizer](../../../packages/infrastructure/src/foundation/services.ts)，通过原生 Scope finalizer 应用 interruptible 单项/剩余总预算而不建立第二执行器；普通 acquireRelease/addFinalizer 和库资源 release 保留原生 Scope 的中断保护，因此 1 秒/5 秒不是通用硬截止，中断不能证明句柄已关闭。
 
 原生 Scope/Fiber/Deferred/Clock 拥有清理、取消与截止。默认 discovery/load 15 秒、activation 30 秒、总 shutdown 5 秒、单 cleanup 1 秒。这些预算是协作式的：同步/不让出代码、刻意不可中断 Effect 和不可取消外部操作可能超时。不引入自制游离清理 scheduler、fiber 内部补丁或同进程 sandbox。
 
@@ -40,6 +40,6 @@ Effect 行为测试通过 `@effect/vitest` 的 `it.effect` 返回 Effect，以 T
 
 ADR 0004、0006、0007、0009 保留原历史正文。本 ADR 继任其 DI、异步观察、组装句柄与生命周期机制，领域边界和包归属继续适用。ADR 0002、0005、0008 的 Schema/Location/绑定/录入/恢复规则与 ADR 0010 的测试/任务图约束继续有效。
 
-当前 API 参见[架构](../001-ARCHITECTURE.md)、[开发指南](../004-DEVELOPMENT.md)、[服务/生命周期指南](../006-SERVICES-AND-EXTENSION-LIFECYCLE.md)、[infrastructure Layer](../../../packages/infrastructure/src/providers.ts)与[激活契约](../../../packages/infrastructure/src/types.ts)。CLI 组装见 [apps/cli/src/main.ts](../../../apps/cli/src/main.ts)，daemon 组装见 [apps/daemon/src/main.ts](../../../apps/daemon/src/main.ts)。
+当前 API 参见[架构](../001-ARCHITECTURE.md)、[开发指南](../004-DEVELOPMENT.md)、[服务/生命周期指南](../006-SERVICES-AND-EXTENSION-LIFECYCLE.md)、[infrastructure Layer](../../../packages/infrastructure/src/providers.ts)与[激活契约](../../../packages/infrastructure/src/foundation/types.ts)。CLI 组装见 [apps/cli/src/main.ts](../../../apps/cli/src/main.ts)，daemon 组装见 [apps/daemon/src/main.ts](../../../apps/daemon/src/main.ts)。
 
 [English](../../en/adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md) | [中文](0011-EFFECT-CONTRACTS-AND-LIFETIME.md)

@@ -4,9 +4,9 @@
 
 ## 版本与兼容性
 
-所有 Core 可执行程序与包共享 `project.version`：仓库根、contracts、Workspace、Save、application、应用组装、CLI、Daemon 和 dev-cli。每个 `[[extension]]` 独立维护 `version`；Core 升版不会修改 Extension 版本。初始版本号相同，不代表发布节奏绑定。
+所有 Core 可执行程序与包共享 `project.version`：仓库根、infrastructure、Workspace、Game、Save、workspace configuration、安装发现、CLI、Daemon 和 dev-cli。每个 `[[extension]]` 独立维护 `version`；Core 升版不会修改 Extension 版本。初始版本号相同，不代表发布节奏绑定。
 
-Contract **协议**为 `0.2.0`，与软件包发行号分开。Core 和内置 Extension 声明 `>=0.2.0 <0.3.0`，因此 npm 包 `@konogame/contracts@0.1.0-alpha.0` 与其描述的协议版本是两件事。Module 与 Adapter 声明 `contractRange`，解析时先用 SemVer 检查当前协议是否在范围内，再执行操作。Binding Plan 保留实际 `contractVersion` 和选中 Adapter 的范围。非法或不兼容范围不可用，显式偏好不会回退。预发布协议版本必须按普通 SemVer 规则由范围显式接纳。 Effect Port/Artifact/Extension API 的破坏性变化要求协议升版；core 与 Extension 发布版本仍为 `0.1.0-alpha.0`。不提供旧 Promise/DI 兼容层；Schema 4 与 `extension.package.1` 数据布局不变。参见 [ADR 0011](adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md)。
+声明协议保持 `0.2.0`、`>=0.2.0 <0.3.0`，与软件发行号及各 Port 协议分开。公共契约来自 owner /contracts 入口（infrastructure、game、workspace、save），移除独立 contracts 包。Feature `portContractVersion` 与 Adapter `portContractRange` 按 Port 独立协商，Binding Plan 保留所选版本/范围。`game.discovery` 为 `0.3.0`、`>=0.3.0 <0.4.0`；其余已有 Port 保持 `0.2.0`、`>=0.2.0 <0.3.0`。规范 `port_contract` 条目维护 Port 版本，每个 Extension 用固定 `port_contract_ranges` 声明 Adapter 范围，不能复制宿主当前范围自动宣称兼容。release sync 生成 owner 常量与 Extension Adapter 范围；只修改规范 TOML，不手改生成文件。Core 包仍以 `0.1.0-alpha.0` 统一发包，Extension 独立发行；Schema 4 与 `extension.package.1` 不变。见 [ADR 0012](adr/0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md)。
 
 Extension 对应软件的兼容性直接写在自己的 `software` 映射中，取值为：
 
@@ -16,7 +16,7 @@ Extension 对应软件的兼容性直接写在自己的 `software` 映射中，�
 | `latest` | 软件版本尚未固定或测试不足，不表示所有版本都兼容。 |
 | `generic` | 面向协议或格式，不绑定软件发行号。 |
 
-当前仅实现 filesystem Extension，其软件声明为 Node.js `>=26`。未来 Steam Extension 可填写 `software = { steam = "generic" }`；Epic、Kopia Extension 在明确测试范围前可分别填写 `software = { epic = "latest" }`、`software = { kopia = "latest" }`。这些只是填写示例，不会注册 Extension，也不引入新架构概念。一个 Extension 可以声明多个软件约束，并贡献多个 Adapter。
+已实现 filesystem 与 Steam Extension。filesystem 声明 Node.js `>=26`，Steam 使用 `software = { steam = "generic" }`；Epic、Kopia Extension 在明确测试范围前可分别填写 `software = { epic = "latest" }`、`software = { kopia = "latest" }`。这些只是填写示例，不会注册 Extension，也不引入新架构概念。一个 Extension 可以声明多个软件约束，并贡献多个 Adapter。
 
 `latest` 和 `generic` 仅用于软件声明，不能作为 Contract 范围。本轮没有自动探测外部软件版本或安装软件的功能。
 

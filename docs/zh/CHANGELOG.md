@@ -6,6 +6,8 @@ Core 可执行程序与包使用统一版本；各 Extension 独立版本，分�
 
 ### 变更
 
+- 分开 Extension 观察、UUID 准入候选与 Workspace 实体，泛化比较 owner 签发的 Game/Installation 身份，不解析厂商数据。Steam 签发有证据的 AppID Game 身份；filesystem 在有可靠 ID 时签发 Host/卷/文件对象 Installation 身份。纯公共契约迁至 owner /contracts，各 Port 独立协商（game.discovery 0.3.0，其余已有 Port 0.2.0）；移除独立 contracts 包，保留 Core 统一发行、Extension 独立发行和 Schema 4，新增双语 ADR 0012，在组合入口注入 CLI 目录到 Artifact 输入。
+
 - 用 Optique 1.3 命令解析器替换 CLI、daemon 和 dev-cli 中的 oclif。公开参数保持不变，包括空格分隔的子命令、`--json`、`--non-interactive`、`--interactive=false`、`-h` 和 `-v`。补全覆盖 Bash、zsh、fish、PowerShell 和 Nushell。注入测试调用导出的运行函数；已构建入口作为进程运行。
 
 - 退役 Application 聚合和 `packages/application-composition`。用例回到拥有该能力的模块：绑定计划和扩展目录在 infrastructure，Workspace 检查和编辑在 workspace，发现准入在 game，存档写入在 save。CLI 与 Daemon 各自合并这些 Layer。多个跨 Feature 组合确实无法由现有模块承接时，才增加 `packages/layer-composition`。`packages/core` 改名为 `packages/infrastructure`；共享发行组名 `core` 不变。

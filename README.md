@@ -8,7 +8,7 @@ Konogame is an early-stage extensible framework for managing game assets: saves,
 
 A **Module** organizes user-facing **Features**. Each Feature invokes an **Operation** through a replaceable **Port/Contract**. An **Extension** can ship multiple **Adapters**. Each Adapter advertises its operations and fine-grained **Capabilities**. The application negotiates requirements against available Adapters and produces a **Binding Plan** before work runs.
 
-CLI and daemon are separate entry points. Each one composes the Layers of the modules it uses. They do not depend directly on Kopia, Ludusavi, or another vendor tool. Core packages, including the Contract package, share a release version; the protocol has its own version and Extensions release independently. The default filesystem Adapter streams multi-file Artifacts and does not require version history.
+CLI and daemon are separate entry points. Each one composes the Layers of the modules it uses. They do not depend directly on Kopia, Ludusavi, or another vendor tool. Core packages share a release version; the protocol has its own version and Extensions release independently. The default filesystem Adapter streams multi-file Artifacts and does not require version history.
 
 ## Try the prototype
 
@@ -50,7 +50,7 @@ Each workflow is an owner-module `Context.Service` and Layer. CLI and daemon mer
 
 - `packages/infrastructure`: implementation registries, lazy activation, lifecycle, binding, Temporal/ID services, binding plans and the extension catalog.
 - `packages/extension-discovery-node`: explicit installed-root JSON scanning and checked lazy factory loading; shares the core release version.
-- `packages/contracts`: versioned vocabulary and streaming Artifact contracts.
+- Owner `/contracts` entries in infrastructure, Game, Workspace and Save: pure declarations and independent Port protocols.
 - `packages/workspace`: Workspace Module, configuration/history contracts, record schemas, override rules, and inspection/edit workflows.
 - `packages/workspace-configuration`: core TOML persistence, metadata layouts, read/rename/import/initialize/edit and targeted recovery; module-owned `core.workspace-configuration`.
 - `packages/game`: local discovery contracts, candidate/evidence values, source capabilities, and admission workflows. It may depend on `workspace`.
@@ -106,5 +106,7 @@ Workspace management now initializes an existing directory with disabled history
 ## Tests and task graph
 
 Tests are classified by the boundary they verify: isolated rules/services are unit tests; composed services, injected CLI dispatch/prompts and process/module contracts are integration tests; built program entries with normal composition and real disposable Workspace workflows are end-to-end tests. A child process alone does not make a test end-to-end. `just test --project unit`, `integration`, or `e2e` selects a Vitest project. Turborepo schedules required `dist` builds for tests through pnpm; build artifacts use a local cache, while tests always execute. Direct `just cli`, `just daemon` and `just dev-cli` still require an explicit build. See [ADR 0010](docs/en/adr/0010-TEST-BOUNDARIES-AND-TASK-GRAPH.md) and the [development guide](docs/en/004-DEVELOPMENT.md).
+
+Current identity and contract boundaries: [ADR 0012](docs/en/adr/0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md) separates Extension observations, UUID admission candidates and Workspace entities. Extensions issue opaque purpose-specific identities; owner /contracts entries maintain independent Port protocols. game.discovery is 0.3.0; the declaration protocol and existing other Ports stay 0.2.0.
 
 [English](README.md) | [中文](docs/zh/README.md)

@@ -1,5 +1,7 @@
 # ADR 0003: Release versions and Contract compatibility
 
+> Current identity/Port update: [ADR 0012](0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md) replaces vendor-aware matching with owner-issued opaque identity, separates observationKey/candidateId/entity UUID, moves contracts to owner /contracts entries and versions each Port independently. game.discovery is now 0.3.0; the declaration protocol remains 0.2.0.
+
 > Protocol update: [ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) changes the current Contract protocol to `0.2.0` and range to `>=0.2.0 <0.3.0`. Original version examples below preserve the decision at its date; release/version ownership and Location/schema rules remain.
 
 Status: accepted, 2026-10-17. Refines the release and exact-version assumptions in [ADR 0001](0001-CAPABILITY-BINDING.md).

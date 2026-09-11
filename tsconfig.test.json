@@ -13,7 +13,7 @@
       "path": "./tests/support/tsconfig.json"
     },
     {
-      "path": "./packages/contracts/tsconfig.test.json"
+      "path": "./packages/infrastructure/tsconfig.test.json"
     },
     {
       "path": "./packages/workspace/tsconfig.test.json"
@@ -44,9 +44,6 @@
     },
     {
       "path": "./packages/workspace-configuration/tsconfig.test.json"
-    },
-    {
-      "path": "./packages/infrastructure/tsconfig.test.json"
     },
     {
       "path": "./packages/extension-discovery-node/tsconfig.test.json"

@@ -17,23 +17,18 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "@oclif/core": "^5.1.8",
-    "semver": "^7.8.5",
-    "smol-toml": "^1.9.1",
-    "toml-eslint-parser": "^1.0.3",
-    "zod": "^4.6.7"
+    "@optique/core": "catalog:",
+    "@optique/run": "catalog:",
+    "arktype": "catalog:",
+    "semver": "catalog:",
+    "smol-toml": "catalog:",
+    "toml-eslint-parser": "catalog:",
+    "effect": "catalog:",
+    "@effect/platform-node": "catalog:",
+    "@konogame/infrastructure": "workspace:*"
   },
   "bin": {
     "konogame-dev": "./dist/main.js"
-  },
-  "oclif": {
-    "bin": "konogame-dev",
-    "topicSeparator": " ",
-    "commands": {
-      "strategy": "explicit",
-      "target": "./dist/commands.js",
-      "identifier": "commands"
-    }
   },
   "license": "MPL-2.0",
   "repository": {
@@ -42,6 +37,6 @@
   },
   "konogame": {
     "releaseGroup": "core",
-    "contractRange": ">=0.1.0 <0.2.0"
+    "contractRange": ">=0.2.0 <0.3.0"
   }
 }

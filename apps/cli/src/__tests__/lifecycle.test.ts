@@ -1,5 +1,8 @@
-import { CORE_VERSION } from "@konogame/contracts";
-import { ID_SERVICE, UuidIdService } from "@konogame/infrastructure";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { FEATURE_PLAN, ID_SERVICE, UuidIdService } from "@konogame/infrastructure";
+import { CORE_VERSION } from "@konogame/infrastructure/contracts";
+import { WORKSPACE_MANAGEMENT } from "@konogame/workspace/management";
 import { Effect, Layer } from "effect";
 import { expect, test } from "vitest";
 import { createTestDirectory } from "../../../../tests/support/temp.ts";
@@ -52,9 +55,20 @@ for (const outcome of [
       select: () => Effect.fail(new Cancelled()),
       confirm: () => Effect.fail(new Cancelled())
     });
+    const plan =
+      outcome === "error"
+        ? Layer.succeed(FEATURE_PLAN, {
+            plan: (featureIds: readonly string[]) =>
+              Effect.fail(new Error(`Unknown feature: ${featureIds.join(", ")}`))
+          } as never)
+        : outcome === "cancel"
+          ? Layer.succeed(WORKSPACE_MANAGEMENT, {
+              inspectWorkspace: () => Effect.fail(new Error("Synthetic"))
+            } as never)
+          : Layer.empty;
     const code = await Effect.runPromise(
       runCli(args, {
-        overrides: Layer.merge(ids, prompts),
+        overrides: Layer.mergeAll(ids, prompts, plan),
         env: {},
         isTTY: outcome === "cancel" || outcome === "menu-cancel",
         stdout: (text) => {
@@ -79,10 +93,17 @@ for (const outcome of [
 for (const operationFails of [false, true]) {
   test(`runCli reports workflow and finalizer failures after operation failure=${operationFails}`, async () => {
     let errors = "";
-    const overrides = Layer.effect(
-      ID_SERVICE,
-      Effect.acquireRelease(Effect.succeed(new UuidIdService()), () =>
-        Effect.die(new Error("cleanup detail"))
+    const overrides = Layer.merge(
+      Layer.succeed(FEATURE_PLAN, {
+        features: () => Effect.succeed([]),
+        plan: (featureIds: readonly string[]) =>
+          Effect.fail(new Error(`Unknown feature: ${featureIds.join(", ")}`))
+      } as never),
+      Layer.effect(
+        ID_SERVICE,
+        Effect.acquireRelease(Effect.succeed(new UuidIdService()), () =>
+          Effect.die(new Error("cleanup detail"))
+        )
       )
     );
     const code = await Effect.runPromise(
@@ -101,3 +122,179 @@ for (const operationFails of [false, true]) {
     if (operationFails) expect(errors).toContain("Unknown feature: unknown");
   });
 }
+
+test("runCli keeps owner Context across commands and routes logger diagnostics to stderr", async () => {
+  const results = [];
+  for (const marker of ["first", "second"]) {
+    let stdout = "";
+    let stderr = "";
+    const overrides = Layer.succeed(FEATURE_PLAN, {
+      features: () => Effect.succeed([marker])
+    } as never);
+    const code = await Effect.runPromise(
+      runCli(["features", "--json"], {
+        overrides,
+        env: {},
+        isTTY: false,
+        stdout: (text) => {
+          stdout += text;
+        },
+        stderr: (text) => {
+          stderr += text;
+        }
+      })
+    );
+    results.push({ code, data: JSON.parse(stdout), stderr });
+  }
+  expect(results).toEqual([
+    { code: 0, data: ["first"], stderr: "" },
+    { code: 0, data: ["second"], stderr: "" }
+  ]);
+
+  let stdout = "";
+  const stderrChunks: string[] = [];
+  const originalError = console.error;
+  console.error = (...args: unknown[]) => {
+    stderrChunks.push(args.map(String).join(" "));
+  };
+  try {
+    const overrides = Layer.merge(
+      Layer.succeed(FEATURE_PLAN, {
+        features: () => Effect.succeed(["save.store"])
+      } as never),
+      Layer.effect(
+        ID_SERVICE,
+        Effect.acquireRelease(Effect.succeed(new UuidIdService()), () =>
+          Effect.logError("Synthetic recovery-required diagnostic")
+        )
+      )
+    );
+    const code = await Effect.runPromise(
+      runCli(["features", "--json"], {
+        overrides,
+        env: {},
+        isTTY: false,
+        stdout: (text) => {
+          stdout += text;
+        }
+      })
+    );
+    expect(code).toBe(0);
+    expect(JSON.parse(stdout)).toEqual(["save.store"]);
+    expect(stderrChunks.join("\n")).toContain("Synthetic recovery-required diagnostic");
+  } finally {
+    console.error = originalError;
+  }
+});
+
+test("runCli catalog commands load declarations without executing Extension implementations and reject relative roots", async () => {
+  const directory = await createTestDirectory(
+    import.meta.dirname,
+    "unit",
+    "cli",
+    "lifecycle",
+    "installed"
+  );
+  const roots = join(directory, "installed");
+  const packageDirectory = join(roots, "fixture.external");
+  const marker = join(directory, "executed");
+  await mkdir(join(packageDirectory, "dist"), { recursive: true });
+  await writeFile(
+    join(packageDirectory, "konogame-extension.json"),
+    JSON.stringify({
+      schemaVersion: "extension.package.1",
+      manifest: {
+        id: "fixture.external",
+        version: "1.0.0",
+        contractRange: ">=0.2.0 <0.3.0",
+        software: {},
+        activationEvents: ["onStartup"],
+        contributes: {}
+      },
+      module: {
+        entry: "./dist/extension.mjs",
+        factory: "createExtensionModule",
+        options: { marker }
+      }
+    })
+  );
+  await writeFile(
+    join(packageDirectory, "dist/extension.mjs"),
+    `import { writeFileSync } from "node:fs"; import { Effect } from "effect"; export function createExtensionModule(options) { return Effect.sync(() => { writeFileSync(options.marker, "executed"); return { activate: () => Effect.void }; }); }`
+  );
+  const env = {
+    KONOGAME_EXTENSION_ROOTS: JSON.stringify([roots]),
+    KONOGAME_SAVE_ROOT: join(directory, "saves")
+  };
+
+  for (const args of [
+    ["extension", "list", "--json"],
+    ["extension", "status", "fixture.external", "--json"],
+    ["extension", "refresh", "--json"]
+  ]) {
+    let stdout = "";
+    let stderr = "";
+    const code = await Effect.runPromise(
+      runCli(args, {
+        env,
+        isTTY: false,
+        stdout: (text) => {
+          stdout += text;
+        },
+        stderr: (text) => {
+          stderr += text;
+        }
+      })
+    );
+    expect({ args, code, stderr }).toEqual({ args, code: 0, stderr: "" });
+    const parsed = JSON.parse(stdout);
+    if (args[1] === "list") {
+      expect(parsed).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: "fixture.external", activation: "inactive" })
+        ])
+      );
+    } else if (args[1] === "status") {
+      expect(parsed).toMatchObject({
+        extensions: [{ id: "fixture.external", activation: "inactive" }]
+      });
+    } else {
+      expect(parsed).toMatchObject({
+        added: [],
+        replaced: [],
+        removed: [],
+        restartRequired: [],
+        unchanged: expect.arrayContaining(["fixture.external"])
+      });
+    }
+  }
+  await expect(readFile(marker)).rejects.toMatchObject({ code: "ENOENT" });
+
+  let badStderr = "";
+  const badCode = await Effect.runPromise(
+    runCli(["extension", "list", "--json"], {
+      env: { KONOGAME_EXTENSION_ROOTS: '["relative"]' },
+      isTTY: false,
+      stdout() {},
+      stderr: (text) => {
+        badStderr += text;
+      }
+    })
+  );
+  expect(badCode).toBe(1);
+  expect(badStderr).toContain("absolute paths");
+
+  let helpStdout = "";
+  const helpCode = await Effect.runPromise(
+    runCli(["--help"], {
+      env: { KONOGAME_EXTENSION_ROOTS: '["relative"]' },
+      isTTY: false,
+      stdout: (text) => {
+        helpStdout += text;
+      },
+      stderr() {}
+    })
+  );
+  expect(helpCode).toBe(0);
+  expect(helpStdout).toContain("extension");
+});

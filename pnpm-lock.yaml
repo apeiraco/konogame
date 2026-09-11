@@ -247,9 +247,6 @@ importers:
       '@konogame/cli':
         specifier: workspace:*
         version: link:apps/cli
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:packages/contracts
       '@konogame/daemon':
         specifier: workspace:*
         version: link:apps/daemon
@@ -325,9 +322,6 @@ importers:
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.6(effect@4.0.6)(redis@6.3.0)
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
       '@konogame/extension-discovery-node':
         specifier: workspace:*
         version: link:../../packages/extension-discovery-node
@@ -370,9 +364,6 @@ importers:
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.6(effect@4.0.6)(redis@6.3.0)
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
       '@konogame/extension-discovery-node':
         specifier: workspace:*
         version: link:../../packages/extension-discovery-node
@@ -409,9 +400,6 @@ importers:
 
   extensions/filesystem:
     dependencies:
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
       '@konogame/game':
         specifier: workspace:*
         version: link:../../packages/game
@@ -436,9 +424,6 @@ importers:
 
   extensions/steam:
     dependencies:
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
       '@konogame/extension-filesystem':
         specifier: workspace:*
         version: link:../filesystem
@@ -455,26 +440,8 @@ importers:
         specifier: 'catalog:'
         version: 4.0.6
 
-  packages/contracts:
-    dependencies:
-      '@ark/json-schema':
-        specifier: 'catalog:'
-        version: 0.0.12
-      arktype:
-        specifier: 'catalog:'
-        version: 2.2.8
-      effect:
-        specifier: 'catalog:'
-        version: 4.0.6
-      semver:
-        specifier: 'catalog:'
-        version: 7.8.5
-
   packages/extension-discovery-node:
     dependencies:
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@konogame/infrastructure':
         specifier: workspace:*
         version: link:../infrastructure
@@ -487,9 +454,6 @@ importers:
 
   packages/game:
     dependencies:
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@konogame/infrastructure':
         specifier: workspace:*
         version: link:../infrastructure
@@ -505,9 +469,9 @@ importers:
 
   packages/infrastructure:
     dependencies:
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:../contracts
+      '@ark/json-schema':
+        specifier: 'catalog:'
+        version: 0.0.12
       arktype:
         specifier: 'catalog:'
         version: 2.2.8
@@ -523,9 +487,6 @@ importers:
 
   packages/save:
     dependencies:
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@konogame/infrastructure':
         specifier: workspace:*
         version: link:../infrastructure
@@ -535,9 +496,6 @@ importers:
 
   packages/workspace:
     dependencies:
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@konogame/infrastructure':
         specifier: workspace:*
         version: link:../infrastructure
@@ -554,9 +512,6 @@ importers:
 
   packages/workspace-configuration:
     dependencies:
-      '@konogame/contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@konogame/infrastructure':
         specifier: workspace:*
         version: link:../infrastructure
@@ -581,9 +536,9 @@ importers:
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.6(effect@4.0.6)(redis@6.3.0)
-      '@konogame/contracts':
+      '@konogame/infrastructure':
         specifier: workspace:*
-        version: link:../../packages/contracts
+        version: link:../../packages/infrastructure
       '@optique/core':
         specifier: 'catalog:'
         version: 1.3.6

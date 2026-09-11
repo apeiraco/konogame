@@ -9,7 +9,7 @@
   "exclude": ["node_modules", "dist", "dist-tsc", "src/**/__tests__/**"],
   "references": [
     {
-      "path": "../../packages/contracts/tsconfig.lib.json"
+      "path": "../../packages/infrastructure/tsconfig.lib.json"
     },
     {
       "path": "../../packages/workspace/tsconfig.lib.json"
@@ -22,9 +22,6 @@
     },
     {
       "path": "../../packages/game/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/infrastructure/tsconfig.lib.json"
     },
     {
       "path": "../../packages/workspace-configuration/tsconfig.lib.json"

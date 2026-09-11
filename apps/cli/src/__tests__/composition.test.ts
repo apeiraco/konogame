@@ -1,6 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import {
   defineExtensionModule,
+  EXTENSION_CATALOG,
   type ExtensionDiscoverySource,
   FEATURE_PLAN
 } from "@konogame/infrastructure";
@@ -97,3 +98,31 @@ it.effect(
       expect(cleanups).toBe(1);
     })
 );
+
+for (const [capability, expected] of [
+  ["discovery.source.standalone", ["konogame.filesystem"]],
+  ["discovery.source.steam", ["konogame.filesystem", "konogame.steam"]]
+] as const) {
+  it.effect(
+    `composeCli lazily activates only the selected discovery implementation and its dependencies for ${capability}`,
+    () =>
+      Effect.gen(function* () {
+        const services = yield* Layer.build(composeCli());
+        const plan = Context.get(services, FEATURE_PLAN);
+        const catalog = Context.get(services, EXTENSION_CATALOG);
+        yield* plan.features();
+        expect(
+          (yield* catalog.list())
+            .filter((entry) => entry.activation === "active")
+            .map((entry) => entry.id)
+        ).toEqual([]);
+        const result = yield* plan.plan(["game.discover"], {}, { "game.discover": [capability] });
+        expect(result.bindings).toHaveLength(1);
+        expect(
+          (yield* catalog.list())
+            .filter((entry) => entry.activation === "active")
+            .map((entry) => entry.id)
+        ).toEqual(expected);
+      })
+  );
+}
