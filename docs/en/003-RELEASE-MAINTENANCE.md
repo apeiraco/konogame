@@ -1,12 +1,12 @@
 # 03 Release metadata and maintenance
 
-`konogame-metadata.toml` is the canonical source for project identity, the core version, Contract protocol version/range, managed package inventory, and independently versioned Extensions. Package manifests and generated release metadata are projections maintained by dev-cli. The release commands prepare local files; registry publishing and Git tags are separate delivery work.
+`konogame-metadata.toml` is the canonical source for project identity, the core version, declaration protocol and Port version/ranges, managed package inventory, and independently versioned Extensions. Package manifests and generated release metadata are projections maintained by dev-cli. The release commands prepare local files; registry publishing and Git tags are separate delivery work.
 
 ## Versions and compatibility
 
 All core binaries and packages share `project.version`: the repository root, infrastructure, Workspace, Game, Save, workspace configuration, installed discovery, CLI, daemon, and dev-cli. Each `[[extension]]` owns its own `version`; changing the core version does not change an Extension version. Equal initial numbers do not couple their release schedules.
 
-The declaration protocol remains `0.2.0` with `>=0.2.0 <0.3.0`, separate from package releases and each Port protocol. Public contracts live at the owner /contracts entry (infrastructure, game, workspace, save); the standalone contracts package is removed. Feature `portContractVersion` and Adapter `portContractRange` negotiate each Port independently; Binding Plans retain the selected version/range. `game.discovery` is `0.3.0` with `>=0.3.0 <0.4.0`; existing other Ports stay `0.2.0` with `>=0.2.0 <0.3.0`. Canonical `port_contract` entries own Port versions and each Extension declares fixed `port_contract_ranges` for its Adapters. Extensions must not copy the current host range as a compatibility claim. Release sync generates owner constants and Extension Adapter ranges: edit canonical TOML, never generated files. Core packages publish together at `0.1.0-alpha.0`; Extensions release independently. Schema 4 and `extension.package.1` remain unchanged. See [ADR 0012](adr/0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md).
+Canonical `[declaration_protocol]` owns the declaration version/range; Extension declarations use `declaration_protocol_range`. Generated constants are `DECLARATION_PROTOCOL_VERSION` and `DECLARATION_PROTOCOL_RANGE`; Port constants use the `_PORT` suffix and expose `version`/`supportedRange`. The declaration protocol remains `0.2.0` with `>=0.2.0 <0.3.0`, separate from package releases and each Port protocol. Public contracts live at the owner `/contracts` entry (infrastructure, game, workspace, save); the standalone contracts package is removed. Feature `portVersion` and Adapter `portVersionRange` negotiate each Port independently; Adapter Resolution Plans retain the selected version/range. `game.discovery` is `0.3.0` with `>=0.3.0 <0.4.0`; existing other Ports stay `0.2.0` with `>=0.2.0 <0.3.0`. Canonical `[[port]]` entries own Port versions and each Extension declares fixed `port_version_ranges` for its Adapters. Extensions must not copy the current host range as a compatibility claim. Release sync generates owner constants and Extension Adapter ranges: edit canonical TOML, never generated files. Core packages publish together at `0.1.0-alpha.0`; Extensions release independently. Schema 4 and `extension.package.1` remain unchanged. See [ADR 0012](adr/0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md).
 
 Extension software compatibility belongs to its `software` map. Its values are:
 
@@ -16,9 +16,9 @@ Extension software compatibility belongs to its `software` map. Its values are:
 | `latest` | Version is unpinned or insufficiently tested; it is not a promise that every version works. |
 | `generic` | The adapter targets a protocol or format without a software release-number constraint. |
 
-Filesystem and Steam Extensions are implemented. Filesystem declares Node.js `>=26`; Steam uses `software = { steam = "generic" }`; Epic and Kopia Extensions can initially use `software = { epic = "latest" }` and `software = { kopia = "latest" }` until tested ranges are established. These examples do not register Extensions or create another architecture concept. One Extension may declare several software constraints and contribute several Adapters.
+The bundled Extensions are Workspace TOML, filesystem and Steam. Workspace TOML declares TOML 1.0 compatibility and its own range for the configuration Port. Filesystem declares Node.js `>=26`; Steam uses `software = { steam = "generic" }`; Epic and Kopia Extensions can initially use `software = { epic = "latest" }` and `software = { kopia = "latest" }` until tested ranges are established. These examples do not register Extensions or create another architecture concept. One Extension may declare several software constraints and contribute several Adapters.
 
-`latest` and `generic` are software declaration markers, never Contract range aliases. No external software version probing or automatic installation is implemented.
+`latest` and `generic` are software declaration markers, never declaration protocol or Port version-range aliases. No external software version probing or automatic installation is implemented.
 
 ## Maintenance commands
 
@@ -43,7 +43,7 @@ just dev-cli release notes --extension konogame.filesystem --lang en
 
 For a core release, set the version, finalize matching English/Chinese changelog sections, rebuild, and run `just check`. For an Extension release, select its ID with `--extension`; core versions and other Extensions stay independent. Changing compatibility declarations is an explicit metadata edit followed by `release sync`. The sync command updates all registered projections; the version command only updates the selected release group. Rebuild the binaries after a version change so their version output reflects the new manifests/constants.
 
-`release check` rejects missing/unregistered packages, manifest or generated-source drift, invalid/incompatible Contract declarations, invalid software markers, incorrect English changelog projection, and missing notes in any declared language. `just check` forwards to `pnpm check`, which includes this check after build, type checks, tests, and documentation checks.
+`release check` rejects missing/unregistered packages, manifest or generated-source drift, invalid/incompatible protocol declarations, invalid software markers, incorrect English changelog projection, and missing notes in any declared language. `just check` forwards to `pnpm check`, which includes this check after build, type checks, tests, and documentation checks.
 
 ## Changelog sources
 

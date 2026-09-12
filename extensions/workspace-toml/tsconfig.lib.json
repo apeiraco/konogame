@@ -9,10 +9,10 @@
   "exclude": ["node_modules", "dist", "dist-tsc", "src/**/__tests__/**"],
   "references": [
     {
-      "path": "../infrastructure/tsconfig.lib.json"
+      "path": "../../packages/infrastructure/tsconfig.lib.json"
     },
     {
-      "path": "../workspace/tsconfig.lib.json"
+      "path": "../../packages/workspace/tsconfig.lib.json"
     }
   ]
 }

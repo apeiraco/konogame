@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { FEATURE_PLAN, ID_SERVICE, UuidIdService } from "@konogame/infrastructure";
+import { ADAPTER_RESOLUTION_PLANNER, ID_SERVICE, UuidIdService } from "@konogame/infrastructure";
 import { CORE_VERSION } from "@konogame/infrastructure/contracts";
 import { WORKSPACE_MANAGEMENT } from "@konogame/workspace/management";
 import { Effect, Layer } from "effect";
@@ -57,7 +57,7 @@ for (const outcome of [
     });
     const plan =
       outcome === "error"
-        ? Layer.succeed(FEATURE_PLAN, {
+        ? Layer.succeed(ADAPTER_RESOLUTION_PLANNER, {
             plan: (featureIds: readonly string[]) =>
               Effect.fail(new Error(`Unknown feature: ${featureIds.join(", ")}`))
           } as never)
@@ -77,7 +77,9 @@ for (const outcome of [
         stderr() {}
       })
     );
-    if (outcome === "version") expect(stdout).toContain(CORE_VERSION);
+    if (outcome === "version") {
+      expect(stdout).toContain(CORE_VERSION);
+    }
     expect({
       code,
       cleanups,
@@ -94,7 +96,7 @@ for (const operationFails of [false, true]) {
   test(`runCli reports workflow and finalizer failures after operation failure=${operationFails}`, async () => {
     let errors = "";
     const overrides = Layer.merge(
-      Layer.succeed(FEATURE_PLAN, {
+      Layer.succeed(ADAPTER_RESOLUTION_PLANNER, {
         features: () => Effect.succeed([]),
         plan: (featureIds: readonly string[]) =>
           Effect.fail(new Error(`Unknown feature: ${featureIds.join(", ")}`))
@@ -119,7 +121,9 @@ for (const operationFails of [false, true]) {
     );
     expect(code).toBe(1);
     expect(errors).toContain("cleanup detail");
-    if (operationFails) expect(errors).toContain("Unknown feature: unknown");
+    if (operationFails) {
+      expect(errors).toContain("Unknown feature: unknown");
+    }
   });
 }
 
@@ -128,7 +132,7 @@ test("runCli keeps owner Context across commands and routes logger diagnostics t
   for (const marker of ["first", "second"]) {
     let stdout = "";
     let stderr = "";
-    const overrides = Layer.succeed(FEATURE_PLAN, {
+    const overrides = Layer.succeed(ADAPTER_RESOLUTION_PLANNER, {
       features: () => Effect.succeed([marker])
     } as never);
     const code = await Effect.runPromise(
@@ -159,7 +163,7 @@ test("runCli keeps owner Context across commands and routes logger diagnostics t
   };
   try {
     const overrides = Layer.merge(
-      Layer.succeed(FEATURE_PLAN, {
+      Layer.succeed(ADAPTER_RESOLUTION_PLANNER, {
         features: () => Effect.succeed(["save.store"])
       } as never),
       Layer.effect(
@@ -206,7 +210,7 @@ test("runCli catalog commands load declarations without executing Extension impl
       manifest: {
         id: "fixture.external",
         version: "1.0.0",
-        contractRange: ">=0.2.0 <0.3.0",
+        declarationProtocolRange: ">=0.2.0 <0.3.0",
         software: {},
         activationEvents: ["onStartup"],
         contributes: {}

@@ -130,12 +130,14 @@ it.effect("a declined confirmation never renames", () =>
       })
     );
     expect(exit._tag).toBe("Failure");
-    if (exit._tag === "Failure") expect(Cause.squash(exit.cause)).toBeInstanceOf(Cancelled);
+    if (exit._tag === "Failure") {
+      expect(Cause.squash(exit.cause)).toBeInstanceOf(Cancelled);
+    }
     expect(writes).toBe(0);
   })
 );
 
-for (const status of [RenameStatus.Conflict, RenameStatus.RecoveryRequired, RenameStatus.Failed])
+for (const status of [RenameStatus.Conflict, RenameStatus.RecoveryRequired, RenameStatus.Failed]) {
   it.effect(`rename reports ${status} after writing the machine result`, () =>
     Effect.gen(function* () {
       const io = testCliContext();
@@ -149,6 +151,9 @@ for (const status of [RenameStatus.Conflict, RenameStatus.RecoveryRequired, Rena
       );
       expect(io.stdout.join("")).toContain(`"status": "${status}"`);
       expect(exit._tag).toBe("Failure");
-      if (exit._tag === "Failure") expect(Cause.squash(exit.cause)).toBeInstanceOf(CliError);
+      if (exit._tag === "Failure") {
+        expect(Cause.squash(exit.cause)).toBeInstanceOf(CliError);
+      }
     })
   );
+}

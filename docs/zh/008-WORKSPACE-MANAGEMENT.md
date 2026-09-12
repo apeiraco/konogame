@@ -40,7 +40,7 @@ just cli workspace edit apply C:/Synthetic/Library C:/Synthetic/edit-preview.jso
 
 CLI 单独 `--title` 保留当前 edition，`--edition` 修改它，`--unset-edition` 显式删除。Workspace 展示名用 `--name`，Host 展示标签用 `--label`；这些不改变 `uniformName`，统一名与文件名继续使用已有 `workspace rename` 流程。
 
-严格 `workspace-edit-preview.1` 包含 root、Workspace ID、预期原始修订、operation ID、配置 Adapter ID、变更、语义差异、read/apply Binding Plan 和摘要。预览只读计算，不修改配置；只读配置 Adapter 可以预览，同时报告 apply 不可用。Apply 严格解析预览，独立检查调用方所选 root，重读 Workspace 并重建完整审核后才写入。字节/修订/绑定改变或预览被修改时需重新审核。摘要用于变更检测，不是授权签名；即使 unchanged apply 也需要新鲜预览与显式确认。
+严格 `workspace-edit-preview.1` 包含 root、Workspace ID、预期原始修订、operation ID、配置 Adapter ID、变更、语义差异、read/apply Adapter Resolution Plan 和摘要。预览只读计算，不修改配置；只读配置 Adapter 可以预览，同时报告 apply 不可用。Apply 严格解析预览，独立检查调用方所选 root，重读 Workspace 并重建完整审核后才写入。字节/修订/Adapter 解析改变或预览被修改时需重新审核。摘要用于变更检测，不是授权签名；即使 unchanged apply 也需要新鲜预览与显式确认。
 
 ## 支持的意图
 
@@ -94,11 +94,11 @@ just cli game show C:/Synthetic/Library <game-id> --json
 just cli workspace explain C:/Synthetic/Library --installation-id <installation-id> --feature save.store --json
 ```
 
-List/show 关联 Game、安装、Host/source 声明、原始 Location 和校验/可用性；来源过滤要求选择 Host，未知 Location 类型仍可读取并明确不可用。这不启动游戏，也不认证资源存在。Explain 返回七层、有效值/来源、显式清除与逐 Feature 绑定可用性/原因；仅指定安装的 explain 会推导所属 Host，显式矛盾选择会被拒绝，旧 inspect 选择契约不变。位置状态独立报告，不附加为通用 Feature 绑定限制，因此未知 Location 不阻断 Artifact 存储或元数据编辑。选择还可使用 `--game-id`/`--host-id`，`--overrides-json` 提供不持久化调用层。`--feature` 可重复，`--adapter` 选择配置读取；评估绑定可能激活兼容 Extension，但不执行所选资产操作。
+List/show 关联 Game、安装、Host/source 声明、原始 Location 和校验/可用性；来源过滤要求选择 Host，未知 Location 类型仍可读取并明确不可用。这不启动游戏，也不认证资源存在。Explain 返回七层、有效值/来源、显式清除与逐 Feature Adapter 解析可用性/原因；仅指定安装的 explain 会推导所属 Host，显式矛盾选择会被拒绝，旧 inspect 选择契约不变。位置状态独立报告，不附加为通用 Feature Adapter 解析限制，因此未知 Location 不阻断 Artifact 存储或元数据编辑。选择还可使用 `--game-id`/`--host-id`，`--overrides-json` 提供不持久化调用层。`--feature` 可重复，`--adapter` 选择配置读取；评估 Adapter 解析可能激活兼容 Extension，但不执行所选资产操作。
 
 ## 持久化与恢复限制
 
-核心配置通过 `workspace.configuration` 的 `initialize`、`recover-initialize`、`edit`、`recover-edit` Operation 拥有这些算法，对应 Capability 为 `configuration.initialize`、`configuration.initialize-recovery`、`configuration.edit`、`configuration.edit-recovery`；已有 read/rename/import/recovery 继续区分。Workspace 审核见 [service.ts](../../packages/workspace/src/management/service.ts)，[领域编辑计划](../../packages/workspace/src/model/edits.ts)重建有效记录，[持久化](../../packages/workspace-configuration/src/operations/management.ts)和 [TOML token 编辑](../../packages/workspace-configuration/src/toml/edit.ts)负责 I/O 与原文保留。
+TOML Extension 通过 `workspace.configuration` 的 `initialize`、`recover-initialize`、`edit`、`recover-edit` Operation 拥有这些算法，对应 Capability 为 `configuration.initialize`、`configuration.initialize-recovery`、`configuration.edit`、`configuration.edit-recovery`；已有 read/rename/import/recovery 继续区分。Workspace 审核见 [service.ts](../../packages/workspace/src/management/service.ts)，[领域编辑计划](../../packages/workspace/src/model/edits.ts)重建有效记录，[持久化](../../extensions/workspace-toml/src/operations/management.ts)和 [TOML token 编辑](../../extensions/workspace-toml/src/toml/edit.ts)负责 I/O 与原文保留。
 
 编辑通过 AST token 修改保留未触及字节/注释、换行风格及已有平铺/目录布局；删除受影响 table token 时保留独立注释，变更字段可采用新格式。记录仍限制为 1 MiB UTF-8，管理 journal 上限 16 MiB。已接受的 unchanged 保留记录字节，但消费 operation ID，可能写入协调 receipt、准备恢复目录及取得/释放写锁。同一请求重试返回 unchanged，同 operation ID 换用不同 payload 或 revision 则冲突，不承诺零文件系统写入。同父目录短暂存名支持达到已有长度上限的合法记录文件名组件，不放宽已有文件名限制。
 

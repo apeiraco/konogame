@@ -29,8 +29,8 @@ it.effect("a declined confirmation never plans or stores", () =>
           plan: () => {
             plans++;
             return Effect.succeed({
-              contractVersion: "0.2.0",
-              bindings: [{ adapterId: "fixture.store" }],
+              declarationProtocolVersion: "0.2.0",
+              resolvedAdapters: [{ adapterId: "fixture.store" }],
               unavailable: []
             });
           }
@@ -44,7 +44,9 @@ it.effect("a declined confirmation never plans or stores", () =>
       })
     );
     expect(exit._tag).toBe("Failure");
-    if (exit._tag === "Failure") expect(Cause.squash(exit.cause)).toBeInstanceOf(Cancelled);
+    if (exit._tag === "Failure") {
+      expect(Cause.squash(exit.cause)).toBeInstanceOf(Cancelled);
+    }
     expect(plans).toBe(0);
     expect(stores).toBe(0);
   })
@@ -62,13 +64,19 @@ it.effect("cancelling the missing-directory prompt stops before planning", () =>
         plan: {
           plan: () => {
             plans++;
-            return Effect.succeed({ contractVersion: "0.2.0", bindings: [], unavailable: [] });
+            return Effect.succeed({
+              declarationProtocolVersion: "0.2.0",
+              resolvedAdapters: [],
+              unavailable: []
+            });
           }
         }
       })
     );
     expect(exit._tag).toBe("Failure");
-    if (exit._tag === "Failure") expect(Cause.squash(exit.cause)).toBeInstanceOf(Cancelled);
+    if (exit._tag === "Failure") {
+      expect(Cause.squash(exit.cause)).toBeInstanceOf(Cancelled);
+    }
     expect(plans).toBe(0);
   })
 );

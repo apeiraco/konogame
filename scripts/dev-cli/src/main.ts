@@ -1,28 +1,34 @@
 #!/usr/bin/env node
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
-import { Config, run } from "@oclif/core";
-import { outputContext } from "./runtime.ts";
+import { NodeRuntime } from "@effect/platform-node";
+import { CORE_VERSION } from "@konogame/infrastructure/contracts";
+import { runAsync } from "@optique/run";
+import { Cause, Effect, Logger, Runtime } from "effect";
+import { executeDevCommand } from "./command.ts";
+import { DEV_OUTPUT } from "./context.ts";
+import { devParser } from "./parser/index.ts";
 
-export { checkDocs, repositoryRoot } from "./docs.ts";
-export {
-  checkRelease,
-  loadMetadata,
-  metadataSchema,
-  notesForRelease,
-  parseMetadata,
-  releaseNotes,
-  setReleaseVersion,
-  syncRelease
-} from "./release.ts";
+export { checkDocs } from "./docs/check.ts";
+export { checkRelease } from "./release/check.ts";
+export { loadMetadata, metadataSchema, parseMetadata } from "./release/metadata.ts";
+export { notesForRelease, releaseNotes } from "./release/notes.ts";
+export { syncRelease } from "./release/sync.ts";
+export { setReleaseVersion } from "./release/version.ts";
+export { repositoryRoot } from "./repository.ts";
 
-export async function runDevCli(
+class RunnerStop {
+  readonly code: number;
+  constructor(code: number) {
+    this.code = code;
+  }
+}
+
+export function runDevCli(
   argv: string[],
   options: {
     stdout?: (text: string) => void;
     stderr?: (text: string) => void;
   } = {}
-): Promise<number> {
+) {
   const stdout =
     options.stdout ??
     ((text: string) => {
@@ -33,35 +39,60 @@ export async function runDevCli(
     ((text: string) => {
       process.stderr.write(text);
     });
-  try {
-    const root = resolve(import.meta.dirname, "..");
-    const pjson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-    pjson.oclif.commands.target = import.meta.url.endsWith(".ts")
-      ? "./src/commands.ts"
-      : "./dist/commands.js";
-    pjson.oclif.helpClass = import.meta.url.endsWith(".ts") ? "./src/help.ts" : "./dist/help.js";
-    pjson.oclif.additionalHelpFlags = ["-h"];
-    const config = await Config.load({
-      root,
-      pjson,
-      userPlugins: false,
-      devPlugins: false,
-      ignoreManifest: true
-    });
-    const result = (await outputContext.run(stdout, () => run(argv, config))) as
-      | { documents: number }
-      | undefined;
-    if (result)
-      stdout(
-        `Checked ${result.documents} canonical documents and local links, including archives.\n`
-      );
-    return 0;
-  } catch (error) {
-    stderr(`${error instanceof Error ? error.message : String(error)}\n`);
-    return 1;
-  }
+  const write = (target: (text: string) => void) => (text: string) => {
+    target(text.endsWith("\n") ? text : `${text}\n`);
+  };
+  return Effect.scoped(
+    Effect.gen(function* () {
+      const parsed = yield* Effect.promise(async () => {
+        try {
+          const value = await runAsync(devParser, {
+            programName: "konogame-dev",
+            args: argv,
+            stdout: write(stdout),
+            stderr: write(stderr),
+            help: { option: { names: ["-h", "--help"] } },
+            version: { value: CORE_VERSION, option: { names: ["-v", "--version"] } },
+            completion: "both",
+            onExit: (code): never => {
+              throw new RunnerStop(code);
+            }
+          });
+          return { stopped: false as const, value };
+        } catch (error) {
+          if (error instanceof RunnerStop) {
+            return { stopped: true as const, code: error.code };
+          }
+          throw error;
+        }
+      });
+      if (parsed.stopped) {
+        return parsed.code;
+      }
+      yield* executeDevCommand(parsed.value);
+      return 0;
+    })
+  ).pipe(
+    Effect.provideService(Logger.LogToStderr, true),
+    Effect.provideService(DEV_OUTPUT, { stdout, stderr }),
+    Effect.catchCause((cause) =>
+      Cause.hasInterrupts(cause)
+        ? Effect.failCause(cause)
+        : Effect.sync(() => {
+            stderr(
+              `${String(Cause.squash(cause) instanceof Error ? (Cause.squash(cause) as Error).message : Cause.squash(cause))}\n`
+            );
+            return 1;
+          })
+    )
+  );
 }
 
 if (import.meta.main) {
-  process.exitCode = await runDevCli(process.argv.slice(2));
+  NodeRuntime.runMain(runDevCli(process.argv.slice(2)), {
+    teardown: (exit, onExit) =>
+      exit._tag === "Success" && typeof exit.value === "number"
+        ? onExit(exit.value)
+        : Runtime.defaultTeardown(exit, onExit)
+  });
 }

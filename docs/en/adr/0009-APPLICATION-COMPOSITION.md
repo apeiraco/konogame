@@ -1,8 +1,10 @@
 # ADR 0009: Application composition package and entry points
 
-> Successor: workflows now live in the module that owns the capability. CLI and daemon each merge those Layers. Add `packages/layer-composition` only when several cross-feature combinations cannot live in an existing module. [ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) remains the Effect contract. This record preserves the composition-package decision at its original date.
+Status: 2026-10-19 decision, subsequently revised. The composition package has been retired. Each Module owns its workflows, and CLI and daemon compose their Layers.
 
-Status: accepted, 2026-10-19. Updates the application assembly package/path and API naming in [ADR 0002](0002-WORKSPACE-TOML-AND-TOOLING.md), [ADR 0006](0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md) and [ADR 0007](0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md). Their lifecycle, service ownership and installed discovery decisions continue to apply.
+> Current terminology: [ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md) defines Feature → Port ← Adapter, Adapter resolution and separate declaration/Port version fields. This record retains its original terminology.
+
+> Successor: workflows now live in the module that owns the capability. CLI and daemon each merge those Layers. Add `packages/layer-composition` only when several cross-feature combinations cannot live in an existing module. [ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) remains the Effect contract. This record preserves the composition-package decision at its original date.
 
 ## Context
 

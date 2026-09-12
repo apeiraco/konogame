@@ -27,13 +27,13 @@
     "@konogame/infrastructure": "workspace:*",
     "@konogame/daemon": "workspace:*",
     "@konogame/dev-cli": "workspace:*",
-    "@konogame/extension-discovery-node": "workspace:*",
+    "@konogame/node-installed-extension-source": "workspace:*",
     "@konogame/extension-filesystem": "workspace:*",
     "@konogame/extension-steam": "workspace:*",
     "@konogame/game": "workspace:*",
     "@konogame/save": "workspace:*",
     "@konogame/workspace": "workspace:*",
-    "@konogame/workspace-configuration": "workspace:*",
+    "@konogame/extension-workspace-toml": "workspace:*",
     "@types/node": "catalog:",
     "@types/semver": "catalog:",
     "cli-testing-library": "catalog:",
@@ -57,7 +57,7 @@
   },
   "konogame": {
     "releaseGroup": "core",
-    "contractRange": ">=0.2.0 <0.3.0"
+    "declarationProtocolRange": ">=0.2.0 <0.3.0"
   },
   "description": "An extensible, capability-oriented framework for managing game assets."
 }

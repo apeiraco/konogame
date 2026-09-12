@@ -1,8 +1,10 @@
 # ADR 0006: Service ownership and lazy activation
 
-> Successor: [ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) replaces the dependency injection, asynchronous Port, observation, composition and lifetime details with Effect 4.0.6. This record preserves the decision at its original date; its remaining domain and ownership constraints still apply.
+Status: 2026-10-17 decision, subsequently revised. Service ownership and per-generation activation remain effective. ADR 0007 governs catalog publication and ADR 0011 governs dependency and lifetime implementation.
 
-Status: accepted, 2026-10-17. Refines [ADR 0005](0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)'s registration, dependency and activation behavior; its Location envelope and persistence ownership remain effective.
+> Current terminology: [ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md) defines Feature → Port ← Adapter, Adapter resolution and separate declaration/Port version fields. This record retains its original terminology.
+
+> Successor: [ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) replaces the dependency injection, asynchronous Port, observation, composition and lifetime details with Effect 4.0.6. This record preserves the decision at its original date; its remaining domain and ownership constraints still apply.
 
 Later refinement: [ADR 0007](0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md) adds strict declaration/source boundaries, internal catalog commit before public observation, catalog-only preparation, Node installed discovery and bounded cancellation/cleanup diagnostics. The earlier source/stream/startup details below are historical; service ownership and generation scopes remain effective.
 

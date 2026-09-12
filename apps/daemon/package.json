@@ -10,10 +10,10 @@
     "@konogame/game": "workspace:*",
     "@konogame/save": "workspace:*",
     "@konogame/workspace": "workspace:*",
-    "@konogame/workspace-configuration": "workspace:*",
+    "@konogame/extension-workspace-toml": "workspace:*",
     "@konogame/extension-filesystem": "workspace:*",
     "@konogame/extension-steam": "workspace:*",
-    "@konogame/extension-discovery-node": "workspace:*",
+    "@konogame/node-installed-extension-source": "workspace:*",
     "effect": "catalog:",
     "@effect/platform-node": "catalog:"
   },
@@ -37,7 +37,7 @@
   },
   "konogame": {
     "releaseGroup": "core",
-    "contractRange": ">=0.2.0 <0.3.0"
+    "declarationProtocolRange": ">=0.2.0 <0.3.0"
   },
   "bin": {
     "konogame-daemon": "./dist/main.js"

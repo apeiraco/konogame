@@ -1,5 +1,7 @@
 # ADR 0001: Feature, capability, and binding terminology
 
+> Current terminology: [ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md) defines Feature → Port ← Adapter, Adapter resolution and separate declaration/Port version fields. This record retains its original terminology.
+
 Status: accepted for the initial skeleton (2026-10-17).
 
 Later refinements: [ADR 0005](0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md) adds Module/Extension Adapter ownership; [ADR 0006](0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md) implements core-owned lazy activation and asynchronous binding. The deferred-loading statement below records the original slice, while capability negotiation remains effective.

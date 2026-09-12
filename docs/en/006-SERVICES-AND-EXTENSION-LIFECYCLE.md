@@ -6,19 +6,21 @@ Status: current Effect composition and lifecycle, 2026-10-26. [ADR 0011](adr/001
 
 | Owner | Responsibility |
 | --- | --- |
-| `@konogame/infrastructure` | Owner Context.Service tags and Layers for registries, activation, lifecycle, binding, Temporal/ID services, lifetime policy and generic `LOCATION_BEHAVIOR`; no business Module/Extension imports. |
+| `@konogame/infrastructure` | Owner Context.Service tags and Layers for registries, activation, lifecycle, Adapter resolution, Temporal/ID services, lifetime policy and generic `LOCATION_BEHAVIOR`; no business Module/Extension imports. |
 | Domain packages | Effect Ports, owner errors, Module declarations and I/O service tags. Pure rules/schemas remain pure. |
-| `@konogame/workspace-configuration` | TOML/layout algorithms, scoped Node I/O, writer coordination and targeted recovery. |
+| `@konogame/extension-workspace-toml` | TOML/layout algorithms, scoped Node I/O, writer coordination and targeted recovery. |
 | `@konogame/workspace`, `@konogame/game`, `@konogame/save` | Workflows for the capability each module owns. Game admission may depend on Workspace. |
 | Extensions | Pure manifests/providers, lazy Effect loaders, implementation Layers and vendor/location I/O. |
 | Apps | Each entry merges owner Layers, selects filesystem/Steam and explicit installed roots, and owns process/framework bridges. |
 
-`provideInfrastructure` stays limited to registries, activation, lifecycle, binding, Location, ID and time. Binding plans and the extension catalog are separate infrastructure Layers. CLI and daemon merge the workflow Layers they call. `extension` commands only prepare; other CLI commands initialize. Entries supply the filesystem save root; Extensions do not infer home. Importing an entry module does not start the process.
+`provideInfrastructure` stays limited to registries, activation, lifecycle, Adapter resolution, Location, ID and time. Adapter resolution plans and the extension catalog are separate infrastructure Layers. CLI and daemon merge the workflow Layers they call. `extension` commands only prepare; other CLI commands initialize. Entries supply the filesystem save root; Extensions do not infer home. Importing an entry module does not start the process.
+
+Infrastructure source files follow capability ownership: [ID](../../packages/infrastructure/src/id.ts) and [time](../../packages/infrastructure/src/time.ts) keep each interface, tag, implementation and Layer together. Extension [activation contracts](../../packages/infrastructure/src/extension/activation-contract.ts), [contributions](../../packages/infrastructure/src/extension/contribution.ts), [discovery](../../packages/infrastructure/src/extension/discovery.ts), [diagnostics](../../packages/infrastructure/src/extension/diagnostics.ts) and [lifetime policy](../../packages/infrastructure/src/extension/lifetime.ts) have separate responsibilities. [Registration models](../../packages/infrastructure/src/registry/extension-registry.ts) belong to registries; Adapter resolution, activation, lifecycle, registry and Location service tags stay with their service implementations. The root service union stays with [composition](../../packages/infrastructure/src/providers.ts). These remain exports of the public package entry; no central type/tag bucket or forwarding directory is required.
 
 Core root assembly remains one native `Layer.effectContext`. Its accessor has type `Effect<Context<InfrastructureServices>, InfrastructureError>` and polls a Deferred: access during construction fails immediately with the Providers-phase error instead of waiting or exposing a partially assigned context. The Deferred is completed only after the full service graph and lifetime finalizer are installed; later reads share that fixed context and root overrides. Requirements are erased only at the validated dynamic Extension execution boundary. See [core assembly](../../packages/infrastructure/src/providers.ts) and [root-access tests](../../packages/infrastructure/src/__tests__/providers.test.ts).
 
 ```ts
-import { FEATURE_PLAN, provideFeaturePlan, provideIdService, provideInfrastructure } from "@konogame/infrastructure";
+import { ADAPTER_RESOLUTION_PLANNER, provideAdapterResolutionPlanner, provideIdService, provideInfrastructure } from "@konogame/infrastructure";
 import { saveModuleSource } from "@konogame/save";
 import { Effect, Layer } from "effect";
 
@@ -29,8 +31,8 @@ const infrastructure = provideInfrastructure({}, [saveModuleSource()]).pipe(
 );
 
 export const program = Effect.gen(function* () {
-  return yield* (yield* FEATURE_PLAN).features();
-}).pipe(Effect.provide(provideFeaturePlan().pipe(Layer.provideMerge(infrastructure))));
+  return yield* (yield* ADAPTER_RESOLUTION_PLANNER).features();
+}).pipe(Effect.provide(provideAdapterResolutionPlanner().pipe(Layer.provideMerge(infrastructure))));
 
 // Importing this module must not start the application.
 if (import.meta.main) {
@@ -38,7 +40,7 @@ if (import.meta.main) {
 }
 ```
 
-See [infrastructure Layers](../../packages/infrastructure/src/providers.ts), [binding plans](../../packages/infrastructure/src/binding/plan.ts), [Workspace management](../../packages/workspace/src/management/service.ts), [admission](../../packages/game/src/admission/service.ts) and [save writes](../../packages/save/src/store/workflow.ts). Workflows do not import an entry. The CLI entry is [apps/cli/src/main.ts](../../apps/cli/src/main.ts) and the daemon entry is [apps/daemon/src/main.ts](../../apps/daemon/src/main.ts). CLI `context.ts` owns interaction/output. Optique parses arguments inside the owned Effect; official Effect Runtime APIs retain upstream names. Daemon construction, listening and requests have native scopes. Process exit stays at `import.meta.main`. CLI JSON/non-TTY execution never prompts; cancellation writes no approved business change unless publication has already passed its noncancellable boundary.
+See [infrastructure Layers](../../packages/infrastructure/src/providers.ts), [Adapter resolution plans](../../packages/infrastructure/src/adapter-resolution/plan.ts), [Workspace management](../../packages/workspace/src/management/service.ts), [admission](../../packages/game/src/admission/service.ts) and [save writes](../../packages/save/src/store/workflow.ts). Workflows do not import an entry. The CLI entry is [apps/cli/src/main.ts](../../apps/cli/src/main.ts) and the daemon entry is [apps/daemon/src/main.ts](../../apps/daemon/src/main.ts). CLI `context.ts` owns interaction/output. Optique parses arguments inside the owned Effect; official Effect Runtime APIs retain upstream names. Daemon construction, listening and requests have native scopes. Process exit stays at `import.meta.main`. CLI JSON/non-TTY execution never prompts; cancellation writes no approved business change unless publication has already passed its noncancellable boundary.
 
 Known schema and rule refusals use structured owner tags/issues; infrastructureRule, workspaceRule, admissionRule and configurationRule preserve recognized objects as Fail, while unexpected trusted-code throws remain Die. UnexpectedBoundaryError is reserved for explicitly identified third-party boundaries and does not make arbitrary Extension/schema behavior exhaustive. WorkspaceConfigurationError includes known schema/rule errors, filesystem/configuration-input/writer conflict and recovery data protocols, explicit boundary errors and fresh-admission LocationError; implementation classes and native code/cause remain with their owners. Cause-aware result handling never converts Die/Interrupt to an ordinary workflow status. See the [development error guide](004-DEVELOPMENT.md#typed-rule-failures-and-defects).
 
@@ -54,7 +56,7 @@ Artifact files are a Stream, with each byte Stream opened on demand and its hand
 
 Strict validation precedes relationships and loaders, including malformed/sparse source items and unknown fields. An internal commit updates both registry indexes and snapshots before public notification with one catalogVersion. Private PubSub channels expose read-only `state$`, `results$`, `diagnostics$` Streams and snapshots. Public results do not synchronize registries. Stream consumers run as scope-owned fibers.
 
-`prepare()`/`prepared` discovers and registers the catalog only. `initialize()`/`ready` adds explicit startup activation. Binding waits for preparation, negotiates Contract/Operation/Capability/Location compatibility, then lazily activates the selected contribution and dependencies before implementation access. Explicit events are respected; inferred demand selects one compatible contribution. Bundled filesystem/Steam have no onStartup event. Late declarations replay remembered events and the default last 256 distinct complete binding requests; request equality is not resource identity.
+`prepare()`/`prepared` discovers and registers the catalog only. `initialize()`/`ready` adds explicit startup activation. Adapter resolution waits for preparation, negotiates Port version/Operation/Capability/Location compatibility, then lazily activates the selected contribution and dependencies before implementation access. Explicit events are respected; inferred demand selects one compatible contribution. Bundled filesystem/Steam have no onStartup event. Late declarations replay remembered events and the default last 256 distinct complete Adapter resolution requests; request equality is not resource identity.
 
 `ExtensionModule.layer` is an optional Layer or activation-context function returning a Layer. `activate(context)` returns an Effect. Core builds one native Layer/Scope generation; explicit root overrides win and the root remains fixed. `context.dependencyServices(id)` returns only declared active dependency contexts. Steam consumes filesystem services this way. `context.registerAdapter` stages implementations until activation succeeds. Concurrent activation shares native completion per generation; failures are cached per generation, while missing/version/cycle dependency diagnostics remain re-evaluable. There is no second service registry.
 
@@ -81,10 +83,14 @@ Each attempt uses lstat to reject any existing target immediately; target-check 
 
 `coreOptions.budgets` defaults to discovery/load 15s each, activation 30s, total shutdown 5s and cleanup 1s each; demandCacheLimit defaults to 256. Native Clock/Fiber/Scope implement waits and cleanup. Phase diagnostics describe source/contribution/generation, cause and elapsed time where available. Failure does not prevent subsequent reverse cleanup, and incomplete cleanup is reported. Late publication is sealed.
 
-For cooperative custom Extension cleanup, register [addLifetimeFinalizer](../../packages/infrastructure/src/foundation/services.ts). It uses native Effect.addFinalizer within the generation Scope and applies LifetimePolicy through an interruptible cleanup with the individual and remaining total budget; it does not create a second executor. Ordinary Effect.acquireRelease/addFinalizer releases and library resource finalizers retain native Scope semantics, which normally protect release from interruption even without an Extension explicitly masking it. The 1s/5s policy is not a universal hard deadline for those finalizers, and interruption does not prove a handle has closed.
+For cooperative custom Extension cleanup, register [addLifetimeFinalizer](../../packages/infrastructure/src/extension/lifetime.ts). It uses native Effect.addFinalizer within the generation Scope and applies LifetimePolicy through an interruptible cleanup with the individual and remaining total budget; it does not create a second executor. Ordinary Effect.acquireRelease/addFinalizer releases and library resource finalizers retain native Scope semantics, which normally protect release from interruption even without an Extension explicitly masking it. The 1s/5s policy is not a universal hard deadline for those finalizers, and interruption does not prove a handle has closed.
 
 These deadlines are cooperative. Synchronous non-yielding code, deliberately uninterruptible effects and external operations that cannot cancel may outlast a deadline. No in-process scheduler can force-stop or sandbox them. There is no detached cleanup scheduler. Small native filesystem publication steps may mask interruption until that one operation completes.
 
 Workspace writes scope writer acquisition/release and release only owned locks. Interruption remains Interrupt and retains applicable journal/recovery material. In Effect 4.0.6, a nested acquireUseRelease interrupted by a real Fiber.interrupt can leave only Interrupt in the outer Cause and omit an additional finalizer failure. Recovery-required lock/rename finalizers therefore log structured diagnostics with Effect's Logger before completing; CLI/daemon use stderr logging to preserve JSON stdout. Ordinary failures retain typed errors/results. Do not promise every interruption carries a complete cleanup Cause or that the journal provides general transactions/atomic directory publication.
+
+The [Extension registry](../../packages/infrastructure/src/registry/extension-registry.ts) owns contribution declarations, dependencies and generation state. The [Adapter registry](../../packages/infrastructure/src/registry/adapter-registry.ts) owns staged implementations, publication and issued selections. Catalog changes update both indexes before subscribers observe them.
+
+Within a scan, each candidate is parsed once at the [contribution input boundary](../../packages/infrastructure/src/extension/contribution-input.ts). [Discovery refresh](../../packages/infrastructure/src/extension/discovery-refresh.ts) reuses that result to check source conflicts, revisions and removal scope. Registration accepts a declaration. At activation the [module boundary](../../packages/infrastructure/src/extension/extension-module.ts) checks the module and Layer produced by executable code.
 
 [English](006-SERVICES-AND-EXTENSION-LIFECYCLE.md) | [中文](../zh/006-SERVICES-AND-EXTENSION-LIFECYCLE.md)

@@ -10,10 +10,6 @@
 
 把固定库版本和全面禁止原生 DOM 焦点等规则调整为可验证的交互约定。动画不能掌管导航或任务状态。跨宿主共享 UI 仍需要各平台的权限处理、打包与测试。
 
-## 已实现 CLI 基础
-
-[ADR 0002](../adr/0002-WORKSPACE-TOML-AND-TOOLING.md) 采纳 Optique 命令解析器与 `@clack/prompts` TTY 辅助。TTY 会话无命令时提供菜单，可补问缺失参数。交互优先级为参数 > 环境 > TTY；`--non-interactive`、`--interactive=false`、`INTERACTIVE=false` 禁用提示。JSON/非 TTY 执行不提示，取消不写入。`workspace rename <root> <id> <name>` 是专用统一名流程，保留注释、UUID 引用与布局，并报告冲突/恢复要求。CLI 已支持只读 `game discover` JSON 和所选 `game import --yes` 录入，以及针对 pending journal 的显式 `workspace recover-import --yes`。[ADR 0004](../adr/0004-LOCAL-DISCOVERY-AND-INJECTION.md)记录当前范围；图形编辑/审核仍为提案，未实现启动入口发现。
-
 ## 两种模式，共享操作
 
 | 模式 | 主要体验 | 共享行为 |
@@ -29,9 +25,9 @@
 
 应用服务应根据选中的 Game、Installation、主机和有效配置提供操作可用性。建议区分可用、需要配置、不支持、暂时不可用，并给出可采取行动的说明。仅声明了 Port 并不代表操作可用。
 
-UI 请求 Feature 并呈现应用结果，不自行选择厂商工具或复制协商规则。详细视图可以解释 Binding Plan，包括不兼容的显式偏好；日常操作视图则说明缺少什么，以及用户如何处理。
+UI 请求 Feature 并呈现应用结果，不自行选择厂商工具或复制协商规则。详细视图可以解释 Adapter Resolution Plan，包括不兼容的显式偏好；日常操作视图则说明缺少什么，以及用户如何处理。
 
-例如，filesystem 存储可以提供 Artifact 存储而不提供历史浏览。恢复配置修订、导入存档和恢复资产快照需要不同的用词与预览。Binding Plan 用于确定实现，不能代替完整的文件改动预览，也不保证回滚。
+例如，filesystem 存储可以提供 Artifact 存储而不提供历史浏览。恢复配置修订、导入存档和恢复资产快照需要不同的用词与预览。Adapter Resolution Plan 用于确定实现，不能代替完整的文件改动预览，也不保证回滚。
 
 ## 复用与宿主边界
 
@@ -97,18 +93,6 @@ TypeScript UI、React、Vite、TanStack 工具以及 shadcn/ui、Tailwind 等组
 - 完成通知提供显式操作，不自动启动游戏或抢占焦点。
 - 减少动态效果与缺图状态仍可使用；派生封面可以与来源区分。
 
-## 位置边界更新
-
-按 [ADR 0005](../adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)展示原始 Location、validation、availability、原因与 Binding Plan。未知类型/Schema 保持可见并保留；解析可能返回非路径类型化资源，路径不是必填展示项。明确说明未知/不可比较状态，在必需行为可用前阻止新录入。配置检查和已批准 journal 恢复不依赖位置注册。参见 [Location 指南](../005-LOCATION-AND-REGISTRIES.md)。
-
-## 生命周期边界
-
-使用 core 只读目录/激活 observable 与诊断，区分已声明、inactive、blocked、failed、active 实现。展示 `restart-service-required`，不暗示自动或仅重载 Extension。[ADR 0006](../adr/0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md)提供生命周期 API，marketplace/下载和安装 UI 仍待实现。
-
-## 发现与稳健性后续
-
-目录 list/status/refresh 与结构化阶段诊断已实现。未来 UI 必须展示清理不完整和重启要求，不暗示代码已被杀死；安装/marketplace UI、持久启停及独立 host 控制仍是独立工作。证据及实施触发条件见 [ADR 0007](../adr/0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md)和[源码对照](../007-EXTENSION-SYSTEM-COMPARISON.md)。
-
-CLI 现已提供 Workspace 初始化、审核单记录编辑、游戏库查询与设置解释；审核及恢复边界见 [ADR 0008](../adr/0008-WORKSPACE-MANAGEMENT.md)和[管理指南](../008-WORKSPACE-MANAGEMENT.md)。未来图形 UI 复用这些服务，区分预览/apply 不可用、unchanged、conflict、recovery-required，不暗示通用撤销。
+管理界面的验收还需覆盖未知 Location、编辑冲突和需要恢复的操作；扩展状态页要能解释清理不完整和需要重启的结果。对应的可观察行为见[管理指南](../008-WORKSPACE-MANAGEMENT.md)和[生命周期指南](../006-SERVICES-AND-EXTENSION-LIFECYCLE.md)。
 
 [English](../../en/roadmap/004-FRONTEND-EXPERIENCE.md) | [中文](004-FRONTEND-EXPERIENCE.md)

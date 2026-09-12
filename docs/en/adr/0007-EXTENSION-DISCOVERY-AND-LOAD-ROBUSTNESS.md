@@ -1,5 +1,9 @@
 # ADR 0007: Extension discovery and load robustness
 
+> For current persistence ownership and the host source name see [ADR 0014](0014-WORKSPACE-TOML-EXTENSION.md).
+
+> Current terminology: [ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md) defines Feature → Port ← Adapter, Adapter resolution and separate declaration/Port version fields. This record retains its original terminology.
+
 > Successor: [ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) replaces the dependency injection, asynchronous Port, observation, composition and lifetime details with Effect 4.0.6. This record preserves the decision at its original date; its remaining domain and ownership constraints still apply.
 
 Status: accepted, 2026-10-18. Refines [ADR 0006](0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md)'s discovery, catalog publication and lifecycle completion. Service ownership, fixed-root/generation-child injection, dependency scopes and staged implementation publication remain effective. The source evidence and remaining gaps are in the [comparison report](../007-EXTENSION-SYSTEM-COMPARISON.md).

@@ -1,12 +1,6 @@
 import { resolve } from "node:path";
 import { expect, it } from "@effect/vitest";
-import {
-  type DiscoveryFileSystem,
-  GAME_DISCOVERY_FILESYSTEM,
-  gameDiscoveryImplementation,
-  gameModule,
-  gameModuleSource
-} from "@konogame/game";
+import { gameDiscoveryImplementation, gameModule, gameModuleSource } from "@konogame/game";
 import {
   BINDING_SERVICE,
   EXTENSION_LIFECYCLE,
@@ -20,8 +14,13 @@ import {
 } from "@konogame/save";
 import { Context, Effect, Layer } from "effect";
 import { vi } from "vitest";
+import { type DiscoveryFileSystem } from "../game-discovery/filesystem.ts";
 import { filesystemManifest } from "../manifest.ts";
-import { FILESYSTEM_SAVE_STORE, filesystemExtensionSource } from "../providers.ts";
+import {
+  FILESYSTEM_SAVE_STORE,
+  filesystemExtensionSource,
+  GAME_DISCOVERY_FILESYSTEM
+} from "../providers.ts";
 
 const constructed = vi.hoisted(() => ({ loads: 0, fileSystems: 0, stores: 0 }));
 vi.mock("../index.ts", async (original) => {

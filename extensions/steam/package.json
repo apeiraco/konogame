@@ -24,7 +24,8 @@
     "@konogame/extension-filesystem": "workspace:*",
     "@konogame/infrastructure": "workspace:*",
     "arktype": "catalog:",
-    "effect": "catalog:"
+    "effect": "catalog:",
+    "@konogame/workspace": "workspace:*"
   },
   "scripts": {
     "build": "tsdown"
@@ -40,8 +41,8 @@
   "konogame": {
     "releaseGroup": "extension",
     "extensionId": "konogame.steam",
-    "contractRange": ">=0.2.0 <0.3.0",
-    "portContractRanges": {
+    "declarationProtocolRange": ">=0.2.0 <0.3.0",
+    "portVersionRanges": {
       "steam.game-discovery": ">=0.3.0 <0.4.0"
     },
     "software": {

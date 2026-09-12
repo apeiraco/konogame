@@ -2,26 +2,27 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { NodeRuntime } from "@effect/platform-node";
+import { filesystemExtensionSource } from "@konogame/extension-filesystem/providers";
+import { steamExtensionSource } from "@konogame/extension-steam/providers";
+import { workspaceTomlExtensionSource } from "@konogame/extension-workspace-toml/providers";
+import { gameModuleSource } from "@konogame/game";
+import {
+  ADAPTER_RESOLUTION_PLANNER,
+  type AdapterResolutionPlanner,
+  EXTENSION_LIFECYCLE,
+  type ExtensionDiscoverySource,
+  provideAdapterResolutionPlanner,
+  provideInfrastructure
+} from "@konogame/infrastructure";
+import { CORE_VERSION } from "@konogame/infrastructure/contracts";
 import {
   installedExtensionFileSystemLayer,
   nodeInstalledExtensionsSource,
   parseExtensionRoots
-} from "@konogame/extension-discovery-node";
-import { filesystemExtensionSource } from "@konogame/extension-filesystem/providers";
-import { steamExtensionSource } from "@konogame/extension-steam/providers";
-import { gameModuleSource } from "@konogame/game";
-import {
-  EXTENSION_LIFECYCLE,
-  type ExtensionDiscoverySource,
-  FEATURE_PLAN,
-  type FeaturePlanService,
-  provideFeaturePlan,
-  provideInfrastructure
-} from "@konogame/infrastructure";
-import { CORE_VERSION } from "@konogame/infrastructure/contracts";
+} from "@konogame/node-installed-extension-source";
 import { saveModuleSource } from "@konogame/save";
+import { SaveFeature } from "@konogame/save/contracts";
 import { workspaceModuleSource } from "@konogame/workspace";
-import { tomlWorkspaceConfigurationSource } from "@konogame/workspace-configuration/providers";
 import { object } from "@optique/core/constructs";
 import { message } from "@optique/core/message";
 import { defineProgram } from "@optique/core/program";
@@ -92,7 +93,7 @@ export function composeDaemon<Error = never>(
         saveModuleSource(),
         gameModuleSource(),
         workspaceModuleSource(),
-        tomlWorkspaceConfigurationSource(),
+        workspaceTomlExtensionSource(),
         filesystemExtensionSource({
           saveRoot: options.saveRoot ?? join(homedir(), ".konogame", "saves")
         }),
@@ -100,7 +101,7 @@ export function composeDaemon<Error = never>(
         ...installed,
         ...(options.discoverySources ?? [])
       ]).pipe(Layer.provideMerge(overrides));
-      return provideFeaturePlan().pipe(
+      return provideAdapterResolutionPlanner().pipe(
         Layer.provideMerge(infrastructure),
         Layer.tap((services) => Context.get(services, EXTENSION_LIFECYCLE).initialize())
       );
@@ -109,7 +110,7 @@ export function composeDaemon<Error = never>(
 }
 
 function handleRequest(
-  plan: FeaturePlanService,
+  plan: AdapterResolutionPlanner,
   request: IncomingMessage,
   response: ServerResponse
 ) {
@@ -121,7 +122,7 @@ function handleRequest(
       return;
     }
     if (request.method === "GET" && url.pathname === "/plan") {
-      yield* plan.plan([url.searchParams.get("feature") ?? "save.store"]).pipe(
+      yield* plan.plan([url.searchParams.get("feature") ?? SaveFeature.Store]).pipe(
         Effect.match({
           onSuccess: (plan) => {
             response.end(JSON.stringify(plan));
@@ -148,7 +149,9 @@ function handleRequest(
       Cause.hasInterrupts(cause)
         ? Effect.failCause(cause)
         : Effect.sync(() => {
-            if (!response.headersSent) response.statusCode = 500;
+            if (!response.headersSent) {
+              response.statusCode = 500;
+            }
             response.end(JSON.stringify({ error: String(Cause.squash(cause)) }));
           })
     )
@@ -169,17 +172,17 @@ function closeServer(server: Server) {
 export function createDaemon<Error = never>(options: DaemonOptions<Error> = {}) {
   return Effect.gen(function* () {
     const overrides = yield* Layer.build(options.overrides ?? Layer.empty);
-    const injectedPlan = Context.getOrUndefined(overrides, FEATURE_PLAN);
+    const injectedPlan = Context.getOrUndefined(overrides, ADAPTER_RESOLUTION_PLANNER);
     const services = yield* Layer.build(
       injectedPlan
-        ? Layer.succeed(FEATURE_PLAN, injectedPlan)
+        ? Layer.succeed(ADAPTER_RESOLUTION_PLANNER, injectedPlan)
         : composeDaemon({
             saveRoot: options.saveRoot,
             extensionRoots: options.extensionRoots,
             overrides: Layer.succeedContext(overrides)
           })
     );
-    const plan = Context.get(services, FEATURE_PLAN);
+    const plan = Context.get(services, ADAPTER_RESOLUTION_PLANNER);
     // Node request callbacks enter fibers tracked by this server's scope.
     const runRequest = yield* FiberSet.makeRuntime<never, void, never>();
     return yield* Effect.acquireRelease(
@@ -187,7 +190,9 @@ export function createDaemon<Error = never>(options: DaemonOptions<Error> = {}) 
         createServer((request, response) => {
           const fiber = runRequest(Effect.scoped(handleRequest(plan, request, response)));
           const onClose = () => {
-            if (!response.writableEnded) fiber.interruptUnsafe();
+            if (!response.writableEnded) {
+              fiber.interruptUnsafe();
+            }
           };
           response.once("close", onClose);
           fiber.addObserver(() => {
@@ -205,10 +210,11 @@ export function startDaemon<Error = never>(
 ) {
   return Effect.gen(function* () {
     const port = options.port ?? 38417;
-    if (!Number.isInteger(port) || port < 0 || port > 65535)
+    if (!Number.isInteger(port) || port < 0 || port > 65535) {
       return yield* Effect.fail(
         new DaemonError({ message: "Daemon port must be an integer from 0 to 65535" })
       );
+    }
     const server = yield* createDaemon(options);
     yield* Effect.callback<void, DaemonError>((resume) => {
       const onError = (error: Error) => resume(Effect.fail(DaemonError.from(error)));
@@ -242,11 +248,15 @@ export function runDaemon(env: NodeJS.ProcessEnv = process.env, argv: string[] =
           });
           return "start" as const;
         } catch (error) {
-          if (error instanceof DaemonStop) return error.code;
+          if (error instanceof DaemonStop) {
+            return error.code;
+          }
           throw error;
         }
       });
-      if (parsed !== "start") return parsed;
+      if (parsed !== "start") {
+        return parsed;
+      }
       const roots = Option.getOrUndefined(
         yield* Config.option(Config.String("KONOGAME_EXTENSION_ROOTS"))
       );
@@ -259,8 +269,9 @@ export function runDaemon(env: NodeJS.ProcessEnv = process.env, argv: string[] =
         port: yield* Config.Number("KONOGAME_DAEMON_PORT").pipe(Config.withDefault(38417))
       });
       const address = server.address();
-      if (address && typeof address !== "string")
+      if (address && typeof address !== "string") {
         console.log(`Konogame prototype daemon listening on ${address.address}:${address.port}`);
+      }
       yield* Effect.never;
     })
   ).pipe(

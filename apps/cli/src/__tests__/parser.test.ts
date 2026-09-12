@@ -16,8 +16,9 @@ describe("CLI parser", () => {
     expect(rename.success).toBe(true);
     if (rename.success) {
       expect(rename.value.kind).toBe("workspace rename");
-      if (rename.value.kind === "workspace rename")
+      if (rename.value.kind === "workspace rename") {
         expect(rename.value.expectedRevision).toBe("rev");
+      }
     }
     const both = parseArgsSync(cliParser, ["features", "--interactive", "--non-interactive"]);
     expect(both.success).toBe(true);

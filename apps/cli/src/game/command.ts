@@ -72,15 +72,17 @@ export function executeGame(command: GameCommand): CliCommandEffect {
         const context = yield* CLI_CONTEXT;
         const root = resolve(yield* required(command.root, "root"));
         const previewFile = yield* required(command.previewFile, "preview-file");
-        if (!context.interactive && !command.yes)
+        if (!context.interactive && !command.yes) {
           return yield* Effect.fail(
             new CliError({ message: "Game import requires explicit confirmation with --yes" })
           );
+        }
         const selected = [...new Set(command.candidate)];
-        if (!context.interactive && !selected.length)
+        if (!context.interactive && !selected.length) {
           return yield* Effect.fail(
             new CliError({ message: "Select at least one candidate with --candidate" })
           );
+        }
         const preview = yield* readBoundedJson(previewFile);
         if (context.interactive && !selected.length) {
           const validated = yield* cliChecked(gameDiscoveryPreviewSchema.assert, preview);
@@ -96,24 +98,29 @@ export function executeGame(command: GameCommand): CliCommandEffect {
               })),
               ...(selected.length ? [{ value: "", label: "Finish selection" }] : [])
             ]);
-            if (!value) break;
+            if (!value) {
+              break;
+            }
             selected.push(value);
             const index = remaining.findIndex((item) => item.candidateId === value);
-            if (index < 0)
+            if (index < 0) {
               return yield* Effect.fail(new CliError({ message: "Unknown candidate selection" }));
+            }
             remaining.splice(index, 1);
           }
         }
-        if (!selected.length)
+        if (!selected.length) {
           return yield* Effect.fail(new CliError({ message: "No candidates selected" }));
+        }
         if (
           context.interactive &&
           !command.yes &&
           !(yield* context.prompts.confirm(
             `Import ${selected.length} selected candidate(s) into ${root}?`
           ))
-        )
+        ) {
           return yield* Effect.fail(new Cancelled("Cancelled"));
+        }
         const result = yield* (yield* GAME_ADMISSION).import({
           root,
           preview,
@@ -123,8 +130,9 @@ export function executeGame(command: GameCommand): CliCommandEffect {
           sourceId: command.sourceId
         });
         yield* output(result);
-        if (result.status !== "imported" && result.status !== "unchanged")
+        if (result.status !== "imported" && result.status !== "unchanged") {
           return yield* Effect.fail(new CliError({ message: `Game import ${result.status}` }));
+        }
         return;
       }
     }

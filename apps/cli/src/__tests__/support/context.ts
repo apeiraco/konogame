@@ -1,5 +1,9 @@
 import { GAME_ADMISSION } from "@konogame/game/admission";
-import { EXTENSION_CATALOG, FEATURE_PLAN, ID_SERVICE } from "@konogame/infrastructure";
+import {
+  ADAPTER_RESOLUTION_PLANNER,
+  EXTENSION_CATALOG,
+  ID_SERVICE
+} from "@konogame/infrastructure";
 import { SAVE_STORE_WORKFLOW } from "@konogame/save/store";
 import { WORKSPACE_MANAGEMENT } from "@konogame/workspace/management";
 import { Effect } from "effect";
@@ -71,7 +75,7 @@ export function provideTestCli<A, E>(
   return effect.pipe(
     Effect.provideService(CLI_CONTEXT, context),
     Effect.provideService(CLI_ARTIFACT_INPUT, (services.artifactInput ?? {}) as never),
-    Effect.provideService(FEATURE_PLAN, (services.plan ?? {}) as never),
+    Effect.provideService(ADAPTER_RESOLUTION_PLANNER, (services.plan ?? {}) as never),
     Effect.provideService(EXTENSION_CATALOG, (services.catalog ?? {}) as never),
     Effect.provideService(WORKSPACE_MANAGEMENT, (services.workspace ?? {}) as never),
     Effect.provideService(GAME_ADMISSION, (services.admission ?? {}) as never),

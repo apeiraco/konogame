@@ -1,12 +1,12 @@
 import { createHash } from "node:crypto";
 import { dirname, isAbsolute, join, resolve } from "node:path";
+import { Effect, Fiber } from "effect";
 import {
   DiscoveryEntryKind,
   type DiscoveryFileInfo,
   type DiscoveryFileSystem,
   DiscoveryFileSystemError
-} from "@konogame/game";
-import { Effect, Fiber } from "effect";
+} from "./filesystem.ts";
 
 const failure = (operation: string, cause: unknown) =>
   new DiscoveryFileSystemError({
@@ -81,4 +81,3 @@ export function directoryEvidence(
     return discoveryDigest(JSON.stringify([info.identity, observed]));
   });
 }
-

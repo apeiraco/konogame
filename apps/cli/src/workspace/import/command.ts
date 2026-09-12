@@ -18,22 +18,25 @@ export function executeImport(command: ImportCommand): CliCommandEffect {
     const context = yield* CLI_CONTEXT;
     const root = resolve(yield* required(command.root, "root"));
     const operationId = yield* required(command.operationId, "operation-id");
-    if (!context.interactive && !command.yes)
+    if (!context.interactive && !command.yes) {
       return yield* Effect.fail(
         new CliError({ message: "Import recovery requires explicit confirmation with --yes" })
       );
+    }
     if (
       context.interactive &&
       !command.yes &&
       !(yield* context.prompts.confirm(`Recover interrupted import ${operationId} in ${root}?`))
-    )
+    ) {
       return yield* Effect.fail(new Cancelled("Cancelled"));
+    }
     const result = yield* (yield* WORKSPACE_MANAGEMENT).recoverWorkspaceImport(
       { root, operationId },
       command.adapter
     );
     yield* output(result);
-    if (result.status !== "imported" && result.status !== "unchanged")
+    if (result.status !== "imported" && result.status !== "unchanged") {
       return yield* Effect.fail(new CliError({ message: `Import recovery ${result.status}` }));
+    }
   });
 }

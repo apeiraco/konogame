@@ -2,33 +2,33 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { NodeRuntime } from "@effect/platform-node";
-import {
-  installedExtensionFileSystemLayer,
-  nodeInstalledExtensionsSource,
-  parseExtensionRoots
-} from "@konogame/extension-discovery-node";
 import { filesystemExtensionSource } from "@konogame/extension-filesystem/providers";
 import { steamExtensionSource } from "@konogame/extension-steam/providers";
+import { workspaceTomlExtensionSource } from "@konogame/extension-workspace-toml/providers";
 import { gameModuleSource } from "@konogame/game";
 import { GAME_ADMISSION, provideGameAdmission } from "@konogame/game/admission";
 import {
+  ADAPTER_RESOLUTION_PLANNER,
   EXTENSION_CATALOG,
   EXTENSION_LIFECYCLE,
   type ExtensionDiscoverySource,
-  FEATURE_PLAN,
   ID_SERVICE,
   type InfrastructureSettings,
+  provideAdapterResolutionPlanner,
   provideExtensionCatalog,
-  provideFeaturePlan,
   provideIdService,
   provideInfrastructure
 } from "@konogame/infrastructure";
 import { CORE_VERSION } from "@konogame/infrastructure/contracts";
+import {
+  installedExtensionFileSystemLayer,
+  nodeInstalledExtensionsSource,
+  parseExtensionRoots
+} from "@konogame/node-installed-extension-source";
 import { saveModuleSource } from "@konogame/save";
 import { provideSaveStoreWorkflow, SAVE_STORE_WORKFLOW } from "@konogame/save/store";
 import { workspaceModuleSource } from "@konogame/workspace";
 import { provideWorkspaceManagement, WORKSPACE_MANAGEMENT } from "@konogame/workspace/management";
-import { tomlWorkspaceConfigurationSource } from "@konogame/workspace-configuration/providers";
 import { runAsync } from "@optique/run";
 import {
   Cause,
@@ -106,7 +106,7 @@ export function composeCli<Error = never>(
         saveModuleSource(),
         gameModuleSource(),
         workspaceModuleSource(),
-        tomlWorkspaceConfigurationSource(),
+        workspaceTomlExtensionSource(),
         filesystemExtensionSource({
           saveRoot: options.saveRoot ?? join(homedir(), ".konogame", "saves")
         }),
@@ -114,9 +114,10 @@ export function composeCli<Error = never>(
         ...installed,
         ...(options.discoverySources ?? [])
       ]).pipe(Layer.provideMerge(overrides));
-      const plans = Layer.mergeAll(provideFeaturePlan(), provideExtensionCatalog()).pipe(
-        Layer.provideMerge(infrastructure)
-      );
+      const plans = Layer.mergeAll(
+        provideAdapterResolutionPlanner(),
+        provideExtensionCatalog()
+      ).pipe(Layer.provideMerge(infrastructure));
       return Layer.mergeAll(
         provideWorkspaceManagement(),
         provideGameAdmission(),
@@ -133,8 +134,9 @@ export function composeCli<Error = never>(
 }
 
 function errorMessage(error: unknown): string {
-  if (error instanceof AggregateError)
+  if (error instanceof AggregateError) {
     return `${error.message}: ${error.errors.map(errorMessage).join("; ")}`;
+  }
   return error instanceof Error ? error.message : String(error);
 }
 
@@ -174,17 +176,22 @@ export function runCli<Error = never>(argv: string[], options: CliOptions<Error>
       };
       const leading: string[] = [];
       let args = [...argv];
-      while (args.length && interactionFlags.includes(args[0]!)) leading.push(args.shift()!);
+      while (args.length && interactionFlags.includes(args[0]!)) {
+        leading.push(args.shift()!);
+      }
       if (!args.length) {
-        if (policy.json)
+        if (policy.json) {
           return yield* Effect.fail(new CliError({ message: "A command is required with --json" }));
+        }
         if (policy.interactive) {
           const selected = yield* io.prompts.select(
             "Choose a command",
             cliCommandMenu.map((id) => ({ value: id, label: id }))
           );
           args = [...selected.split(" "), ...leading];
-        } else args = ["--help"];
+        } else {
+          args = ["--help"];
+        }
       } else {
         const boundary = args.indexOf("--");
         args.splice(boundary < 0 ? args.length : boundary, 0, ...leading);
@@ -212,11 +219,15 @@ export function runCli<Error = never>(argv: string[], options: CliOptions<Error>
           });
           return { stopped: false as const, value };
         } catch (error) {
-          if (error instanceof RunnerStop) return { stopped: true as const, code: error.code };
+          if (error instanceof RunnerStop) {
+            return { stopped: true as const, code: error.code };
+          }
           throw error;
         }
       });
-      if (parsed.stopped) return parsed.code;
+      if (parsed.stopped) {
+        return parsed.code;
+      }
       const command = parsed.value;
       if (command.kind === "workspace schema") {
         yield* executeWorkspaceSchema().pipe(Effect.provideContext(baseServices));
@@ -230,7 +241,7 @@ export function runCli<Error = never>(argv: string[], options: CliOptions<Error>
         Option.getOrUndefined(yield* Config.option(Config.String("KONOGAME_EXTENSION_ROOTS")))
       );
       const injected =
-        Context.getOrUndefined(overrides, FEATURE_PLAN) !== undefined ||
+        Context.getOrUndefined(overrides, ADAPTER_RESOLUTION_PLANNER) !== undefined ||
         Context.getOrUndefined(overrides, EXTENSION_CATALOG) !== undefined ||
         Context.getOrUndefined(overrides, WORKSPACE_MANAGEMENT) !== undefined ||
         Context.getOrUndefined(overrides, GAME_ADMISSION) !== undefined ||
@@ -259,7 +270,9 @@ export function runCli<Error = never>(argv: string[], options: CliOptions<Error>
     Effect.provideService(Logger.LogToStderr, true),
     Effect.provideService(ConfigProvider.ConfigProvider, ConfigProvider.fromEnvRecord(env)),
     Effect.catchCause((cause) => {
-      if (Cause.hasInterrupts(cause)) return Effect.failCause(cause);
+      if (Cause.hasInterrupts(cause)) {
+        return Effect.failCause(cause);
+      }
       return Effect.sync(() => {
         const error = Cause.squash(cause);
         if (error instanceof Cancelled) {

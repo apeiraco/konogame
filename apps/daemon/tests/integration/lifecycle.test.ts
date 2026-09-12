@@ -1,6 +1,6 @@
 import { expect, it } from "@effect/vitest";
 import { composeDaemon, startDaemon } from "@konogame/daemon";
-import { defineExtensionModule, FEATURE_PLAN } from "@konogame/infrastructure";
+import { ADAPTER_RESOLUTION_PLANNER, defineExtensionModule } from "@konogame/infrastructure";
 import { Cause, Context, Deferred, Effect, Exit, Fiber, Layer, Scope } from "effect";
 
 it.live("daemon waits for startup and releases acquired services after listener failure", () =>
@@ -20,7 +20,7 @@ it.live("daemon waits for startup and releases acquired services after listener 
                     manifest: {
                       id: "fixture.lifecycle",
                       version: "1.0.0",
-                      contractRange: "^0.2.0",
+                      declarationProtocolRange: "^0.2.0",
                       software: {},
                       activationEvents: ["onStartup"],
                       contributes: {}
@@ -47,7 +47,9 @@ it.live("daemon waits for startup and releases acquired services after listener 
         const server = yield* startDaemon({ port: 0, overrides: applicationFactory() });
         expect(cleanups).toBe(0);
         const address = server.address();
-        if (!address || typeof address === "string") throw new Error("Expected local listener");
+        if (!address || typeof address === "string") {
+          throw new Error("Expected local listener");
+        }
         const failed = yield* Effect.result(
           Effect.scoped(startDaemon({ port: address.port, overrides: applicationFactory() }))
         );
@@ -73,7 +75,7 @@ it.live(
         composeDaemon().pipe(
           Layer.tap((services) =>
             Effect.gen(function* () {
-              const plan = Context.get(services, FEATURE_PLAN);
+              const plan = Context.get(services, ADAPTER_RESOLUTION_PLANNER);
               plan.plan = () =>
                 Effect.gen(function* () {
                   yield* Effect.addFinalizer(() =>
@@ -96,7 +98,9 @@ it.live(
         Effect.provideService(Scope.Scope, scope)
       );
       const address = server.address();
-      if (!address || typeof address === "string") throw new Error("Expected local listener");
+      if (!address || typeof address === "string") {
+        throw new Error("Expected local listener");
+      }
       const response = yield* Effect.promise(() =>
         fetch(`http://127.0.0.1:${address.port}/plan`)
       ).pipe(Effect.exit, Effect.forkChild);
@@ -126,10 +130,11 @@ it.effect("daemon Scope exposes application finalizer failures", () =>
       Effect.scoped(startDaemon({ port: 0, overrides: applicationFactory() }))
     );
     expect(exit._tag).toBe("Failure");
-    if (exit._tag === "Failure")
+    if (exit._tag === "Failure") {
       expect(Cause.prettyErrors(exit.cause).map((error) => error.message)).toContain(
         failure.message
       );
+    }
     expect(calls).toBe(1);
   })
 );

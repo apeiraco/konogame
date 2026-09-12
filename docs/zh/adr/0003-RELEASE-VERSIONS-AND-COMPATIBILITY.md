@@ -1,5 +1,7 @@
 # ADR 0003：发行版本与 Contract 兼容性
 
+> 当前术语：[ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md)定义 Feature → Port ← Adapter、Adapter 解析及独立的声明/Port 版本字段。本文保留原始术语。
+
 > 当前身份/Port 更新：[ADR 0012](0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md) 以 owner 签发的不透明身份替代厂商匹配，分开 observationKey/candidateId/实体 UUID，契约移至 owner /contracts 入口并逐 Port 独立版本化。game.discovery 现为 0.3.0，声明协议保持 0.2.0。
 
 > 协议更新：[ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 将当前 Contract 协议改为 `0.2.0`、范围 `>=0.2.0 <0.3.0`。下文原始版本示例保留决策当时事实，发布版本归属与 Location/Schema 规则继续有效。

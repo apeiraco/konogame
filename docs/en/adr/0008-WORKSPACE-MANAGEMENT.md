@@ -1,5 +1,9 @@
 # ADR 0008: Workspace management and library maintenance
 
+> For current persistence ownership and the host source name see [ADR 0014](0014-WORKSPACE-TOML-EXTENSION.md).
+
+> Current terminology: [ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md) defines Feature → Port ← Adapter, Adapter resolution and separate declaration/Port version fields. This record retains its original terminology.
+
 Status: accepted, 2026-10-18. Extends the narrow metadata workflows in [ADR 0002](0002-WORKSPACE-TOML-AND-TOOLING.md), retaining [ADR 0005](0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)'s Location and core persistence ownership. Exact commands are in the [management guide](../008-WORKSPACE-MANAGEMENT.md).
 
 ## Decision

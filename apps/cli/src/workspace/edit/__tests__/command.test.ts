@@ -232,7 +232,9 @@ it.effect(
           provideTestCli(executeEdit(bad), testCliContext().context, { workspace })
         );
         expect(exit._tag).toBe("Failure");
-        if (exit._tag === "Failure") expect(Cause.squash(exit.cause)).toBeInstanceOf(CliError);
+        if (exit._tag === "Failure") {
+          expect(Cause.squash(exit.cause)).toBeInstanceOf(CliError);
+        }
       }
     })
 );
@@ -253,7 +255,7 @@ it.effect(
           root: resolve(directory),
           workspaceId: snap.workspace.id,
           expectedRevision: snap.revision,
-          configurationAdapterId: "core.workspace-configuration",
+          configurationAdapterId: "workspace-toml.configuration",
           change: {
             kind: "metadata.replace",
             target: { kind: "workspace", recordId: snap.workspace.id },
@@ -266,35 +268,35 @@ it.effect(
               after: "Updated"
             }
           ],
-          readBindingPlan: {
-            contractVersion: "0.2.0",
-            bindings: [
+          readAdapterResolutionPlan: {
+            declarationProtocolVersion: "0.2.0",
+            resolvedAdapters: [
               {
                 feature: "workspace.configuration.read",
                 port: "workspace.configuration",
                 operation: "read",
-                adapterId: "core.workspace-configuration",
+                adapterId: "workspace-toml.configuration",
                 owner: { kind: "module", id: "konogame.workspace" },
-                contractRange: ">=0.2.0 <0.3.0",
-                portContractVersion: "0.2.0",
-                portContractRange: ">=0.2.0 <0.3.0",
+                declarationProtocolRange: ">=0.2.0 <0.3.0",
+                portVersion: "0.2.0",
+                portVersionRange: ">=0.2.0 <0.3.0",
                 capabilities: ["configuration.read", "configuration.edit"]
               }
             ],
             unavailable: []
           },
-          applyBindingPlan: {
-            contractVersion: "0.2.0",
-            bindings: [
+          applyAdapterResolutionPlan: {
+            declarationProtocolVersion: "0.2.0",
+            resolvedAdapters: [
               {
                 feature: "workspace.configuration.edit",
                 port: "workspace.configuration",
                 operation: "edit",
-                adapterId: "core.workspace-configuration",
+                adapterId: "workspace-toml.configuration",
                 owner: { kind: "module", id: "konogame.workspace" },
-                contractRange: ">=0.2.0 <0.3.0",
-                portContractVersion: "0.2.0",
-                portContractRange: ">=0.2.0 <0.3.0",
+                declarationProtocolRange: ">=0.2.0 <0.3.0",
+                portVersion: "0.2.0",
+                portVersionRange: ">=0.2.0 <0.3.0",
                 capabilities: ["configuration.read", "configuration.edit"]
               }
             ],
@@ -420,8 +422,9 @@ it.effect(
             )
           );
           expect(declinedExit._tag).toBe("Failure");
-          if (declinedExit._tag === "Failure")
+          if (declinedExit._tag === "Failure") {
             expect(Cause.squash(declinedExit.cause)).toBeInstanceOf(Cancelled);
+          }
         }
         expect(writes).toBe(0);
       }).pipe(

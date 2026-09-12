@@ -1,16 +1,40 @@
 import { expect, it } from "@effect/vitest";
 import {
+  workspaceTomlConfigurationAdapter,
+  workspaceTomlManifest
+} from "@konogame/extension-workspace-toml";
+import {
+  ADAPTER_RESOLUTION_PLANNER,
   defineExtensionModule,
   EXTENSION_CATALOG,
-  type ExtensionDiscoverySource,
-  FEATURE_PLAN
+  type ExtensionDiscoverySource
 } from "@konogame/infrastructure";
+import { WorkspaceFeature } from "@konogame/workspace/contracts";
 import { Context, Effect, Layer } from "effect";
 import { composeCli } from "../main.ts";
 
 class RESOURCE extends Context.Service<RESOURCE, { readonly value: number }>()(
   "test.composition-resource"
 ) {}
+
+it.effect("composeCli selects the bundled TOML Extension for configuration on demand", () =>
+  Effect.gen(function* () {
+    const services = yield* Layer.build(composeCli());
+    const catalog = Context.get(services, EXTENSION_CATALOG);
+    expect(
+      (yield* catalog.list()).find(({ id }) => id === workspaceTomlManifest.id)?.activation
+    ).not.toBe("active");
+    const plan = yield* Context.get(services, ADAPTER_RESOLUTION_PLANNER).plan([
+      WorkspaceFeature.Inspect
+    ]);
+    expect(plan.unavailable).toEqual([]);
+    expect(plan.resolvedAdapters[0]?.adapterId).toBe(workspaceTomlConfigurationAdapter.id);
+    expect(plan.resolvedAdapters[0]?.owner).toEqual(workspaceTomlConfigurationAdapter.owner);
+    expect(
+      (yield* catalog.list()).find(({ id }) => id === workspaceTomlManifest.id)?.activation
+    ).toBe("active");
+  })
+);
 
 it.effect("application services and overrides share one Scope and finalize once", () =>
   Effect.gen(function* () {
@@ -34,7 +58,7 @@ it.effect("application services and overrides share one Scope and finalize once"
         const services = yield* Layer.build(composeCli({ catalogOnly: true, overrides }));
         expect(acquisitions).toBe(1);
         expect(runs).toBe(0);
-        expect(Context.get(services, FEATURE_PLAN)).toBeDefined();
+        expect(Context.get(services, ADAPTER_RESOLUTION_PLANNER)).toBeDefined();
         expect(acquisitions).toBe(1);
         expect(runs).toBe(0);
       })
@@ -60,7 +84,7 @@ it.effect(
                 manifest: {
                   id: "fixture.startup",
                   version: "1.0.0",
-                  contractRange: "^0.2.0",
+                  declarationProtocolRange: "^0.2.0",
                   software: {},
                   activationEvents: ["onStartup"],
                   contributes: {}
@@ -108,7 +132,7 @@ for (const [capability, expected] of [
     () =>
       Effect.gen(function* () {
         const services = yield* Layer.build(composeCli());
-        const plan = Context.get(services, FEATURE_PLAN);
+        const plan = Context.get(services, ADAPTER_RESOLUTION_PLANNER);
         const catalog = Context.get(services, EXTENSION_CATALOG);
         yield* plan.features();
         expect(
@@ -117,7 +141,7 @@ for (const [capability, expected] of [
             .map((entry) => entry.id)
         ).toEqual([]);
         const result = yield* plan.plan(["game.discover"], {}, { "game.discover": [capability] });
-        expect(result.bindings).toHaveLength(1);
+        expect(result.resolvedAdapters).toHaveLength(1);
         expect(
           (yield* catalog.list())
             .filter((entry) => entry.activation === "active")

@@ -6,9 +6,9 @@ Konogame 是面向游戏资产的可扩展框架，目标是管理存档、补�
 
 [项目 metadata](../../konogame-metadata.toml) 是当前版本与兼容声明的真源。Core 可执行程序/包统一发行版本，每个 Extension 独立版本。详见[更新日志](CHANGELOG.md)和[发布维护指南](003-RELEASE-MAINTENANCE.md)。
 
-**Module** 组织用户可见的 **Feature**。Feature 通过可替换的 **Port/Contract** 调用 **Operation**。一个 **Extension** 可以提供多个 **Adapter**；Adapter 声明可执行的 Operation 和细粒度 **Capability**。应用服务先协商需求并解析 Adapter，输出 **Binding Plan**，再执行操作。
+**Module** 组织用户可见的 **Feature**。依赖模型为 **Feature → Port ← Adapter**：Feature 请求 **Port** 拥有的 **Operation**，**Adapter** 实现该 Port。**Capability** 是执行前选择 Adapter 时检查的保证，不增加方法参数。**Extension** 负责分发一个或多个 Adapter。解析生成 **Adapter Resolution Plan**。契约描述边界类型与保证，公共入口仍为 owner `/contracts`。见 [ADR 0013](adr/0013-PORTS-AND-ADAPTER-RESOLUTION.md)。
 
-CLI 与 Daemon 是独立入口，各自组装所用模块的 Layer，不直接依赖 Kopia、Ludusavi 等具体工具。包括 Contract 包在内的 Core 包统一发行版本；协议另有版本，Extension 独立发布。默认 filesystem Adapter 逐文件流式保存多文件 Artifact，不强制提供历史版本。
+CLI 与 Daemon 是独立入口，各自组装所用模块的 Layer，不直接依赖 Kopia、Ludusavi 等具体工具。Core 包统一发行版本，声明协议和各 Port 分别版本化，Extension 独立发行。默认 filesystem Adapter 逐文件流式保存多文件 Artifact，不强制提供历史版本。
 
 ## 运行原型
 
@@ -42,17 +42,17 @@ TypeScript 共享选项位于 `tsconfig.base.json`，各 workspace 有独立的 
 
 `just lint` 使用 [Biome](https://biomejs.dev/reference/configuration/) 检查格式、推荐规则与导入顺序；`just format` 应用格式化及安全修复。本项目采用两空格、LF、双引号和行内类型修饰符（`import { A, type B }`），禁止 `enum` 与 `const enum`，允许经过前置校验的非空断言。生成的发布源码排除检查，包清单保留发布同步工具的格式。Git 忽略的构建产物及私人 `projections/` 排除处理。
 
-发现需要已配置的 Host/source 与显式扫描范围。预览 JSON 保存在扫描目录之外；确认重查当前配置、证据与绑定。Steam 库引用不扩大范围。散装目录只是候选，不是已认证游戏；新增安装的 `launchEntries` 为空。本轮不联网补全、不启动、不修改游戏文件。Game/Installation 联合写入采用定向 journal/前向恢复，不是原子多文件事务。参数与恢复限制见[实验指南](002-WORKSPACE-EXPERIMENT.md)，领域职责与 Effect 4.0.6 Layer 组装见[开发指南](004-DEVELOPMENT.md)。
+发现需要已配置的 Host/source 与显式扫描范围。预览 JSON 保存在扫描目录之外；确认重查当前配置、证据与 Adapter 解析。Steam 库引用不扩大范围。散装目录只是候选，不是已认证游戏；新增安装的 `launchEntries` 为空。本轮不联网补全、不启动、不修改游戏文件。Game/Installation 联合写入采用定向 journal/前向恢复，不是原子多文件事务。参数与恢复限制见[实验指南](002-WORKSPACE-EXPERIMENT.md)，领域职责与 Effect 4.0.6 Layer 组装见[开发指南](004-DEVELOPMENT.md)。
 
-每条用例是所属模块的 `Context.Service` 和 Layer。CLI 与 Daemon 合并自己需要的 Layer：infrastructure（注册表、绑定计划和扩展目录）、Workspace 管理、游戏准入和存档写入。只准备目录的获取完成声明准备；默认获取在暴露服务前完成 startup。多个跨 Feature 组合确实无法由现有模块承接时，才增加 `packages/layer-composition`。参见 [ADR 0011](adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md)。
+每条用例是所属模块的 `Context.Service` 和 Layer。CLI 与 Daemon 合并自己需要的 Layer：infrastructure（注册表、Adapter 解析计划和扩展目录）、Workspace 管理、游戏准入和存档写入。只准备目录的获取完成声明准备；默认获取在暴露服务前完成 startup。多个跨 Feature 组合确实无法由现有模块承接时，才增加 `packages/layer-composition`。参见 [ADR 0011](adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md)。
 
 ## 目录
 
-- `packages/infrastructure`：运行注册表、惰性激活、生命周期、绑定、Temporal/ID、绑定计划和扩展目录。
-- `packages/extension-discovery-node`：显式安装根 JSON 扫描与复查后的惰性 factory 加载，随 core 统一版本。
+- `packages/infrastructure`：运行注册表、惰性激活、生命周期、Adapter 解析、Temporal/ID、Adapter 解析计划和扩展目录。
+- `packages/node-installed-extension-source`：显式安装根 JSON 扫描与复查后的惰性 factory 加载，随 core 统一版本。
 - infrastructure、Game、Workspace 与 Save 的 owner `/contracts` 入口：纯声明与逐 Port 独立协议。
 - `packages/workspace`：Workspace Module、配置/历史契约、记录 Schema、覆盖规则，以及检查和编辑用例。
-- `packages/workspace-configuration`：核心 TOML 持久化、元数据布局、读取/重命名/录入/初始化/编辑与定向恢复；提供 Module 所属的 `core.workspace-configuration`。
+- `extensions/workspace-toml` — 默认 Workspace TOML Adapter，负责文件读写及定向恢复。
 - `packages/game`：本地发现契约、候选/证据值、来源能力和准入用例，可以依赖 `workspace`。
 - `packages/save`：Save Module 的 Feature/Port 定义和存档写入用例。
 - `extensions/filesystem`：filesystem save-store、散装发现、原生发现 I/O，以及 `fs.absolute`/`fs.relative` Location 定义与行为。
@@ -64,7 +64,11 @@ TypeScript 共享选项位于 `tsconfig.base.json`，各 workspace 有独立的 
 
 ## 文档
 
+按问题选择入口。当前主题指南说明已支持的行为与操作；ADR 记录当时的选择、理由及后继决策；路线图列出待验证的方案、依赖和验收条件。
+
 - [当前架构](001-ARCHITECTURE.md)
+- [ADR 0013：Port 与 Adapter 解析](adr/0013-PORTS-AND-ADAPTER-RESOLUTION.md)
+- [ADR 0014 · Workspace TOML Extension](adr/0014-WORKSPACE-TOML-EXTENSION.md)
 - [ADR 0010：测试边界与任务图](adr/0010-TEST-BOUNDARIES-AND-TASK-GRAPH.md)
 - [ADR 0011：Effect 契约与生命周期](adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md)
 - [ADR 0009：应用组装](adr/0009-APPLICATION-COMPOSITION.md)
@@ -81,7 +85,7 @@ TypeScript 共享选项位于 `tsconfig.base.json`，各 workspace 有独立的 
 - [ADR 0004：本地发现与显式注入](adr/0004-LOCAL-DISCOVERY-AND-INJECTION.md)
 - [发布维护](003-RELEASE-MAINTENANCE.md)
 - [本地 Workspace 实验](002-WORKSPACE-EXPERIMENT.md)
-- [ADR 0001：能力绑定](adr/0001-CAPABILITY-BINDING.md)
+- [ADR 0001：能力 Adapter 解析](adr/0001-CAPABILITY-BINDING.md)
 - [ADR 0002：Workspace TOML 与工具](adr/0002-WORKSPACE-TOML-AND-TOOLING.md)
 - [ADR 0003：发行版本与兼容性](adr/0003-RELEASE-VERSIONS-AND-COMPATIBILITY.md)
 - [初始迭代计划](roadmap/001-INITIAL-ITERATIONS.md)
@@ -95,9 +99,9 @@ TypeScript 共享选项位于 `tsconfig.base.json`，各 workspace 有独立的 
 
 项目采用 [MPL 2.0 许可证](../../LICENSE.md)。
 
-Location 是可序列化 `{ type, schemaVersion, data }` 值；未知类型/Schema 保持可读并保留，报告未验证/不可用。核心配置持久化属于 Module，读取不依赖位置注册。资源行为、比较和类型化解析需要兼容注册 Adapter。参见 [ADR 0005](adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)和 [Location 指南](005-LOCATION-AND-REGISTRIES.md)。
+Location 是可序列化 `{ type, schemaVersion, data }` 值；未知类型/Schema 保持可读并保留，报告未验证/不可用。TOML Adapter 读取配置无需注册 filesystem Location。资源行为、比较和类型化解析需要兼容注册 Adapter。参见 [ADR 0005](adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)和 [Location 指南](005-LOCATION-AND-REGISTRIES.md)。
 
-服务、Port 和 Context.Service tag 归所属包。Application composition 组装 Layer，Scope 拥有应用与代际资源，私有 PubSub 暴露只读 Stream。先登记 manifest，再惰性激活 Effect 代码。活动目录变更保留 blocked/需要重启语义，支持显式安装根发现；marketplace 与独立 host 重载尚未实现。参见[服务/生命周期指南](006-SERVICES-AND-EXTENSION-LIFECYCLE.md)。Contract 协议为 `0.2.0`、范围 `>=0.2.0 <0.3.0`；Schema 4 与 core/Extension 发布版本 `0.1.0-alpha.0` 保持不变。
+服务、Port 和 Context.Service tag 归所属包。Application composition 组装 Layer，Scope 拥有应用与代际资源，私有 PubSub 暴露只读 Stream。先登记 manifest，再惰性激活 Effect 代码。活动目录变更保留 blocked/需要重启语义，支持显式安装根发现；marketplace 与独立 host 重载尚未实现。参见[服务/生命周期指南](006-SERVICES-AND-EXTENSION-LIFECYCLE.md)。声明协议为 `0.2.0`、范围 `>=0.2.0 <0.3.0`；Schema 4 与 core/Extension 发布版本 `0.1.0-alpha.0` 保持不变。
 
 已安装 Extension 仅从显式 `extensionRoots` 或绝对路径 JSON 数组 `KONOGAME_EXTENSION_ROOTS` 发现。`just cli extension list`、`status` 和 `refresh` 检查目录而不触发 startup/代码激活，每次 CLI refresh 仅影响当次短命运行时。已实现严格声明、一致目录版本与可取消阶段截止时间；超时不隔离或杀死代码。参见 [VS Code/Theia 源码对照](007-EXTENSION-SYSTEM-COMPARISON.md)和 [ADR 0007](adr/0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md)。
 

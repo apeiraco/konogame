@@ -1,8 +1,10 @@
 # ADR 0006：服务归属与惰性激活
 
-> 继任说明：[ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 以 Effect 4.0.6 替代本文的依赖注入、异步 Port、观察、组装与生命周期细节。本文保留原日期的决策记录，其余领域与归属约束继续适用。
+状态：2026-10-17 采纳，后续已调整。保留服务归属与按代激活；目录发布以 ADR 0007 为准，依赖与生命周期实现以 ADR 0011 为准。
 
-状态：于 2026-10-17 采纳。细化 [ADR 0005](0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)的注册、依赖和激活行为；其 Location 封装与持久化归属继续有效。
+> 当前术语：[ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md)定义 Feature → Port ← Adapter、Adapter 解析及独立的声明/Port 版本字段。本文保留原始术语。
+
+> 继任说明：[ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 以 Effect 4.0.6 替代本文的依赖注入、异步 Port、观察、组装与生命周期细节。本文保留原日期的决策记录，其余领域与归属约束继续适用。
 
 后续细化：[ADR 0007](0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md)增加严格声明/来源边界、公开观察前内部目录提交、仅目录准备、Node 安装发现及有界取消/清理诊断。下文此前 source/流/startup 细节属于历史记录，服务归属及按代作用域继续有效。
 

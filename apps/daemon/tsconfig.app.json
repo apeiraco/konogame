@@ -21,7 +21,7 @@
       "path": "../../packages/workspace/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/workspace-configuration/tsconfig.lib.json"
+      "path": "../../extensions/workspace-toml/tsconfig.lib.json"
     },
     {
       "path": "../../extensions/filesystem/tsconfig.lib.json"
@@ -30,7 +30,7 @@
       "path": "../../extensions/steam/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/extension-discovery-node/tsconfig.lib.json"
+      "path": "../../packages/node-installed-extension-source/tsconfig.lib.json"
     }
   ]
 }

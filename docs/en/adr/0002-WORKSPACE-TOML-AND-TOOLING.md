@@ -1,5 +1,7 @@
 # ADR 0002: Workspace TOML, identity, rename, and tooling
 
+> Current terminology: [ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md) defines Feature → Port ← Adapter, Adapter resolution and separate declaration/Port version fields. This record retains its original terminology.
+
 Status: accepted for the local experiment, 2026-10-17. This supersedes the JSON/null/read-only recommendations in the original Workspace proposal. It does not promise a stable external schema.
 
 Location update: [ADR 0005](0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md) supersedes the built-in Location variants and filesystem Extension persistence ownership below. Current records use `workspace.experimental.4` and `{ type, schemaVersion, data }`. TOML, identity, Unicode/layout, override and rename decisions remain effective; schema 3 descriptions below are historical and have no compatibility reader.

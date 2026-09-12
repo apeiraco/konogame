@@ -1,5 +1,9 @@
 # ADR 0007：Extension 发现与加载稳健性
 
+> 当前持久化归属与宿主来源名称见 [ADR 0014](0014-WORKSPACE-TOML-EXTENSION.md)。
+
+> 当前术语：[ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md)定义 Feature → Port ← Adapter、Adapter 解析及独立的声明/Port 版本字段。本文保留原始术语。
+
 > 继任说明：[ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 以 Effect 4.0.6 替代本文的依赖注入、异步 Port、观察、组装与生命周期细节。本文保留原日期的决策记录，其余领域与归属约束继续适用。
 
 状态：于 2026-10-18 采纳。细化 [ADR 0006](0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md)的发现、目录发布与生命周期完成行为；服务归属、固定 root/按代 child 注入、依赖作用域和暂存实现发布继续有效。源码证据及剩余不足见[对照报告](../007-EXTENSION-SYSTEM-COMPARISON.md)。

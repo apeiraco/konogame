@@ -43,10 +43,10 @@
       "path": "./extensions/steam/tsconfig.test.json"
     },
     {
-      "path": "./packages/workspace-configuration/tsconfig.test.json"
+      "path": "./extensions/workspace-toml/tsconfig.test.json"
     },
     {
-      "path": "./packages/extension-discovery-node/tsconfig.test.json"
+      "path": "./packages/node-installed-extension-source/tsconfig.test.json"
     }
   ]
 }

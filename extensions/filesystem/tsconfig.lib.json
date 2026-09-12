@@ -16,6 +16,9 @@
     },
     {
       "path": "../../packages/game/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/workspace/tsconfig.lib.json"
     }
   ]
 }

@@ -22,8 +22,9 @@ export function executeInit(command: InitCommand): CliCommandEffect {
         const name = yield* required(command.name, "name");
         const uniformName = yield* required(command.hostName, "host-name");
         const platform = yield* required(command.platform, "platform");
-        if (!["windows", "linux", "macos"].includes(platform))
+        if (!["windows", "linux", "macos"].includes(platform)) {
           return yield* Effect.fail(new CliError({ message: "Unsupported Host platform" }));
+        }
         yield* confirmWrite(
           command.yes,
           `Initialize ${name} in ${root} with Host ${uniformName}, platform ${platform}, and disabled history?`

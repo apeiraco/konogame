@@ -1,22 +1,26 @@
-import { basename, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { basename, join, relative, resolve, sep } from "node:path";
 import {
-  DiscoveryEntryKind,
-  type DiscoveryFileSystem,
   GameDiscoveryError,
   type GameDiscoveryInput,
   type GameDiscoveryPort,
   type GameDiscoveryResult,
-  GameSourceKind
-} from "@konogame/game";
+  GameOperation,
+  gameDiscoveryInputSchema
+} from "@konogame/game/contracts";
+import { ExternalIdentityPurpose } from "@konogame/workspace/contracts";
 import { Effect } from "effect";
 import { absoluteFilesystemLocation } from "../location/values.ts";
+import { filesystemSourceKind } from "../manifest.ts";
+import { extensionMetadata } from "../metadata.ts";
 import { directoryEvidence, discoveryDigest, inspectDiscoveryPath } from "./evidence.ts";
+import { DiscoveryEntryKind, type DiscoveryFileSystem } from "./filesystem.ts";
+import { type DirectoryDiscoveryScope, directoryDiscoveryScopeSchema } from "./scope.ts";
 
 export { filesystemGameDiscoveryAdapter } from "../manifest.ts";
 
 const failure = (cause: unknown) =>
   new GameDiscoveryError({
-    operation: "discover",
+    operation: GameOperation.Discover,
     cause,
     message: cause instanceof Error ? cause.message : String(cause)
   });
@@ -27,34 +31,20 @@ export class FilesystemGameDiscovery implements GameDiscoveryPort {
   discover(input: GameDiscoveryInput): Effect.Effect<GameDiscoveryResult, GameDiscoveryError> {
     const self = this;
     return Effect.gen(function* () {
-      yield* Effect.try({
+      const scope = yield* Effect.try({
         try: () => {
-          if (input.sourceKind !== GameSourceKind.Standalone)
+          gameDiscoveryInputSchema.assert(input);
+          if (input.sourceKind !== filesystemSourceKind)
             throw new Error("Filesystem discovery requires a standalone source");
-          if (
-            !Number.isInteger(input.scope.maxDepth) ||
-            input.scope.maxDepth < 0 ||
-            input.scope.maxDepth > 16
-          )
-            throw new Error("Discovery maxDepth must be an integer from 0 to 16");
-          if (!input.scope.paths.length || input.scope.paths.some((path) => !isAbsolute(path)))
-            throw new Error("Discovery requires explicit absolute paths");
-          for (const exclusion of input.scope.exclude)
-            if (
-              !exclusion ||
-              isAbsolute(exclusion) ||
-              exclusion.split(/[\\/]/).some((part) => !part || part === ".." || part === ".")
-            )
-              throw new Error("Exclusions must be relative directory prefixes");
+          return directoryDiscoveryScopeSchema.assert(input.scope);
         },
         catch: failure
       });
-      const output: GameDiscoveryResult = { candidates: [], diagnostics: [] };
+      const output: GameDiscoveryResult = { observations: [], diagnostics: [] };
       const seen = new Map<string, number>();
       const emitted = new Set<string>();
-      yield* Effect.forEach(
-        [...new Set(input.scope.paths.map((path) => resolve(path)))].sort(),
-        (path) => self.scan(path, path, 0, input, output, seen, emitted)
+      yield* Effect.forEach([...new Set(scope.paths.map((path) => resolve(path)))].sort(), (path) =>
+        self.scan(path, path, 0, scope, output, seen, emitted, input.hostId)
       );
       return output;
     });
@@ -64,42 +54,69 @@ export class FilesystemGameDiscovery implements GameDiscoveryPort {
     root: string,
     path: string,
     depth: number,
-    input: GameDiscoveryInput,
+    scope: DirectoryDiscoveryScope,
     output: GameDiscoveryResult,
     seen: Map<string, number>,
-    emitted: Set<string>
+    emitted: Set<string>,
+    hostId: string
   ): Effect.Effect<void, GameDiscoveryError> {
     const self = this;
     return Effect.gen(function* () {
       const suffix = relative(root, path).split(sep).join("/");
       if (
-        input.scope.exclude.some(
+        scope.exclude.some(
           (value) =>
             suffix === value.replaceAll("\\", "/") ||
             suffix.startsWith(`${value.replaceAll("\\", "/")}/`)
         )
       )
         return;
-      const remainingDepth = input.scope.maxDepth - depth;
+      const remainingDepth = scope.maxDepth - depth;
       const pathKey = process.platform === "win32" ? path.toLowerCase() : path;
       if ((seen.get(pathKey) ?? -1) >= remainingDepth) return;
       seen.set(pathKey, remainingDepth);
       if (seen.size > 10_000)
         return yield* Effect.fail(failure("Discovery directory limit exceeded: 10000"));
       yield* Effect.gen(function* () {
-        yield* inspectDiscoveryPath(self.fileSystem, path, DiscoveryEntryKind.Directory);
-        if ((input.scope.maxDepth === 0 || depth > 0) && !emitted.has(pathKey)) {
+        const info = yield* inspectDiscoveryPath(
+          self.fileSystem,
+          path,
+          DiscoveryEntryKind.Directory
+        );
+        if ((scope.maxDepth === 0 || depth > 0) && !emitted.has(pathKey)) {
           const fingerprint = yield* directoryEvidence(self.fileSystem, path);
-          output.candidates.push({
-            key: `filesystem:${discoveryDigest(pathKey)}`,
+          if ((yield* self.fileSystem.inspect(path)).identity !== info.identity)
+            return yield* Effect.fail(failure("Discovery directory changed before publication"));
+          const object = info.fileObject;
+          const reliableObject =
+            object &&
+            [object.volumeId, object.objectId].every((value) => /^[1-9][0-9]*$/.test(value));
+          output.observations.push({
+            observationKey: `filesystem:${discoveryDigest(pathKey)}`,
             title: basename(path) || path,
             location: absoluteFilesystemLocation(path),
             externalRefs: [],
+            ...(reliableObject
+              ? {
+                  externalIdentities: [
+                    {
+                      issuer: extensionMetadata.id,
+                      purpose: ExternalIdentityPurpose.Installation,
+                      value: JSON.stringify([
+                        hostId,
+                        object.volumeId,
+                        object.objectId,
+                        object.birthTime ?? ""
+                      ])
+                    }
+                  ]
+                }
+              : {}),
             evidence: [{ kind: "filesystem.directory", path, fingerprint }]
           });
           emitted.add(pathKey);
         }
-        if (depth < input.scope.maxDepth) {
+        if (depth < scope.maxDepth) {
           const entries = yield* self.fileSystem.list(path, 4096);
           yield* Effect.forEach(entries, (entry) => {
             if (entry.kind === DiscoveryEntryKind.Link) {
@@ -111,7 +128,16 @@ export class FilesystemGameDiscovery implements GameDiscoveryPort {
               return Effect.void;
             }
             if (entry.kind !== DiscoveryEntryKind.Directory) return Effect.void;
-            return self.scan(root, join(path, entry.name), depth + 1, input, output, seen, emitted);
+            return self.scan(
+              root,
+              join(path, entry.name),
+              depth + 1,
+              scope,
+              output,
+              seen,
+              emitted,
+              hostId
+            );
           });
         }
       }).pipe(
@@ -128,4 +154,3 @@ export class FilesystemGameDiscovery implements GameDiscoveryPort {
     });
   }
 }
-

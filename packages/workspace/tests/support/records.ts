@@ -6,7 +6,6 @@ import {
   type HostRecord,
   type InstallationRecord,
   LaunchKind,
-  LocationKind,
   RecordKind,
   SourceStatus,
   WORKSPACE_SCHEMA,
@@ -51,7 +50,11 @@ export function records() {
     gameId: game.id,
     hostId: host.id,
     sourceId: "manual",
-    location: { kind: LocationKind.Relative, rootKey: "games", path: "Synthetic" },
+    location: {
+      type: "fs.relative",
+      schemaVersion: "1.0.0",
+      data: { rootKey: "games", path: "Synthetic" }
+    },
     launchEntries: [
       {
         id: "play",

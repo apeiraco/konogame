@@ -1,5 +1,7 @@
 # ADR 0002：Workspace TOML、身份、重命名与工具
 
+> 当前术语：[ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md)定义 Feature → Port ← Adapter、Adapter 解析及独立的声明/Port 版本字段。本文保留原始术语。
+
 状态：于 2026-10-17 为本地实验采纳。本文取代原 Workspace 提案中 JSON、null 与只读范围的建议，不承诺稳定的外部 Schema。
 
 位置更新：[ADR 0005](0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)取代下文内建 Location 分支及 filesystem Extension 持久化归属。当前记录采用 `workspace.experimental.4` 与 `{ type, schemaVersion, data }`。TOML、身份、Unicode/布局、覆盖和重命名决策继续有效；下文 Schema 3 描述为历史记录，没有兼容读取器。

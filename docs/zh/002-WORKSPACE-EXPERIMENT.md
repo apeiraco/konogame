@@ -4,9 +4,9 @@
 
 ## 可运行范围
 
-Workspace Module 与 Save 使用同一 Binding Plan 流程解析检查和重命名，校验严格记录、UUID 关系、显式 Host/Installation 选择、有效配置来源、文件名诊断和内容观察修订。重命名修改实体原文 `uniformName` 与文件系统名称，保留注释、布局、UUID 和引用。
+Workspace Module 与 Save 使用同一 Adapter Resolution Plan 流程解析检查和重命名，校验严格记录、UUID 关系、显式 Host/Installation 选择、有效配置来源、文件名诊断和内容观察修订。重命名修改实体原文 `uniformName` 与文件系统名称，保留注释、布局、UUID 和引用。
 
-尚无通用配置编辑器、历史实现、游戏启动、基于这些记录的资产绑定或 Daemon Workspace 接口。已配置 Steam/standalone 来源支持下述有界流程；其他来源声明与 Adapter 偏好不代表可用集成。`save store` 仍使用自身存储配置。
+尚无通用配置编辑器、历史实现、游戏启动、基于这些记录的资产 Adapter 解析或 Daemon Workspace 接口。已配置 Steam/standalone 来源支持下述有界流程；其他来源声明与 Adapter 偏好不代表可用集成。`save store` 仍使用自身存储配置。
 
 ## 从仓库运行
 
@@ -18,7 +18,7 @@ just cli plan workspace.rename
 just cli workspace schema
 just cli workspace inspect <workspace-root>
 just cli workspace inspect <workspace-root> <host-id> <installation-id>
-just cli workspace inspect <workspace-root> --adapter core.workspace-configuration
+just cli workspace inspect <workspace-root> --adapter workspace-toml.configuration
 just cli workspace rename <workspace-root> <record-id> <uniform-name>
 just cli workspace inspect <workspace-root> --json --non-interactive
 ```
@@ -65,13 +65,13 @@ adapterOptions = ["filesystem.save-store"]
 
 `workspace.rename` 解析 `workspace.configuration/rename` 与 `configuration.rename`。它修改 Game/Host/Installation 的 `uniformName` 和文件/目录名；title/label 与引用独立。Host 附属容器一起移动，保留现有平铺/目录布局、未改动 TOML 原文和注释。
 
-应用服务提供预期修订与操作身份。核心配置 Adapter 使用锁协调应用写入器，复查修订/哈希，暂存临时内容并保留恢复数据。冲突不覆盖目标，恢复/重试仅适用于同一实体与目标。回滚失败明确报告需要恢复。任意外部编辑器不共享此锁，因此流程不承诺对其提供原子 compare-and-swap。恢复数据不等于历史或通用事务系统。可选历史不影响基本检查和重命名。
+应用服务提供预期修订与操作身份。TOML 配置 Adapter 使用锁协调应用写入器，复查修订/哈希，暂存临时内容并保留恢复数据。冲突不覆盖目标，恢复/重试仅适用于同一实体与目标。回滚失败明确报告需要恢复。任意外部编辑器不共享此锁，因此流程不承诺对其提供原子 compare-and-swap。恢复数据不等于历史或通用事务系统。可选历史不影响基本检查和重命名。
 
 合成夹具覆盖 Schema 拒绝、双布局、Unicode 文件名编码和限制、根/位置、分层清除、过期修订、冲突、注释保留与恢复路径。私人观察、账号标识、真实路径及游戏清单保留在公开夹具和文档之外。更广泛编辑和可选 Git 历史属于[后续增量](roadmap/001-INITIAL-ITERATIONS.md)。
 
 ## 本地发现与显式录入
 
-Host 必须已声明 `status = "configured"`、`kind = "steam"` 或 `"standalone"` 的来源；发现本身不创建 Host/source，[独立管理流程](008-WORKSPACE-MANAGEMENT.md)现已支持审核创建/维护。`game.discover` 解析发现 Adapter 与 Workspace 检查；`workspace.import`、`workspace.recover-import` 使用 `workspace.configuration` 的 `import`/`recover-import` Operation 与 `configuration.import`/`configuration.import-recovery` Capability。只读配置 Adapter 可以预览，同时在 Binding Plan 中报告录入不可用。
+Host 必须已声明 `status = "configured"`、`kind = "steam"` 或 `"standalone"` 的来源；发现本身不创建 Host/source，[独立管理流程](008-WORKSPACE-MANAGEMENT.md)现已支持审核创建/维护。`game.discover` 解析发现 Adapter 与 Workspace 检查；`workspace.import`、`workspace.recover-import` 使用 `workspace.configuration` 的 `import`/`recover-import` Operation 与 `configuration.import`/`configuration.import-recovery` Capability。只读配置 Adapter 可以预览，同时在 Adapter Resolution Plan 中报告录入不可用。
 
 ```sh
 just cli game discover /synthetic/workspace --host-id <host-id> --source-id loose --scope /synthetic/games --json > /synthetic/preview.json
@@ -87,19 +87,19 @@ filesystem 候选只是目录观察，以目录名为标题，无便携外部身
 
 Steam 范围显式选择每个库/root 或其 `steamapps` 目录。只读取所选 `appmanifest_*.acf` 并校验 `common/<installdir>`，不按 `maxDepth` 递归。`libraryfolders.vdf` 提供证据与未选择库的诊断，不扩大扫描权限。App ID 须为正 uint32 且匹配文件名；StateFlags 须包含 fully-installed bit 4，安装目录必须安全、存在且无链接/越界。清单读取上限 1 MiB，条目/候选数量有界。数据型 KeyValues 子集接受引号/裸字符串、花括号对象、`//` 注释及支持的反斜杠转义；指令、条件、重复键、不支持的转义失败。这是经合成夹具验证的实验格式 Adapter，不承诺所有 Steam 版本兼容。[ADR 0004](adr/0004-LOCAL-DISCOVERY-AND-INJECTION.md)链接主格式参考。
 
-预览包含证据、诊断、Binding Plan 与 `new-game`、`reuse-game`、`existing-installation`、`conflict` 处置。Extension 签发用途明确的 `externalIdentities`，业务服务比较完整 issuer/purpose/value，不解析厂商数据。Steam 由已验证 AppID 签发 issuer `konogame.steam`、value `app:<AppID>` 的 Game 身份，支持跨安装复用 Game，不推导账户或安装身份。预览候选具有 UUID `candidateId` 与明确 Adapter/Port/Host/source 来源；观察键保持来源值。名称不能合并。同 Host 的相等 Location 来自其他 source，或已占用 Location 的 Steam 身份矛盾时报告冲突。新记录使用 UUIDv7，`launchEntries` 为空；本轮不发现启动入口、不启动、不联网补全、不修改游戏文件。
+预览包含证据、诊断、Adapter Resolution Plan 与 `new-game`、`reuse-game`、`existing-installation`、`conflict` 处置。Extension 签发用途明确的 `externalIdentities`，业务服务比较完整 issuer/purpose/value，不解析厂商数据。Steam 由已验证 AppID 签发 issuer `konogame.steam`、value `app:<AppID>` 的 Game 身份，支持跨安装复用 Game，不推导账户或安装身份。预览候选具有 UUID `candidateId` 与明确 Adapter/Port/Host/source 来源；观察键保持来源值。名称不能合并。同 Host 的相等 Location 来自其他 source，或已占用 Location 的 Steam 身份矛盾时报告冲突。新记录使用 UUIDv7，`launchEntries` 为空；本轮不发现启动入口、不启动、不联网补全、不修改游戏文件。
 
 位置类型未知或 Schema 版本不受支持的候选仍保留在预览中，标记为 `unverified` 校验、`conflict` 处置并附 `location-unavailable` 诊断；此类候选不可录入，同批有效候选可以独立选择并录入。
 
-确认将预览作为不可信严格 Schema 输入，独立锚定调用者 root，校验摘要，重读配置修订，按原 Adapter 绑定与范围重新观察来源，并比较重建计划后再分配实体 ID。摘要用于变更检测，不是认证签名，没有 TTL。Workspace 或来源变化需要新预览。成功录入后生成新预览可确认 unchanged；重放已成功消费的原预览会过期。`--operation-id` 不会把旧预览重放变成恢复。
+确认将预览作为不可信严格 Schema 输入，独立锚定调用者 root，校验摘要，重读配置修订，按原先选中的 Adapter 与范围重新观察来源，并比较重建计划后再分配实体 ID。摘要用于变更检测，不是认证签名，没有 TTL。Workspace 或来源变化需要新预览。成功录入后生成新预览可确认 unchanged；重放已成功消费的原预览会过期。`--operation-id` 不会把旧预览重放变成恢复。
 
 录入新增所选 Game/Installation，保留已有 Host/source 记录、注释与字节，沿用现有布局和 Host companion 容器，共享重命名写锁，校验原记录/目标哈希并保留本机 journal。每个新文件先在目标同目录暂存并 fsync，再通过不替换既有目标的独占 hard link 发布。Workspace 所在文件系统须支持硬链接；不支持时发布失败，不降级为覆盖。跨文件联合创建不是原子的；部分失败报告 `recovery-required`，显式恢复命令按既有 operation 前向完成，不要求部分 Workspace 可完整读取。外部修改会使恢复明确停止；缺少 journal/receipt 不能发起新操作，receipt 恢复可返回 unchanged。这不是通用事务 API，不回滚录入，也不自动重试旧预览。
 
 ## 位置可用性与持久化
 
-[ADR 0005](adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)区分核心元数据持久化与 Extension 位置行为。检查输出原始位置、validation、availability 和 Binding Plan，不要求解析路径。新录入通过绑定行为比较候选及已有安装，未知/不可比较不能当作不同。Pending import 恢复通过 journal 恢复已批准元数据，不访问位置资源，也不依赖 filesystem Location 注册。核心 `@konogame/workspace-configuration` 拥有既有锁、哈希、journal 及读取/重命名/录入算法；保留 Node 读取/重命名 transport，录入 I/O 可注入。位置 TOML 示例与独立版本见 [Location 指南](005-LOCATION-AND-REGISTRIES.md)。
+[ADR 0005](adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)区分元数据持久化与 Extension 位置行为。检查输出原始位置、validation、availability 和 Adapter Resolution Plan，不要求解析路径。新录入通过 Adapter 解析行为比较候选及已有安装，未知/不可比较不能当作不同。Pending import 恢复通过 journal 恢复已批准元数据，不访问位置资源，也不依赖 filesystem Location 注册。随附的 `@konogame/extension-workspace-toml` 拥有既有锁、哈希、journal 及读取/重命名/录入算法；保留 Node 读取/重命名 transport，录入 I/O 可注入。位置 TOML 示例与独立版本见 [Location 指南](005-LOCATION-AND-REGISTRIES.md)。
 
-应用组装先发现 manifest，再激活选中实现。Workspace 检查激活 Module 所属配置 Adapter，位置行为仅按需激活，缺少 Location Extension 仍不阻止读取或已批准 journal 恢复。CLI 首次应用需求才初始化并清理自有运行时，help/schema/version 不初始化。参见[服务与 Extension 生命周期](006-SERVICES-AND-EXTENSION-LIFECYCLE.md)和 [ADR 0006](adr/0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md)；Workspace Schema 4 及上述录入/恢复限制不变。
+应用组装先发现 manifest，再激活选中实现。Workspace 检查激活 随附的 TOML Adapter，位置行为仅按需激活，缺少 Location Extension 仍不阻止读取或已批准 journal 恢复。CLI 首次应用需求才初始化并清理自有运行时，help/schema/version 不初始化。参见[服务与 Extension 生命周期](006-SERVICES-AND-EXTENSION-LIFECYCLE.md)和 [ADR 0006](adr/0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md)；Workspace Schema 4 及上述录入/恢复限制不变。
 
 已安装 Extension roots 显式配置，extension list/status/refresh 只准备声明，不启动包代码。业务操作仍按需激活兼容 Adapter；Schema 4、未知 Location 保留和已批准导入恢复不变。发现、加载、激活和清理现有取消/截止诊断，但不赋予游戏/配置写入新的事务或回滚保证。参见[对照与包指南](007-EXTENSION-SYSTEM-COMPARISON.md)。
 

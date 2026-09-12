@@ -22,9 +22,6 @@
       "path": "../game/tsconfig.lib.json"
     },
     {
-      "path": "../workspace-configuration/tsconfig.lib.json"
-    },
-    {
       "path": "../../extensions/filesystem/tsconfig.lib.json"
     },
     {

@@ -6,6 +6,8 @@ Core binaries and packages share a version. Extensions have independent versions
 
 ### Changed
 
+- Clarify Feature → Port ← Adapter: Ports own Operations, Capabilities are selection guarantees, and Extensions distribute Adapters. Rename selection APIs, source paths and JSON/previews to Adapter resolution; distinguish declarationProtocolVersion/declarationProtocolRange from portVersion/portVersionRange and canonical declaration_protocol/port metadata. Keep owner /contracts entries, protocol/schema/release versions and historical records; add bilingual ADR 0013.
+
 - Separate Extension observations, UUID admission candidates and Workspace entities; compare opaque owner-issued Game/Installation identities without vendor parsing. Steam issues evidence-backed AppID Game identity; filesystem issues Host/volume/file-object Installation identity when reliable IDs exist. Move pure public contracts into owner /contracts entries and negotiate each Port independently (game.discovery 0.3.0; other existing Ports 0.2.0). Remove the standalone contracts package, retain unified core releases, independent Extensions and Schema 4, add bilingual ADR 0012, and inject CLI directory-to-Artifact input in composition.
 
 - Replace oclif with Optique 1.3 command parsers for the CLI, daemon, and dev-cli. Public arguments stay the same, including space-separated commands, `--json`, `--non-interactive`, `--interactive=false`, `-h`, and `-v`. Completion covers Bash, zsh, fish, PowerShell, and Nushell. Injected tests call the exported runner; built entries run as processes.
@@ -83,5 +85,9 @@ Core binaries and packages share a version. Extensions have independent versions
 
 - Contract range: `>=0.1.0 <0.2.0`; software: Steam `generic` (format integration, synthetic-fixture validation, not an all-version guarantee).
 - No network enrichment, executable discovery, launch or game-file mutation is implemented. This Extension versions independently of core.
+
+## konogame.workspace-toml@0.1.0-alpha.0
+
+- Bundled TOML implementation of the Workspace configuration Port. Use `workspace-toml.configuration` for explicit selection.
 
 [English](CHANGELOG.md) | [中文](docs/zh/CHANGELOG.md)

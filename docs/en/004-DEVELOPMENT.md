@@ -6,7 +6,7 @@ Status: current Effect development conventions, 2026-10-26. See the [architectur
 
 Game, Host and Installation are UUID entities: names and paths can change without changing identity. Scope, evidence and external references describe values. Candidate keys identify observations, not Games. Reliable Steam App IDs can establish Game reuse; title similarity and directory names cannot. Classify new objects explicitly as entities or values. Schemas and domain services enforce current invariants; classes encapsulate complex behavior.
 
-Domain services express domain decisions. The module that owns a capability coordinates its configuration reads, binding, discovery, review and writes. Extensions own vendor parsing and location-specific I/O. Core Workspace persistence owns TOML and metadata algorithms; its existing Node read/rename transport remains, and import I/O is injectable. The [Game contract](../../packages/game/src/index.ts) defines candidates, evidence, and an opaque discovery scope; [admission](../../packages/game/src/admission/service.ts) validates admission and reconstructs records; [filesystem discovery](../../extensions/filesystem/src/game-discovery/adapter.ts) owns directory entry kinds and directory scope validation; [Steam](../../extensions/steam/src/index.ts) implements its source through the declared filesystem dependency; [WorkspaceConfigurationImporter](../../packages/workspace-configuration/src/operations/import.ts) owns journal and forward recovery.
+Domain services express domain decisions. The module that owns a capability coordinates its configuration reads, Adapter resolution, discovery, review and writes. Extensions own vendor parsing and location-specific I/O. The Workspace TOML Extension owns TOML and metadata algorithms; its existing Node read/rename transport remains, and import I/O is injectable. The [Game contract](../../packages/game/src/index.ts) defines candidates, evidence, and an opaque discovery scope; [admission](../../packages/game/src/admission/service.ts) validates admission and reconstructs records; [filesystem discovery](../../extensions/filesystem/src/game-discovery/adapter.ts) owns directory entry kinds and directory scope validation; [Steam](../../extensions/steam/src/index.ts) implements its source through the declared filesystem dependency; [WorkspaceConfigurationImporter](../../extensions/workspace-toml/src/operations/import.ts) owns journal and forward recovery.
 
 ## Classes and functions
 
@@ -18,12 +18,12 @@ The filesystem Adapter receives its owner I/O service through its Layer. Classes
 
 Use exactly `effect`, `@effect/platform-node` and `@effect/vitest` 4.0.6. Those versions, and every other external dependency range, are declared once in the default catalog in `pnpm-workspace.yaml`. Manifests reference that catalog with `catalog:`; `catalogMode: strict` rejects a direct range on `pnpm add`. `workspace:` remains the protocol for workspace packages. Package release versions stay in `konogame-metadata.toml`. Owner `Context.Service` tags declare dependencies; native `Layer` values build services, and `Scope` owns resources. Serial `yield*` is for a step that uses the previous result. Independent effects use `Effect.all`; a collection uses `Effect.forEach` with explicit concurrency; `Effect.forkChild` with `Fiber.join` or `Fiber.joinAll` is for work that needs the fiber handles. Side-effecting Ports, Adapters and application workflows return `Effect<Success, Error, Requirements>` with owner tagged errors; schemas, values, parsers and rules remain pure. Promise conversion belongs only to real Node, Optique, Clack, dynamic-import and test boundaries. Run APIs stay at process/framework/test boundaries.
 
-Services, Ports, tags and `provideXxx` Layers live in their owner packages. Infrastructure owns registries, activation, lifecycle, binding, Temporal/ID services, `LOCATION_BEHAVIOR`, binding plans and the extension catalog. Workspace, Game and Save own their workflows and I/O services. Distinct implementations have distinct tags. Layer wiring never substitutes for Contract/Operation/Capability/Location negotiation.
+Services, Ports, tags and `provideXxx` Layers live in their owner packages. Infrastructure owns registries, activation, lifecycle, Adapter resolution, Temporal/ID services, `LOCATION_BEHAVIOR`, Adapter resolution plans and the extension catalog. Workspace, Game and Save own their workflows and I/O services. Distinct implementations have distinct tags. Layer wiring never substitutes for Port version/Operation/Capability/Location negotiation.
 
 CLI and daemon each merge owner Layers. Catalog-only acquisition prepares declarations; other commands initialize before exposing services. Entries select bundled filesystem/Steam and opt-in installed discovery through pure `/providers` entries. Business packages do not import an entry. Add `packages/layer-composition` only when several cross-feature combinations cannot live in an existing module.
 
 ```ts
-import { FEATURE_PLAN, provideFeaturePlan, provideIdService, provideInfrastructure } from "@konogame/infrastructure";
+import { ADAPTER_RESOLUTION_PLANNER, provideAdapterResolutionPlanner, provideIdService, provideInfrastructure } from "@konogame/infrastructure";
 import { gameModuleSource } from "@konogame/game";
 import { saveModuleSource } from "@konogame/save";
 import { workspaceModuleSource } from "@konogame/workspace";
@@ -38,8 +38,8 @@ const infrastructure = provideInfrastructure({}, [
 })));
 
 export const program = Effect.gen(function* () {
-  return yield* (yield* FEATURE_PLAN).features();
-}).pipe(Effect.provide(provideFeaturePlan().pipe(Layer.provideMerge(infrastructure))));
+  return yield* (yield* ADAPTER_RESOLUTION_PLANNER).features();
+}).pipe(Effect.provide(provideAdapterResolutionPlanner().pipe(Layer.provideMerge(infrastructure))));
 
 // Importing this module must not start the application.
 if (import.meta.main) {
@@ -59,14 +59,14 @@ Expected rejection is classified where the rule or schema is checked, using owne
 | --- | --- |
 | Contracts | `SchemaValidationError` carries schemaId and issues with path/message/rule plus optional children for union/intersection branches. A parent path may be empty; inspect child paths instead of parsing messages. The pure `assertSchema` uses the schema result API; it does not turn arbitrary evaluator throws into validation failures. |
 | Workspace | `WorkspaceInvalidInputError`, `WorkspaceNotFoundError` and `WorkspaceConflictError` carry rule issues or resource identifiers. `WorkspaceRuleFailure` includes these and schema failures. |
-| Infrastructure | `FeatureNotFoundError`, `ExtensionNotFoundError` and `BindingUnavailableError` cover missing Features, missing Extensions, and binding, implementation or operation gaps. | 
+| Infrastructure | `FeatureNotFoundError`, `ExtensionNotFoundError` and `AdapterResolutionUnavailableError` cover missing Features, missing Extensions, and Adapter resolution, implementation or operation gaps. |
 | Workspace use cases | `WorkspaceSelectionError` and `WorkspaceReviewMismatchError` (`reviewKind: "workspace-edit"`) stay with Workspace management. |
 | Game admission | Input, candidate, conflict, review (`reviewKind: "game-discovery"`) and source/location comparison failures stay with admission. |
 | Configuration | `WorkspaceConfigurationError` is a public union of schema/rule failures; WorkspaceFileSystemFailure, ConfigurationInvalidInputFailure, WorkspaceWriterConflictFailure and WorkspaceWriterRecoveryFailure data protocols; UnexpectedBoundaryError; and LocationError from fresh admission. Native filesystem and configuration-input classes stay in the configuration implementation package. |
 
 `infrastructureRule`, `workspaceRule`, `admissionRule` and `configurationRule` bridge synchronous rules by preserving recognized error objects as Fail; an unexpected throw from trusted pure code remains Die. Their operation annotation is diagnostic context only. Port Effects retain their natural error unions, including filesystem tag/code/cause; schema or rule rejection must not be mislabeled as I/O. At an explicitly identified external parser/evaluator boundary, known syntax rejection has its structured input category and an unexpected third-party throw may be `UnexpectedBoundaryError` with boundary and original cause. This boundary class is not a catch-all for business workflows, Ports or every schema hook. Exhaustive handling covers declared known unions, not arbitrary third-party behavior or defects.
 
-Configuration result handling recovers only a Cause made entirely of Fail reasons. Any Die or Interrupt propagates through failCause; existing conflict/recovery statuses remain ordinary results, with recovery-required cleanup diagnostics preserved. Tests assert tags and issue fields, exercise catchTag/exhaustiveness for known unions and separately check defects/interruption. See [shared validation](../../packages/infrastructure/src/contracts/schema/validation.ts), [Workspace protocols](../../packages/workspace/src/model/errors.ts), [binding rules](../../packages/infrastructure/src/binding/errors.ts), [admission rules](../../packages/game/src/admission/errors.ts) and [configuration rules](../../packages/workspace-configuration/src/operations/errors.ts).
+Configuration result handling recovers only a Cause made entirely of Fail reasons. Any Die or Interrupt propagates through failCause; existing conflict/recovery statuses remain ordinary results, with recovery-required cleanup diagnostics preserved. Tests assert tags and issue fields, exercise catchTag/exhaustiveness for known unions and separately check defects/interruption. See [shared validation](../../packages/infrastructure/src/contracts/schema/validation.ts), [Workspace protocols](../../packages/workspace/src/model/errors.ts), [Adapter resolution rules](../../packages/infrastructure/src/adapter-resolution/errors.ts), [admission rules](../../packages/game/src/admission/errors.ts) and [configuration rules](../../extensions/workspace-toml/src/operations/errors.ts).
 
 ## Test boundaries and task graph
 
@@ -100,7 +100,7 @@ Name each directory as a stable hierarchy, for example `extensions/filesystem/te
 
 ## Location and registry work
 
-Classify Location as a value object. Add a stable type definition to its Extension, declare a Standard Schema or JSON Schema with an independent schema range, then register compatible behavior and a typed implementation. Registration stores `dataSchema` as JSON Schema. Do not add filesystem branches to Workspace or compare serialized values. Core configuration is a Module-owned Adapter; test configuration reads without Location registration. Cover missing schema/behavior, both compare operands, non-path resources and explicit unknown results. Fresh admission needs valid/comparable locations; journal recovery completes approved metadata without executing resources. Follow the [Location guide](005-LOCATION-AND-REGISTRIES.md) and [ADR 0005](adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md) for ownership and real registration links.
+Classify Location as a value object. Add a stable type definition to its Extension, declare a Standard Schema or JSON Schema with an independent schema range, then register compatible behavior and a typed implementation. Registration stores `dataSchema` as JSON Schema. Do not add filesystem branches to Workspace or compare serialized values. The default configuration Adapter belongs to the TOML Extension; test configuration reads without Location registration. Cover missing schema/behavior, both compare operands, non-path resources and explicit unknown results. Fresh admission needs valid/comparable locations; journal recovery completes approved metadata without executing resources. Follow the [Location guide](005-LOCATION-AND-REGISTRIES.md) and [ADR 0005](adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md) for ownership and real registration links.
 
 ## Discovery and robustness tests
 

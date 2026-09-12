@@ -1,5 +1,7 @@
 # ADR 0001：Feature、Capability 与绑定术语
 
+> 当前术语：[ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md)定义 Feature → Port ← Adapter、Adapter 解析及独立的声明/Port 版本字段。本文保留原始术语。
+
 状态：作为初始骨架的已采纳决策（2026-10-17）。
 
 后续细化：[ADR 0005](0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)增加 Module/Extension Adapter 归属；[ADR 0006](0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md)实现核心惰性激活与异步绑定。下文暂缓动态加载的表述记录最初切片，能力协商决策继续有效。

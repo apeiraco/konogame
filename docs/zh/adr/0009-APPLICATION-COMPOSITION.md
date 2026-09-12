@@ -1,8 +1,10 @@
 # ADR 0009：应用组装包与入口
 
-> 现行指向：用例放在拥有该能力的模块。CLI 与 Daemon 各自合并这些 Layer。多个跨 Feature 组合确实无法由现有模块承接时，才增加 `packages/layer-composition`。[ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 仍是 Effect 契约。本文保留原日期的组装包决策。
+状态：2026-10-19 采纳，后续已调整。原组装包已退役。工作流归各自 Module，CLI 与 daemon 分别组装 Layer。
 
-状态：已接受，2026-10-19。更新 [ADR 0002](0002-WORKSPACE-TOML-AND-TOOLING.md)、[ADR 0006](0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md) 和 [ADR 0007](0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md) 中应用组装的包路径与 API 命名。原有生命周期、服务归属及安装发现决策继续适用。
+> 当前术语：[ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md)定义 Feature → Port ← Adapter、Adapter 解析及独立的声明/Port 版本字段。本文保留原始术语。
+
+> 现行指向：用例放在拥有该能力的模块。CLI 与 Daemon 各自合并这些 Layer。多个跨 Feature 组合确实无法由现有模块承接时，才增加 `packages/layer-composition`。[ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 仍是 Effect 契约。本文保留原日期的组装包决策。
 
 ## 背景
 

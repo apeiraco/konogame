@@ -33,7 +33,9 @@ it.live("interrupting CLI menu preserves cancellation and closes its prompt scop
     yield* Fiber.interrupt(fiber);
     const exit = yield* Fiber.await(fiber);
     expect(exit._tag).toBe("Failure");
-    if (exit._tag === "Failure") expect(Cause.hasInterruptsOnly(exit.cause)).toBe(true);
+    if (exit._tag === "Failure") {
+      expect(Cause.hasInterruptsOnly(exit.cause)).toBe(true);
+    }
     expect(finalizers).toBe(1);
     expect(stderr).toBe("");
   })

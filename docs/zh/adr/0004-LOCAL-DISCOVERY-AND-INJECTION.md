@@ -1,10 +1,14 @@
 # ADR 0004：本地发现、审核录入与显式注入
 
+> 当前持久化归属与宿主来源名称见 [ADR 0014](0014-WORKSPACE-TOML-EXTENSION.md)。
+
+状态：2026-10-17 采纳，后续已调整。发现审核与显式录入继续适用。ADR 0011 取代注入机制，0012 取代身份匹配规则，0013 更新解析术语。
+
+> 当前术语：[ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md)定义 Feature → Port ← Adapter、Adapter 解析及独立的声明/Port 版本字段。本文保留原始术语。
+
 > 当前身份/Port 更新：[ADR 0012](0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md) 以 owner 签发的不透明身份替代厂商匹配，分开 observationKey/candidateId/实体 UUID，契约移至 owner /contracts 入口并逐 Port 独立版本化。game.discovery 现为 0.3.0，声明协议保持 0.2.0。
 
 > 继任说明：[ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 以 Effect 4.0.6 替代本文的依赖注入、异步 Port、观察、组装与生命周期细节。本文保留原日期的决策记录，其余领域与归属约束继续适用。
-
-状态：已采纳，2026-10-17。
 
 ## 背景
 

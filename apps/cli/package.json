@@ -14,8 +14,8 @@
     "@optique/standard-schema": "catalog:",
     "@clack/prompts": "catalog:",
     "@konogame/infrastructure": "workspace:*",
-    "@konogame/workspace-configuration": "workspace:*",
-    "@konogame/extension-discovery-node": "workspace:*",
+    "@konogame/extension-workspace-toml": "workspace:*",
+    "@konogame/node-installed-extension-source": "workspace:*",
     "effect": "catalog:",
     "@effect/platform-node": "catalog:"
   },
@@ -42,6 +42,6 @@
   },
   "konogame": {
     "releaseGroup": "core",
-    "contractRange": ">=0.2.0 <0.3.0"
+    "declarationProtocolRange": ">=0.2.0 <0.3.0"
   }
 }

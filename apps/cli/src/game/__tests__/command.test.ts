@@ -58,19 +58,19 @@ function syntheticPreview(root: string) {
     sourceKind: "standalone",
     scope: { paths: [root], maxDepth: 2, exclude: [] },
     discoveryAdapterId: "filesystem.game-discovery",
-    configurationAdapterId: "core.workspace-configuration",
-    bindingPlan: {
-      contractVersion: "0.2.0",
-      bindings: [
+    configurationAdapterId: "workspace-toml.configuration",
+    adapterResolutionPlan: {
+      declarationProtocolVersion: "0.2.0",
+      resolvedAdapters: [
         {
           feature: "game.discover",
           port: "game.discovery",
           operation: "discover",
           adapterId: "filesystem.game-discovery",
           owner: { kind: "extension", id: "konogame.filesystem" },
-          contractRange: ">=0.2.0 <0.3.0",
-          portContractVersion: "0.3.0",
-          portContractRange: ">=0.3.0 <0.4.0",
+          declarationProtocolRange: ">=0.2.0 <0.3.0",
+          portVersion: "0.3.0",
+          portVersionRange: ">=0.3.0 <0.4.0",
           capabilities: ["discovery.source.standalone"]
         }
       ],
@@ -116,10 +116,11 @@ it.effect("game discover requires scope and forwards resolved paths to GAME_ADMI
       provideTestCli(executeGame(discoverCommand()), io.context, {})
     );
     expect(missingScope._tag).toBe("Failure");
-    if (missingScope._tag === "Failure")
+    if (missingScope._tag === "Failure") {
       expect((Cause.squash(missingScope.cause) as Error).message).toContain(
         "Missing required argument: scope"
       );
+    }
 
     let captured: unknown;
     yield* provideTestCli(
@@ -176,8 +177,9 @@ it.effect(
           )
         );
         expect(nonInteractiveNoYes._tag).toBe("Failure");
-        if (nonInteractiveNoYes._tag === "Failure")
+        if (nonInteractiveNoYes._tag === "Failure") {
           expect((Cause.squash(nonInteractiveNoYes.cause) as Error).message).toContain("--yes");
+        }
 
         const nonInteractiveNoCandidate = yield* Effect.exit(
           provideTestCli(
@@ -194,10 +196,11 @@ it.effect(
           )
         );
         expect(nonInteractiveNoCandidate._tag).toBe("Failure");
-        if (nonInteractiveNoCandidate._tag === "Failure")
+        if (nonInteractiveNoCandidate._tag === "Failure") {
           expect((Cause.squash(nonInteractiveNoCandidate.cause) as Error).message).toContain(
             "--candidate"
           );
+        }
 
         let imports = 0;
         let selects = 0;
@@ -234,8 +237,9 @@ it.effect(
           )
         );
         expect(cancelled._tag).toBe("Failure");
-        if (cancelled._tag === "Failure")
+        if (cancelled._tag === "Failure") {
           expect(Cause.squash(cancelled.cause)).toBeInstanceOf(Cancelled);
+        }
         expect(imports).toBe(0);
         expect(interactiveIo.stderr.join("")).toContain("candidates: 1");
 

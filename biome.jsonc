@@ -20,6 +20,7 @@
       "!packages/workspace/src/version.ts",
       "!packages/save/src/version.ts",
       "!extensions/filesystem/src/metadata.ts",
+      "!extensions/workspace-toml/src/metadata.ts",
       "!extensions/steam/src/metadata.ts"
     ]
   },
@@ -74,6 +75,7 @@
         // Record graphs and AST indices are validated before these assertions.
         "noNonNullAssertion": "off",
         "noEnum": "error",
+        "useBlockStatements": "error",
         "useImportType": {
           "level": "error",
           "options": { "style": "inlineType" }

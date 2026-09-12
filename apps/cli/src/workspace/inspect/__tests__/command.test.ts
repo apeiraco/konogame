@@ -17,7 +17,7 @@ function command(overrides: Partial<InspectCommand> = {}): InspectCommand {
   } as InspectCommand;
 }
 
-for (const suppliedHost of [false, true])
+for (const suppliedHost of [false, true]) {
   it.effect(
     `inspect prompts for the Host and Installation when a Host is ${suppliedHost ? "supplied" : "missing"}`,
     () =>
@@ -60,3 +60,4 @@ for (const suppliedHost of [false, true])
         expect(selections.at(-1)?.installationId).toBe("installation");
       })
   );
+}

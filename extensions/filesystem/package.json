@@ -31,7 +31,8 @@
     "@konogame/game": "workspace:*",
     "semver": "catalog:",
     "@konogame/infrastructure": "workspace:*",
-    "effect": "catalog:"
+    "effect": "catalog:",
+    "@konogame/workspace": "workspace:*"
   },
   "scripts": {
     "build": "tsdown"
@@ -47,8 +48,8 @@
   "konogame": {
     "releaseGroup": "extension",
     "extensionId": "konogame.filesystem",
-    "contractRange": ">=0.2.0 <0.3.0",
-    "portContractRanges": {
+    "declarationProtocolRange": ">=0.2.0 <0.3.0",
+    "portVersionRanges": {
       "filesystem.save-store": ">=0.2.0 <0.3.0",
       "filesystem.location": ">=0.2.0 <0.3.0",
       "filesystem.game-discovery": ">=0.3.0 <0.4.0"

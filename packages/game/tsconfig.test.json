@@ -22,7 +22,7 @@
       "path": "../save/tsconfig.lib.json"
     },
     {
-      "path": "../workspace-configuration/tsconfig.lib.json"
+      "path": "../../extensions/workspace-toml/tsconfig.lib.json"
     },
     {
       "path": "../../extensions/filesystem/tsconfig.lib.json"

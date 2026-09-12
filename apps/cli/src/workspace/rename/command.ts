@@ -52,7 +52,7 @@ export function executeRename(command: RenameCommand): CliCommandEffect {
     }
     if (recordId === undefined && context.interactive && inspection) {
       const records = [...inspection.games, ...inspection.hosts, ...inspection.installations];
-      if (records.length)
+      if (records.length) {
         recordId = yield* context.prompts.select(
           "Record to rename",
           records.map((record) => ({
@@ -60,14 +60,16 @@ export function executeRename(command: RenameCommand): CliCommandEffect {
             label: `${record.uniformName} (${record.id})`
           }))
         );
+      }
     }
     recordId = yield* required(recordId, "record-id");
     uniformName = yield* required(uniformName, "uniform-name");
     if (
       context.interactive &&
       !(yield* context.prompts.confirm(`Rename ${recordId} to ${uniformName}?`))
-    )
+    ) {
       return yield* Effect.fail(new Cancelled("Cancelled"));
+    }
     const result = yield* (yield* WORKSPACE_MANAGEMENT).renameWorkspace(
       {
         root,
@@ -79,7 +81,8 @@ export function executeRename(command: RenameCommand): CliCommandEffect {
       command.adapter
     );
     yield* output(result);
-    if (result.status !== RenameStatus.Renamed && result.status !== RenameStatus.Unchanged)
+    if (result.status !== RenameStatus.Renamed && result.status !== RenameStatus.Unchanged) {
       return yield* Effect.fail(new CliError({ message: `Workspace rename ${result.status}` }));
+    }
   });
 }

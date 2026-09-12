@@ -5,7 +5,7 @@ export const features = "features";
 export const plan = "plan";
 
 export const featuresParser = leaf("features", "List available Features", features, {});
-export const planParser = leaf("plan", "Resolve a Feature's Binding Plan", plan, {
+export const planParser = leaf("plan", "Resolve a Feature's ResolvedAdapter Plan", plan, {
   adapter,
   feature: argument(text("FEATURE")).optional(),
   adapterId: argument(text("ADAPTER")).optional()

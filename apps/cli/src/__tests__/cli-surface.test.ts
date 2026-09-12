@@ -1,4 +1,4 @@
-import { FEATURE_PLAN } from "@konogame/infrastructure";
+import { ADAPTER_RESOLUTION_PLANNER } from "@konogame/infrastructure";
 import { Effect, Layer } from "effect";
 import { expect, test } from "vitest";
 import { CLI_PROMPTS, type CliOptions, type Prompts, runCli } from "../main.ts";
@@ -63,7 +63,7 @@ test("terminal menu and missing arguments use injected prompts", async () => {
   const result = await invoke([], {
     isTTY: true,
     overrides: Layer.merge(
-      Layer.succeed(FEATURE_PLAN, app as never),
+      Layer.succeed(ADAPTER_RESOLUTION_PLANNER, app as never),
       Layer.succeed(CLI_PROMPTS, prompts)
     )
   });

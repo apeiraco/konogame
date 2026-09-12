@@ -38,7 +38,7 @@ export function executeInspect(command: InspectCommand): CliCommandEffect {
           }
           if (hostId && installationId === undefined) {
             const installations = initial.installations.filter((item) => item.hostId === hostId);
-            if (installations.length)
+            if (installations.length) {
               installationId =
                 (yield* context.prompts.select("Installation (optional)", [
                   { value: "", label: "Host settings only" },
@@ -47,6 +47,7 @@ export function executeInspect(command: InspectCommand): CliCommandEffect {
                     label: `${item.uniformName} (${item.id})`
                   }))
                 ])) || undefined;
+            }
           }
         }
         return yield* output(

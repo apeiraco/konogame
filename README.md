@@ -6,7 +6,7 @@ Konogame is an early-stage extensible framework for managing game assets: saves,
 
 [Project metadata](konogame-metadata.toml) owns the current version and compatibility declarations. Core binaries/packages share a release version; each Extension versions independently. See the [changelog](CHANGELOG.md) and [release maintenance guide](docs/en/003-RELEASE-MAINTENANCE.md).
 
-A **Module** organizes user-facing **Features**. Each Feature invokes an **Operation** through a replaceable **Port/Contract**. An **Extension** can ship multiple **Adapters**. Each Adapter advertises its operations and fine-grained **Capabilities**. The application negotiates requirements against available Adapters and produces a **Binding Plan** before work runs.
+A **Module** organizes user-facing **Features**. The dependency model is **Feature → Port ← Adapter**: a Feature requests an **Operation** owned by a **Port**, and an **Adapter** implements that Port. **Capabilities** are guarantees used to select an Adapter before execution; they do not add method parameters. An **Extension** distributes one or more Adapters. Resolution produces an **Adapter Resolution Plan**. Contracts describe boundary types and guarantees, and owner `/contracts` entries remain their public source. See [ADR 0013](docs/en/adr/0013-PORTS-AND-ADAPTER-RESOLUTION.md).
 
 CLI and daemon are separate entry points. Each one composes the Layers of the modules it uses. They do not depend directly on Kopia, Ludusavi, or another vendor tool. Core packages share a release version; the protocol has its own version and Extensions release independently. The default filesystem Adapter streams multi-file Artifacts and does not require version history.
 
@@ -42,17 +42,17 @@ TypeScript uses shared options in `tsconfig.base.json`, per-workspace `tsconfig.
 
 `just lint` checks formatting, recommended lint rules, and import organization with [Biome](https://biomejs.dev/reference/configuration/); `just format` applies formatting and safe fixes. The project uses two-space indentation, LF, double quotes, inline type specifiers (`import { A, type B }`), and rejects both `enum` and `const enum`. Guarded non-null assertions remain allowed. Generated release sources are excluded, and package manifests retain the release synchronizer's formatting. Git-ignored build outputs and private `projections/` are excluded.
 
-Discovery requires an existing configured Host/source and explicit scan scope. Save preview JSON outside scanned directories; confirmation rechecks current configuration, evidence and bindings. Steam library references never expand scope. Standalone directories are candidates rather than certified games; new installations have empty `launchEntries`. No network enrichment, game launch or game-file mutation is included. Joint Game/Installation writes use targeted journal/forward recovery rather than an atomic multi-file transaction. See the [experiment guide](docs/en/002-WORKSPACE-EXPERIMENT.md) for flags and recovery limits, and the [development guide](docs/en/004-DEVELOPMENT.md) for domain responsibilities and Effect 4.0.6 Layer composition.
+Discovery requires an existing configured Host/source and explicit scan scope. Save preview JSON outside scanned directories; confirmation rechecks current configuration, evidence and resolved Adapters. Steam library references never expand scope. Standalone directories are candidates rather than certified games; new installations have empty `launchEntries`. No network enrichment, game launch or game-file mutation is included. Joint Game/Installation writes use targeted journal/forward recovery rather than an atomic multi-file transaction. See the [experiment guide](docs/en/002-WORKSPACE-EXPERIMENT.md) for flags and recovery limits, and the [development guide](docs/en/004-DEVELOPMENT.md) for domain responsibilities and Effect 4.0.6 Layer composition.
 
-Each workflow is an owner-module `Context.Service` and Layer. CLI and daemon merge the Layers they need: infrastructure (registries, binding plans, extension catalog), Workspace management, game admission and save writes. Catalog-only acquisition prepares declarations; normal acquisition completes startup before exposing services. Add `packages/layer-composition` only when several cross-feature combinations cannot live in an existing module. See [ADR 0011](docs/en/adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md).
+Each workflow is an owner-module `Context.Service` and Layer. CLI and daemon merge the Layers they need: infrastructure (registries, Adapter resolution plans, extension catalog), Workspace management, game admission and save writes. Catalog-only acquisition prepares declarations; normal acquisition completes startup before exposing services. Add `packages/layer-composition` only when several cross-feature combinations cannot live in an existing module. See [ADR 0011](docs/en/adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md).
 
 ## Repository map
 
-- `packages/infrastructure`: implementation registries, lazy activation, lifecycle, binding, Temporal/ID services, binding plans and the extension catalog.
-- `packages/extension-discovery-node`: explicit installed-root JSON scanning and checked lazy factory loading; shares the core release version.
+- `packages/infrastructure`: implementation registries, lazy activation, lifecycle, Adapter resolution, Temporal/ID services, Adapter resolution plans and the extension catalog.
+- `packages/node-installed-extension-source`: explicit installed-root JSON scanning and checked lazy factory loading; shares the core release version.
 - Owner `/contracts` entries in infrastructure, Game, Workspace and Save: pure declarations and independent Port protocols.
 - `packages/workspace`: Workspace Module, configuration/history contracts, record schemas, override rules, and inspection/edit workflows.
-- `packages/workspace-configuration`: core TOML persistence, metadata layouts, read/rename/import/initialize/edit and targeted recovery; module-owned `core.workspace-configuration`.
+- `extensions/workspace-toml` — default TOML Adapter for Workspace reads, writes and targeted recovery.
 - `packages/game`: local discovery contracts, candidate/evidence values, source capabilities, and admission workflows. It may depend on `workspace`.
 - `packages/save`: the Save Module's Feature/Port definitions and the save-write workflow.
 - `extensions/filesystem`: filesystem save-store, standalone discovery, native discovery I/O and `fs.absolute`/`fs.relative` Location definitions and behavior.
@@ -64,7 +64,11 @@ Each workflow is an owner-module `Context.Service` and Layer. CLI and daemon mer
 
 ## Documentation
 
+Use the topic guides for supported behavior and procedures, ADRs for decisions, rationale and superseding decisions, and the roadmap for proposed work, dependencies and acceptance criteria.
+
 - [Current architecture](docs/en/001-ARCHITECTURE.md)
+- [ADR 0013: Ports and Adapter resolution](docs/en/adr/0013-PORTS-AND-ADAPTER-RESOLUTION.md)
+- [ADR 0014 · Workspace TOML Extension](docs/en/adr/0014-WORKSPACE-TOML-EXTENSION.md)
 - [ADR 0010: Test boundaries and task graph](docs/en/adr/0010-TEST-BOUNDARIES-AND-TASK-GRAPH.md)
 - [ADR 0011: Effect contracts and lifetime](docs/en/adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md)
 - [ADR 0009: Application composition](docs/en/adr/0009-APPLICATION-COMPOSITION.md)
@@ -81,7 +85,7 @@ Each workflow is an owner-module `Context.Service` and Layer. CLI and daemon mer
 - [ADR 0004: Local discovery and explicit injection](docs/en/adr/0004-LOCAL-DISCOVERY-AND-INJECTION.md)
 - [Release maintenance](docs/en/003-RELEASE-MAINTENANCE.md)
 - [Local Workspace experiment](docs/en/002-WORKSPACE-EXPERIMENT.md)
-- [ADR 0001: Capability binding](docs/en/adr/0001-CAPABILITY-BINDING.md)
+- [ADR 0001: Capability resolution](docs/en/adr/0001-CAPABILITY-BINDING.md)
 - [ADR 0002: Workspace TOML and tooling](docs/en/adr/0002-WORKSPACE-TOML-AND-TOOLING.md)
 - [ADR 0003: Release versions and compatibility](docs/en/adr/0003-RELEASE-VERSIONS-AND-COMPATIBILITY.md)
 - [Initial iterations](docs/en/roadmap/001-INITIAL-ITERATIONS.md)
@@ -95,9 +99,9 @@ Current contracts live in `docs/{lang}/`, accepted decisions in `docs/{lang}/adr
 
 Licensed under [MPL 2.0](LICENSE.md).
 
-Location is a serializable `{ type, schemaVersion, data }` value; unknown types/schemas remain readable and preserved with unverified/unavailable status. Core configuration persistence is Module-owned and reads without Location registration. Resource behavior, comparison and typed resolution require compatible registered Adapters. See [ADR 0005](docs/en/adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md) and the [Location guide](docs/en/005-LOCATION-AND-REGISTRIES.md).
+Location is a serializable `{ type, schemaVersion, data }` value; unknown types/schemas remain readable and preserved with unverified/unavailable status. The TOML Adapter reads configuration independently of filesystem Location registration. Resource behavior, comparison and typed resolution require compatible registered Adapters. See [ADR 0005](docs/en/adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md) and the [Location guide](docs/en/005-LOCATION-AND-REGISTRIES.md).
 
-Services, Ports and Context.Service tags live with their owner packages. Application composition assembles Layers, Scope owns application and generation resources, and private PubSub exposes read-only Streams. Manifests are cataloged before lazy Effect code activation. Live catalog changes preserve blocked/restart-required outcomes; explicit installed-root discovery is available, while marketplace and independent host reload are absent. See the [service/lifecycle guide](docs/en/006-SERVICES-AND-EXTENSION-LIFECYCLE.md). Contract protocol is `0.2.0` with range `>=0.2.0 <0.3.0`; Schema 4 and core/Extension release versions `0.1.0-alpha.0` remain unchanged.
+Services, Ports and Context.Service tags live with their owner packages. Application composition assembles Layers, Scope owns application and generation resources, and private PubSub exposes read-only Streams. Manifests are cataloged before lazy Effect code activation. Live catalog changes preserve blocked/restart-required outcomes; explicit installed-root discovery is available, while marketplace and independent host reload are absent. See the [service/lifecycle guide](docs/en/006-SERVICES-AND-EXTENSION-LIFECYCLE.md). Declaration protocol is `0.2.0` with range `>=0.2.0 <0.3.0`; Schema 4 and core/Extension release versions `0.1.0-alpha.0` remain unchanged.
 
 Installed Extensions are discovered only under explicit `extensionRoots` or the `KONOGAME_EXTENSION_ROOTS` JSON array of absolute paths. `just cli extension list`, `status` and `refresh` inspects the catalog without startup/code activation; each CLI refresh affects only its short-lived process. Strict declarations, consistent catalog versions and cancellable phase deadlines are implemented; timeouts do not isolate or kill code. See the [VS Code/Theia source comparison](docs/en/007-EXTENSION-SYSTEM-COMPARISON.md) and [ADR 0007](docs/en/adr/0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md).
 

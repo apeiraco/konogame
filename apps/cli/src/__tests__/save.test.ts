@@ -22,7 +22,7 @@ it.effect("save command uses injected input after a compatible store plan", () =
           plan: () =>
             Effect.sync(() => {
               calls.push("plan");
-              return { bindings: [{ adapterId: "fixture.save-store" }], unavailable: [] };
+              return { resolvedAdapters: [{ adapterId: "fixture.save-store" }], unavailable: [] };
             })
         },
         artifactInput: {

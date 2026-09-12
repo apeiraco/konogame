@@ -1,5 +1,10 @@
 import { resolve } from "node:path";
-import { assertSettings, configurationEditChangeSchema, hostSchema } from "@konogame/workspace";
+import {
+  assertSettings,
+  ConfigurationEditKind,
+  configurationEditChangeSchema,
+  hostSchema
+} from "@konogame/workspace";
 import { WORKSPACE_MANAGEMENT, workspaceEditPreviewSchema } from "@konogame/workspace/management";
 import { Effect } from "effect";
 import {
@@ -48,15 +53,17 @@ type EditFlags = {
 
 function assignment(value: string): [string, string] {
   const index = value.indexOf("=");
-  if (index < 1 || index === value.length - 1)
+  if (index < 1 || index === value.length - 1) {
     throw new Error("Expected a nonempty key=value assignment");
+  }
   return [value.slice(0, index), value.slice(index + 1)];
 }
 
 function editChange(root: string, flags: EditFlags) {
   return Effect.gen(function* () {
-    if (flags["host-id"] && flags["record-id"] && flags["host-id"] !== flags["record-id"])
+    if (flags["host-id"] && flags["record-id"] && flags["host-id"] !== flags["record-id"]) {
       return yield* Effect.fail(new CliError({ message: "Conflicting Host and record targets" }));
+    }
     for (const [sets, removals] of [
       [flags["root-set"]?.map((value) => assignment(value)[0]), flags["root-remove"]],
       [flags["source-set"]?.map((value) => value.split(":")[0]!), flags["source-remove"]],
@@ -65,10 +72,11 @@ function editChange(root: string, flags: EditFlags) {
         flags["clear-preferred-adapter"]
       ]
     ] as const) {
-      if (sets?.some((key) => removals?.includes(key)))
+      if (sets?.some((key) => removals?.includes(key))) {
         return yield* Effect.fail(
           new CliError({ message: "Cannot set and remove or clear the same key in one edit" })
         );
+      }
     }
     const metadata =
       [flags.name, flags.title, flags.edition, flags.label].some((value) => value !== undefined) ||
@@ -82,18 +90,20 @@ function editChange(root: string, flags: EditFlags) {
     if (
       [Boolean(flags["change-file"]), metadata, roots, sources, settings].filter(Boolean).length !==
       1
-    )
+    ) {
       return yield* Effect.fail(
         new CliError({
           message:
             "Select exactly one edit category: change-file, metadata, roots, sources, or settings"
         })
       );
-    if (flags["change-file"])
+    }
+    if (flags["change-file"]) {
       return yield* cliChecked(
         configurationEditChangeSchema.assert,
         yield* readBoundedJson(flags["change-file"])
       );
+    }
     const { snapshot } = yield* (yield* WORKSPACE_MANAGEMENT).read(root, flags.adapter);
     const recordId =
       flags["host-id"] ??
@@ -105,15 +115,17 @@ function editChange(root: string, flags: EditFlags) {
       ...snapshot.hosts,
       ...snapshot.installations
     ].find((record) => record.id === recordId);
-    if (!record)
+    if (!record) {
       return yield* Effect.fail(
         new CliError({ message: "Select an existing record with --record-id or --host-id" })
       );
+    }
     if (metadata) {
-      if (flags.edition !== undefined && flags["unset-edition"])
+      if (flags.edition !== undefined && flags["unset-edition"]) {
         return yield* Effect.fail(
           new CliError({ message: "Cannot set and unset edition together" })
         );
+      }
       const projection =
         record.kind === "game"
           ? {
@@ -133,22 +145,26 @@ function editChange(root: string, flags: EditFlags) {
         ((flags.title !== undefined || flags.edition !== undefined || flags["unset-edition"]) &&
           record.kind !== "game") ||
         (flags.label !== undefined && record.kind !== "host")
-      )
+      ) {
         return yield* Effect.fail(
           new CliError({ message: "Metadata field does not belong to the selected record" })
         );
+      }
       return yield* cliChecked(configurationEditChangeSchema.assert, {
-        kind: "metadata.replace",
+        kind: ConfigurationEditKind.MetadataReplace,
         target: { kind: record.kind, recordId: record.id },
         metadata: projection
       });
     }
     if (roots || sources) {
-      if (record.kind !== "host")
+      if (record.kind !== "host") {
         return yield* Effect.fail(new CliError({ message: "Roots and sources require a Host" }));
+      }
       if (roots) {
         const updated = { ...record.roots };
-        for (const key of flags["root-remove"] ?? []) delete updated[key];
+        for (const key of flags["root-remove"] ?? []) {
+          delete updated[key];
+        }
         for (const value of flags["root-set"] ?? []) {
           const [key, path] = yield* cliChecked(assignment, value);
           Object.defineProperty(updated, key, {
@@ -159,7 +175,7 @@ function editChange(root: string, flags: EditFlags) {
           });
         }
         return yield* cliChecked(configurationEditChangeSchema.assert, {
-          kind: "host.roots.replace",
+          kind: ConfigurationEditKind.HostRootsReplace,
           hostId: record.id,
           roots: updated
         });
@@ -169,19 +185,23 @@ function editChange(root: string, flags: EditFlags) {
       );
       for (const value of flags["source-set"] ?? []) {
         const [id, kind, status, extra] = value.split(":");
-        if (!id || !kind || !status || extra !== undefined)
+        if (!id || !kind || !status || extra !== undefined) {
           return yield* Effect.fail(
             new CliError({ message: "Expected source id:kind:configured|planned" })
           );
+        }
         const index = updated.findIndex((source) => source.id === id);
         const source = (yield* cliChecked(hostSchema.get("sources").assert, [
           { id, kind, status }
         ]))[0]!;
-        if (index < 0) updated.push(source);
-        else updated[index] = source;
+        if (index < 0) {
+          updated.push(source);
+        } else {
+          updated[index] = source;
+        }
       }
       return yield* cliChecked(configurationEditChangeSchema.assert, {
-        kind: "host.sources.replace",
+        kind: ConfigurationEditKind.HostSourcesReplace,
         hostId: record.id,
         sources: updated
       });
@@ -198,35 +218,40 @@ function editChange(root: string, flags: EditFlags) {
       (flags["arguments-json"] !== undefined ||
         flags["preferred-adapter"]?.length ||
         flags["clear-preferred-adapter"]?.length)
-    )
+    ) {
       return yield* Effect.fail(
         new CliError({ message: "Use settings-json alone for a complete replacement" })
       );
+    }
     const updated =
       flags["settings-json"] === undefined
         ? structuredClone(previous)
         : assertSettings(yield* cliChecked(JSON.parse, flags["settings-json"]));
-    if (flags["arguments-json"] !== undefined)
+    if (flags["arguments-json"] !== undefined) {
       updated.arguments = assertSettings({
         arguments: yield* cliChecked(JSON.parse, flags["arguments-json"])
       }).arguments;
+    }
     for (const value of flags["preferred-adapter"] ?? []) {
       const [feature, adapter] = yield* cliChecked(assignment, value);
       updated.preferredAdapters = { ...updated.preferredAdapters, [feature]: adapter };
-      if (updated.clear?.preferredAdapters)
+      if (updated.clear?.preferredAdapters) {
         updated.clear.preferredAdapters = updated.clear.preferredAdapters.filter(
           (key) => key !== feature
         );
+      }
     }
     for (const feature of flags["clear-preferred-adapter"] ?? []) {
-      if (updated.preferredAdapters) delete updated.preferredAdapters[feature];
+      if (updated.preferredAdapters) {
+        delete updated.preferredAdapters[feature];
+      }
       updated.clear = {
         ...updated.clear,
         preferredAdapters: [...new Set([...(updated.clear?.preferredAdapters ?? []), feature])]
       };
     }
     return yield* cliChecked(configurationEditChangeSchema.assert, {
-      kind: "settings.replace",
+      kind: ConfigurationEditKind.SettingsReplace,
       target: {
         kind: targetKind,
         recordId: record.id,
@@ -286,8 +311,9 @@ export function executeEdit(command: EditCommand): CliCommandEffect {
           workspaceEditPreviewSchema.assert,
           yield* readBoundedJson(yield* required(command.previewFile, "preview-file"))
         );
-        if (context.interactive)
+        if (context.interactive) {
           yield* context.stderr(`${JSON.stringify(preview.differences, null, 2)}\n`);
+        }
         yield* confirmWrite(
           command.yes,
           `Apply ${preview.differences.length} reviewed field change(s) in ${root}?`

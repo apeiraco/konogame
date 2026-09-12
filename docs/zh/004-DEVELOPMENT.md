@@ -6,7 +6,7 @@
 
 Game、Host、Installation 是 UUID 实体，名称和路径变化不改变身份。范围、证据和外部引用描述值。候选键标识观察，不是 Game。可靠 Steam App ID 可复用 Game；相似标题与目录名不能建立身份。新增对象明确区分实体与值对象：实体使用稳定 ID，值对象按值比较；Schema 与领域服务承载当前不变量，复杂行为采用类封装。
 
-领域服务表达领域决策；拥有该能力的模块编排配置读取、绑定、发现、审核与写入；Extension 负责厂商解析和位置相关 I/O。核心 Workspace 持久化拥有 TOML 与元数据算法，保留已有 Node 读取/重命名 transport，录入 I/O 可注入。[Game 契约](../../packages/game/src/index.ts)定义候选、证据和不透明发现 scope；[准入](../../packages/game/src/admission/service.ts)校验录入并重建记录；[filesystem 发现](../../extensions/filesystem/src/game-discovery/adapter.ts)拥有目录项种类和目录 scope 校验；[Steam](../../extensions/steam/src/index.ts)通过已声明的 filesystem 依赖实现其来源；[WorkspaceConfigurationImporter](../../packages/workspace-configuration/src/operations/import.ts)负责 journal 与前向恢复。
+领域服务表达领域决策；拥有该能力的模块编排配置读取、Adapter 解析、发现、审核与写入；Extension 负责厂商解析和位置相关 I/O。Workspace TOML Extension 拥有 TOML 与元数据算法，保留已有 Node 读取/重命名 transport，录入 I/O 可注入。[Game 契约](../../packages/game/src/index.ts)定义候选、证据和不透明发现 scope；[准入](../../packages/game/src/admission/service.ts)校验录入并重建记录；[filesystem 发现](../../extensions/filesystem/src/game-discovery/adapter.ts)拥有目录项种类和目录 scope 校验；[Steam](../../extensions/steam/src/index.ts)通过已声明的 filesystem 依赖实现其来源；[WorkspaceConfigurationImporter](../../extensions/workspace-toml/src/operations/import.ts)负责 journal 与前向恢复。
 
 ## 类与函数
 
@@ -18,12 +18,12 @@ Filesystem Adapter 通过 Layer 取得 owner I/O 服务。类封装状态与算�
 
 精确使用 `effect`、`@effect/platform-node`、`@effect/vitest` 4.0.6。这些版本以及其他外部依赖范围只在 `pnpm-workspace.yaml` 的默认 catalog 声明一次。各包清单用 `catalog:` 引用；`catalogMode: strict` 会拒绝 `pnpm add` 写入直接版本范围。workspace 包继续使用 `workspace:`。包的发布版本仍在 `konogame-metadata.toml`。Owner 的 `Context.Service` tag 声明依赖，原生 `Layer` 构建服务，`Scope` 拥有资源。只有下一步使用上一步结果时才连续 `yield*`。互不依赖的 Effect 用 `Effect.all` 并发收集；数组或集合用带明确并发度的 `Effect.forEach`；需要持有 fiber 时用 `Effect.forkChild` 分叉，再用 `Fiber.join` 或 `Fiber.joinAll` 汇合。有副作用的 Port、Adapter 与应用流程返回带 owner 具名错误的 `Effect<Success, Error, Requirements>`；Schema、值、解析器和规则保持纯函数。Promise 转换只位于真实 Node、Optique、Clack、动态 import 与测试边界；run API 只在进程、框架和测试边界执行。
 
-服务、Port、tag 与 `provideXxx` Layer 归所属包。infrastructure 拥有注册表、激活、生命周期、绑定、Temporal/ID 服务、`LOCATION_BEHAVIOR`、绑定计划和扩展目录。Workspace、Game 和 Save 拥有各自的用例与 I/O 服务；并存实现使用不同 tag。Layer 接线不替代 Contract/Operation/Capability/Location 协商。
+服务、Port、tag 与 `provideXxx` Layer 归所属包。infrastructure 拥有注册表、激活、生命周期、Adapter 解析、Temporal/ID 服务、`LOCATION_BEHAVIOR`、Adapter 解析计划和扩展目录。Workspace、Game 和 Save 拥有各自的用例与 I/O 服务；并存实现使用不同 tag。Layer 接线不替代 Port 版本/Operation/Capability/Location 协商。
 
 CLI 与 Daemon 各自合并所有者 Layer。只准备目录的命令完成声明准备，其他命令在暴露服务前完成初始化。入口通过纯 `/providers` 选择内置 filesystem/Steam 与显式启用的安装发现。业务包不导入入口。多个跨 Feature 组合确实无法由现有模块承接时，才增加 `packages/layer-composition`。
 
 ```ts
-import { FEATURE_PLAN, provideFeaturePlan, provideIdService, provideInfrastructure } from "@konogame/infrastructure";
+import { ADAPTER_RESOLUTION_PLANNER, provideAdapterResolutionPlanner, provideIdService, provideInfrastructure } from "@konogame/infrastructure";
 import { gameModuleSource } from "@konogame/game";
 import { saveModuleSource } from "@konogame/save";
 import { workspaceModuleSource } from "@konogame/workspace";
@@ -38,8 +38,8 @@ const infrastructure = provideInfrastructure({}, [
 })));
 
 export const program = Effect.gen(function* () {
-  return yield* (yield* FEATURE_PLAN).features();
-}).pipe(Effect.provide(provideFeaturePlan().pipe(Layer.provideMerge(infrastructure))));
+  return yield* (yield* ADAPTER_RESOLUTION_PLANNER).features();
+}).pipe(Effect.provide(provideAdapterResolutionPlanner().pipe(Layer.provideMerge(infrastructure))));
 
 // Importing this module must not start the application.
 if (import.meta.main) {
@@ -59,14 +59,14 @@ Effect 行为测试通过 `@effect/vitest` 的 `it.effect` 返回 Effect，以 T
 | --- | --- |
 | Contracts | `SchemaValidationError` 携带 schemaId 与 path/message/rule issues，union/intersection 分支另有可选 children。父级 path 可能为空，应检查子级路径，不解析消息反推位置。纯 `assertSchema` 使用 Schema 结果 API，不把任意求值异常转为校验失败。 |
 | Workspace | `WorkspaceInvalidInputError`、`WorkspaceNotFoundError`、`WorkspaceConflictError` 携带规则 issue 或资源标识；`WorkspaceRuleFailure` 包含这些与 Schema 失败。 |
-| infrastructure | `FeatureNotFoundError`、`ExtensionNotFoundError` 和 `BindingUnavailableError` 覆盖缺失 Feature、缺失 Extension，以及绑定、运行时或操作缺口。 |
+| infrastructure | `FeatureNotFoundError`、`ExtensionNotFoundError` 和 `AdapterResolutionUnavailableError` 覆盖缺失 Feature、缺失 Extension，以及 Adapter 解析、运行时或操作缺口。 |
 | Workspace 用例 | `WorkspaceSelectionError` 与 `WorkspaceReviewMismatchError`（`reviewKind: "workspace-edit"`）归 Workspace 管理。 |
 | 游戏准入 | 输入、候选、冲突、审核（`reviewKind: "game-discovery"`）以及来源/位置比较失败归准入。 |
 | Configuration | `WorkspaceConfigurationError` 是公开 union，包含 Schema/规则失败；WorkspaceFileSystemFailure、ConfigurationInvalidInputFailure、WorkspaceWriterConflictFailure、WorkspaceWriterRecoveryFailure 数据协议；UnexpectedBoundaryError；以及新录入可能产生的 LocationError。原生文件系统与配置输入错误类仍归配置实现包。 |
 
 `infrastructureRule`、`workspaceRule`、`admissionRule` 和 `configurationRule` 桥接同步规则时，把已识别错误对象原样保留为 Fail；可信纯代码的未知 throw 保持 Die。Operation annotation 只提供诊断上下文。Port Effect 保留自然错误 union，包括文件系统 tag/code/cause；Schema 或规则拒绝不能伪装为 I/O。在明确标识的外部解析器/求值器边界，已知语法拒绝使用结构化输入类别，第三方未知 throw 才可成为带 boundary 与原 cause 的 `UnexpectedBoundaryError`。该类不是业务流程、Port 或全部 Schema hook 的通用兜底；穷尽处理仅覆盖声明的已知 union，不涵盖任意第三方行为或 defect。
 
-配置结果处理只恢复全部由 Fail reason 构成的 Cause；任何 Die 或 Interrupt 通过 failCause 继续传播。既有 conflict/recovery status 保持普通结果，保留 recovery-required 清理诊断。测试断言 tag 与 issue 字段，对已知 union 验证 catchTag/穷尽处理，并分别验证 defect/中断。参见[共享校验](../../packages/infrastructure/src/contracts/schema/validation.ts)、[Workspace 协议](../../packages/workspace/src/model/errors.ts)、[绑定规则](../../packages/infrastructure/src/binding/errors.ts)、[准入规则](../../packages/game/src/admission/errors.ts)与[配置规则](../../packages/workspace-configuration/src/operations/errors.ts)。
+配置结果处理只恢复全部由 Fail reason 构成的 Cause；任何 Die 或 Interrupt 通过 failCause 继续传播。既有 conflict/recovery status 保持普通结果，保留 recovery-required 清理诊断。测试断言 tag 与 issue 字段，对已知 union 验证 catchTag/穷尽处理，并分别验证 defect/中断。参见[共享校验](../../packages/infrastructure/src/contracts/schema/validation.ts)、[Workspace 协议](../../packages/workspace/src/model/errors.ts)、[Adapter 解析规则](../../packages/infrastructure/src/adapter-resolution/errors.ts)、[准入规则](../../packages/game/src/admission/errors.ts)与[配置规则](../../extensions/workspace-toml/src/operations/errors.ts)。
 
 ## 测试边界与任务图
 
@@ -100,7 +100,7 @@ execa 负责子进程输出/状态和等待时限；管道 CLI 测试通过 `cli
 
 ## Location 与注册表开发
 
-Location 是值对象。在所属 Extension 增加稳定类型定义，声明 Standard Schema 或 JSON Schema 以及独立 Schema 范围，再注册兼容行为及类型化运行实例。注册时把 `dataSchema` 保存为 JSON Schema。不在 Workspace 增加文件系统分支，不比较序列化值。核心配置是 Module 所属 Adapter，测试无 Location 注册时仍可读取。覆盖缺失 Schema/行为、比较两侧、非路径资源和显式未知结果。新录入要求位置有效且可比较；journal 恢复只完成已批准元数据，不执行资源。归属与真实注册链接见 [Location 指南](005-LOCATION-AND-REGISTRIES.md)和 [ADR 0005](adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)。
+Location 是值对象。在所属 Extension 增加稳定类型定义，声明 Standard Schema 或 JSON Schema 以及独立 Schema 范围，再注册兼容行为及类型化运行实例。注册时把 `dataSchema` 保存为 JSON Schema。不在 Workspace 增加文件系统分支，不比较序列化值。默认配置 Adapter 属于 TOML Extension，测试无 Location 注册时仍可读取。覆盖缺失 Schema/行为、比较两侧、非路径资源和显式未知结果。新录入要求位置有效且可比较；journal 恢复只完成已批准元数据，不执行资源。归属与真实注册链接见 [Location 指南](005-LOCATION-AND-REGISTRIES.md)和 [ADR 0005](adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)。
 
 ## 发现与稳健性测试
 

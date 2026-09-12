@@ -1,8 +1,8 @@
 import * as clack from "@clack/prompts";
 import { type GAME_ADMISSION } from "@konogame/game/admission";
 import {
+  type ADAPTER_RESOLUTION_PLANNER,
   type EXTENSION_CATALOG,
-  type FEATURE_PLAN,
   type ID_SERVICE
 } from "@konogame/infrastructure";
 import { type Artifact, type ArtifactError } from "@konogame/infrastructure/contracts";
@@ -96,7 +96,7 @@ export class CLI_CONTEXT extends Context.Service<CLI_CONTEXT, CliContext>()("cli
 export type CliServices =
   | CLI_CONTEXT
   | CLI_ARTIFACT_INPUT
-  | FEATURE_PLAN
+  | ADAPTER_RESOLUTION_PLANNER
   | EXTENSION_CATALOG
   | WORKSPACE_MANAGEMENT
   | GAME_ADMISSION
@@ -106,10 +106,13 @@ export type CliCommandEffect = Effect.Effect<void, unknown, CliServices>;
 
 export function required(value: string | undefined, name: string) {
   return Effect.gen(function* () {
-    if (value !== undefined) return value;
+    if (value !== undefined) {
+      return value;
+    }
     const context = yield* CLI_CONTEXT;
-    if (!context.interactive)
+    if (!context.interactive) {
       return yield* Effect.fail(new CliError({ message: `Missing required argument: ${name}` }));
+    }
     return yield* context.prompts.text(name);
   });
 }
@@ -125,13 +128,18 @@ export function interactionPolicy(args: readonly string[], env: NodeJS.ProcessEn
   let json = false;
   let positional = false;
   for (const arg of args) {
-    if (arg === "--") positional = true;
+    if (arg === "--") {
+      positional = true;
+    }
     if (!positional && interactionFlags.includes(arg) && arg !== InteractionFlag.Json) {
       const enabled = arg === InteractionFlag.Enable || arg === InteractionFlag.EnableExplicit;
-      if (explicit !== undefined && explicit !== enabled)
+      if (explicit !== undefined && explicit !== enabled) {
         throw new CliError({ message: "Conflicting interactive flags" });
+      }
       explicit = enabled;
-    } else if (!positional && arg === InteractionFlag.Json) json = true;
+    } else if (!positional && arg === InteractionFlag.Json) {
+      json = true;
+    }
   }
   const environment =
     env.INTERACTIVE === undefined ? undefined : env.INTERACTIVE.toLowerCase() !== "false";

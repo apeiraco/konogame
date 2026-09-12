@@ -1,5 +1,9 @@
 # ADR 0005：Location 注册与核心 Workspace 持久化
 
+> 当前持久化归属与宿主来源名称见 [ADR 0014](0014-WORKSPACE-TOML-EXTENSION.md)。
+
+> 当前术语：[ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md)定义 Feature → Port ← Adapter、Adapter 解析及独立的声明/Port 版本字段。本文保留原始术语。
+
 > 协议更新：[ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) 将当前 Contract 协议改为 `0.2.0`、范围 `>=0.2.0 <0.3.0`。下文原始版本示例保留决策当时事实，发布版本归属与 Location/Schema 规则继续有效。
 
 状态：于 2026-10-17 采纳。仅取代 ADR 0002 中内建 Location 分支及 filesystem Extension 拥有 Workspace 持久化的决策；其 TOML、身份、Unicode 布局、覆盖与重命名决策继续有效。补充 [ADR 0004](0004-LOCAL-DISCOVERY-AND-INJECTION.md)。

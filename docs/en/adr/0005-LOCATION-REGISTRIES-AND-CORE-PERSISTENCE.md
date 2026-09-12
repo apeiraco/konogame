@@ -1,5 +1,9 @@
 # ADR 0005: Location registries and core Workspace persistence
 
+> For current persistence ownership and the host source name see [ADR 0014](0014-WORKSPACE-TOML-EXTENSION.md).
+
+> Current terminology: [ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md) defines Feature → Port ← Adapter, Adapter resolution and separate declaration/Port version fields. This record retains its original terminology.
+
 > Protocol update: [ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) changes the current Contract protocol to `0.2.0` and range to `>=0.2.0 <0.3.0`. Original version examples below preserve the decision at its date; release/version ownership and Location/schema rules remain.
 
 Status: accepted, 2026-10-17. Supersedes only ADR 0002's built-in Location variants and filesystem Extension ownership of Workspace persistence. Its TOML, identity, Unicode layouts, override and rename decisions continue to apply. Refines [ADR 0004](0004-LOCAL-DISCOVERY-AND-INJECTION.md).

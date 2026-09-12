@@ -1,5 +1,9 @@
 # ADR 0008：Workspace 管理与游戏库维护
 
+> 当前持久化归属与宿主来源名称见 [ADR 0014](0014-WORKSPACE-TOML-EXTENSION.md)。
+
+> 当前术语：[ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md)定义 Feature → Port ← Adapter、Adapter 解析及独立的声明/Port 版本字段。本文保留原始术语。
+
 状态：于 2026-10-18 采纳。扩展 [ADR 0002](0002-WORKSPACE-TOML-AND-TOOLING.md)的有限元数据流程，保留 [ADR 0005](0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md)的位置和核心持久化归属。准确命令见[管理指南](../008-WORKSPACE-MANAGEMENT.md)。
 
 ## 决策

@@ -1,7 +1,6 @@
 {
-  "name": "@konogame/workspace-configuration",
+  "name": "@konogame/extension-workspace-toml",
   "version": "0.1.0-alpha.0",
-  "private": true,
   "type": "module",
   "exports": {
     ".": {
@@ -40,7 +39,14 @@
     "url": "https://github.com/apeiraco/konogame.git"
   },
   "konogame": {
-    "releaseGroup": "core",
-    "contractRange": ">=0.2.0 <0.3.0"
+    "releaseGroup": "extension",
+    "extensionId": "konogame.workspace-toml",
+    "declarationProtocolRange": ">=0.2.0 <0.3.0",
+    "portVersionRanges": {
+      "workspace-toml.configuration": ">=0.2.0 <0.3.0"
+    },
+    "software": {
+      "toml": ">=1.0.0 <1.1.0"
+    }
   }
 }

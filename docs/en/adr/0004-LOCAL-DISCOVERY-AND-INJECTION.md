@@ -1,10 +1,14 @@
 # ADR 0004: Local discovery, reviewed admission and explicit injection
 
+> For current persistence ownership and the host source name see [ADR 0014](0014-WORKSPACE-TOML-EXTENSION.md).
+
+Status: 2026-10-17 decision, subsequently revised. Discovery review and explicit admission still apply. ADR 0011 replaces the injection mechanism, 0012 replaces identity matching and 0013 updates resolution terminology.
+
+> Current terminology: [ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md) defines Feature → Port ← Adapter, Adapter resolution and separate declaration/Port version fields. This record retains its original terminology.
+
 > Current identity/Port update: [ADR 0012](0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md) replaces vendor-aware matching with owner-issued opaque identity, separates observationKey/candidateId/entity UUID, moves contracts to owner /contracts entries and versions each Port independently. game.discovery is now 0.3.0; the declaration protocol remains 0.2.0.
 
 > Successor: [ADR 0011](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) replaces the dependency injection, asynchronous Port, observation, composition and lifetime details with Effect 4.0.6. This record preserves the decision at its original date; its remaining domain and ownership constraints still apply.
-
-Status: accepted, 2026-10-17.
 
 ## Context
 

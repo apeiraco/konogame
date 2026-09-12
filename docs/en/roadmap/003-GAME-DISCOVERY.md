@@ -1,18 +1,6 @@
 # Game discovery and candidate admission
 
-> Current identity/Port update: [ADR 0012](../adr/0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md) replaces vendor-aware matching with owner-issued opaque identity, separates observationKey/candidateId/entity UUID, moves contracts to owner /contracts entries and versions each Port independently. game.discovery is now 0.3.0; the declaration protocol remains 0.2.0.
-
-Status: partially implemented, 2026-10-17. Steam and filesystem standalone discovery, read-only preview, explicit admission and targeted import recovery are implemented. [ADR 0004](../adr/0004-LOCAL-DISCOVERY-AND-INJECTION.md) records accepted decisions; the [experiment guide](../002-WORKSPACE-EXPERIMENT.md) documents exact CLI behavior and limits. `save.discover` remains a separate unimplemented contract. The rest of this document proposes later work.
-
-## Implemented baseline
-
-`@konogame/game` defines `game.discover` through `game.discovery/discover`. An existing configured Host/source selects the required source capability, and a Binding Plan checks the Contract, Operation and active implementation. `filesystem.game-discovery` handles standalone directories; `steam.game-discovery` is shipped by independently versioned `konogame.steam@0.1.0-alpha.0` with software compatibility `steam = "generic"`.
-
-Users explicitly provide scope. CLI resolves paths to absolute scope, defaults standalone depth to 1, accepts exact-directory depth 0 and relative prefix exclusions, and never infers scanning permission from Host roots or source declarations. Steam scans only selected libraries; `libraryfolders.vdf` references do not expand scope. Links, malformed manifests, missing/incomplete installations and access failures produce bounded failures or diagnostics. Data-only KeyValues parsing is limited and validated with synthetic fixtures, without an all-version Steam guarantee.
-
-Preview returns candidate observations, evidence, diagnostics, dispositions and selected bindings without writing records. Directory candidates do not prove game identity; confirmation records the user's selected association. Extension observationKey identifies a source value; the Game preview assigns UUID candidateId with explicit provenance. Opaque owner-issued game/installation identities drive generic matching. Steam supplies evidence-backed Game identity; filesystem supplies Host/volume/file-object Installation identity only when reliable IDs exist. Titles cannot merge Games. An equal Location on the same Host under another source is a conflict.
-
-Admission strictly validates preview input, independently anchors root, re-reads revision and source evidence with the original bindings, and reconstructs validated records. The digest detects changes, not authenticated signatures; no TTL applies. Fresh duplicate previews can confirm unchanged; successfully consumed old previews become stale. New installations have empty `launchEntries`. Multi-file Game/Installation creation uses a shared writer lock, hashes and a journal with explicit forward recovery; it is not atomic or a general transaction API, and external modifications stop recovery. Existing Host/source bytes and comments remain intact. No network enrichment, executable discovery, launch or game-file mutation occurs.
+For supported Steam and standalone discovery and admission, see the [experiment guide](../002-WORKSPACE-EXPERIMENT.md). New sources follow the [identity decision](../adr/0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md).
 
 ## Proposed domain stages
 
@@ -45,21 +33,5 @@ Future UI can group candidates, edit proposed fields, ignore/exclude observation
 - Keep writes reviewed and revision-aware; AI never bypasses admission checks.
 
 See the [configuration proposal](002-WORKSPACE-CONFIGURATION.md), [iteration plan](001-INITIAL-ITERATIONS.md), [frontend proposal](004-FRONTEND-EXPERIENCE.md) and [historical discovery design](../archive/005-DISCOVERY-ENGINE.md).
-
-## Location boundary update
-
-[ADR 0005](../adr/0005-LOCATION-REGISTRIES-AND-CORE-PERSISTENCE.md) makes candidate and installation locations generic values. All existing/candidate comparisons use bound behavior supporting both operands; fresh admission needs valid/comparable locations. Future non-filesystem sources must supply type definitions and compatible Adapters rather than inventing path strings or treating unknown comparison as different. See the [Location guide](../005-LOCATION-AND-REGISTRIES.md).
-
-## Lifecycle boundary
-
-The `discover` port belongs to Game. Directory reading, entry kinds, and directory scope validation belong to the filesystem extension. Steam obtains that shared filesystem I/O from a declared active dependency scope; new sources follow [ADR 0006](../adr/0006-SERVICE-OWNERSHIP-AND-LAZY-ACTIVATION.md), with pure manifests/providers and lazy implementation modules. Registering a source does not authorize scanning or require eager activation.
-
-## Discovery and robustness follow-up
-
-Installed Extension discovery is separate from game discovery and never authorizes game scanning. Future source watchers need partial-write/error policies; they must preserve explicit Host/source/scope and admission review. See [ADR 0007](../adr/0007-EXTENSION-DISCOVERY-AND-LOAD-ROBUSTNESS.md) and the [source comparison](../007-EXTENSION-SYSTEM-COMPARISON.md) for evidence and implementation triggers.
-
-## Workspace management increment
-
-[ADR 0008](../adr/0008-WORKSPACE-MANAGEMENT.md) implements existing-root initialization, Host/source/root maintenance, reviewed metadata/settings replacement and library list/show/explain. See the [management guide](../008-WORKSPACE-MANAGEMENT.md) for the finite supported intents and targeted recovery. These management operations do not grant discovery scope or mutate game resources. Next work remains asset backup/restore, optional configuration history, broader launcher integrations and UI; arbitrary editing/deletion and launch need separate contracts.
 
 [English](003-GAME-DISCOVERY.md) | [中文](../../zh/roadmap/003-GAME-DISCOVERY.md)

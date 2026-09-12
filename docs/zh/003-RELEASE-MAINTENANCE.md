@@ -1,12 +1,12 @@
 # 03 发布元数据与维护
 
-`konogame-metadata.toml` 是项目信息、Core 版本、Contract 协议版本/兼容范围、受管包清单和独立 Extension 版本的真源。package manifest 与生成的运行时 metadata 由 dev-cli 维护投影。release 命令处理本地文件；软件包仓库发布和 Git tag 属于后续交付工作。
+`konogame-metadata.toml` 是项目信息、Core 版本、声明协议与 Port 版本/兼容范围、受管包清单和独立 Extension 版本的真源。package manifest 与生成的运行时 metadata 由 dev-cli 维护投影。release 命令处理本地文件；软件包仓库发布和 Git tag 属于后续交付工作。
 
 ## 版本与兼容性
 
-所有 Core 可执行程序与包共享 `project.version`：仓库根、infrastructure、Workspace、Game、Save、workspace configuration、安装发现、CLI、Daemon 和 dev-cli。每个 `[[extension]]` 独立维护 `version`；Core 升版不会修改 Extension 版本。初始版本号相同，不代表发布节奏绑定。
+所有 Core 可执行程序与包共享 `project.version`：仓库根、infrastructure、Workspace、Game、Save、workspace configuration、安装发现、CLI、Daemon 和 dev-cli。每个 `[[extension]]` 独立维护 `version`；Core 升版不会修改 Extension 版本。初始版本号相同，不代表发布节奏相同。
 
-声明协议保持 `0.2.0`、`>=0.2.0 <0.3.0`，与软件发行号及各 Port 协议分开。公共契约来自 owner /contracts 入口（infrastructure、game、workspace、save），移除独立 contracts 包。Feature `portContractVersion` 与 Adapter `portContractRange` 按 Port 独立协商，Binding Plan 保留所选版本/范围。`game.discovery` 为 `0.3.0`、`>=0.3.0 <0.4.0`；其余已有 Port 保持 `0.2.0`、`>=0.2.0 <0.3.0`。规范 `port_contract` 条目维护 Port 版本，每个 Extension 用固定 `port_contract_ranges` 声明 Adapter 范围，不能复制宿主当前范围自动宣称兼容。release sync 生成 owner 常量与 Extension Adapter 范围；只修改规范 TOML，不手改生成文件。Core 包仍以 `0.1.0-alpha.0` 统一发包，Extension 独立发行；Schema 4 与 `extension.package.1` 不变。见 [ADR 0012](adr/0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md)。
+规范 `[declaration_protocol]` 维护声明协议版本/范围，各 Extension 使用 `declaration_protocol_range`。生成常量为 `DECLARATION_PROTOCOL_VERSION` 与 `DECLARATION_PROTOCOL_RANGE`，Port 常量使用 `_PORT` 后缀，提供 `version`/`supportedRange`。声明协议保持 `0.2.0`、`>=0.2.0 <0.3.0`，与软件发行号及各 Port 协议分开。公共契约来自 owner /contracts 入口（infrastructure、game、workspace、save），移除独立 contracts 包。Feature `portVersion` 与 Adapter `portVersionRange` 按 Port 独立协商，Adapter Resolution Plan 保留所选版本/范围。`game.discovery` 为 `0.3.0`、`>=0.3.0 <0.4.0`；其余已有 Port 保持 `0.2.0`、`>=0.2.0 <0.3.0`。规范 `[[port]]` 条目维护 Port 版本，每个 Extension 用固定 `port_version_ranges` 声明 Adapter 范围，不能复制宿主当前范围自动宣称兼容。release sync 生成 owner 常量与 Extension Adapter 范围；只修改规范 TOML，不手改生成文件。Core 包仍以 `0.1.0-alpha.0` 统一发包，Extension 独立发行；Schema 4 与 `extension.package.1` 不变。见 [ADR 0012](adr/0012-IDENTITY-PERSPECTIVES-AND-PORT-CONTRACTS.md)。
 
 Extension 对应软件的兼容性直接写在自己的 `software` 映射中，取值为：
 
@@ -14,11 +14,11 @@ Extension 对应软件的兼容性直接写在自己的 `software` 映射中，�
 | --- | --- |
 | SemVer 范围，例如 `>=26` | 声明的软件或运行时约束。 |
 | `latest` | 软件版本尚未固定或测试不足，不表示所有版本都兼容。 |
-| `generic` | 面向协议或格式，不绑定软件发行号。 |
+| `generic` | 面向协议或格式，不限定软件发行号。 |
 
-已实现 filesystem 与 Steam Extension。filesystem 声明 Node.js `>=26`，Steam 使用 `software = { steam = "generic" }`；Epic、Kopia Extension 在明确测试范围前可分别填写 `software = { epic = "latest" }`、`software = { kopia = "latest" }`。这些只是填写示例，不会注册 Extension，也不引入新架构概念。一个 Extension 可以声明多个软件约束，并贡献多个 Adapter。
+随附的 Extension 包括 Workspace TOML、filesystem 与 Steam。Workspace TOML 声明 TOML 1.0 兼容性，并独立声明配置 Port 的适配范围。filesystem 声明 Node.js `>=26`，Steam 使用 `software = { steam = "generic" }`；Epic、Kopia Extension 在明确测试范围前可分别填写 `software = { epic = "latest" }`、`software = { kopia = "latest" }`。这些只是填写示例，不会注册 Extension，也不引入新架构概念。一个 Extension 可以声明多个软件约束，并贡献多个 Adapter。
 
-`latest` 和 `generic` 仅用于软件声明，不能作为 Contract 范围。本轮没有自动探测外部软件版本或安装软件的功能。
+`latest` 和 `generic` 仅用于软件声明，不能作为声明协议或 Port 版本范围。本轮没有自动探测外部软件版本或安装软件的功能。
 
 ## 维护命令
 
@@ -43,7 +43,7 @@ just dev-cli release notes --extension konogame.filesystem --lang en
 
 发布 Core 时，设置版本、完成中英文对应版本的 changelog 小节、重新构建并运行 `just check`。发布 Extension 时，通过 `--extension` 指定其 ID，Core 和其他 Extension 的版本独立推进。调整兼容性声明时，显式修改 metadata，再执行 `release sync`。sync 更新全部已登记投影；version 只更新选中的发布组。改版后重新构建，才能让可执行程序显示新 manifest/常量中的版本。
 
-`release check` 检查包遗漏/未登记、manifest 与生成源码漂移、非法/不兼容 Contract 范围、非法软件标记、英文 changelog 投影，以及每种声明语言中缺失的版本说明。`just check` 转发到 `pnpm check`，后者在构建、类型检查、测试和文档检查后运行该检查。
+`release check` 检查包遗漏/未登记、manifest 与生成源码漂移、非法/不兼容的声明协议或 Port 版本范围、非法软件标记、英文 changelog 投影，以及每种声明语言中缺失的版本说明。`just check` 转发到 `pnpm check`，后者在构建、类型检查、测试和文档检查后运行该检查。
 
 ## Changelog 真源
 

@@ -6,6 +6,8 @@ Core 可执行程序与包使用统一版本；各 Extension 独立版本，分�
 
 ### 变更
 
+- 明确 Feature → Port ← Adapter：Port 拥有 Operation，Capability 是选择保证，Extension 分发 Adapter。实现选择 API、源码路径和 JSON/预览统一改用 Adapter 解析；区分 declarationProtocolVersion/declarationProtocolRange、portVersion/portVersionRange 及规范 declaration_protocol/port 元数据。保留 owner /contracts 入口、协议/Schema/发行版本和历史记录，新增双语 ADR 0013。
+
 - 分开 Extension 观察、UUID 准入候选与 Workspace 实体，泛化比较 owner 签发的 Game/Installation 身份，不解析厂商数据。Steam 签发有证据的 AppID Game 身份；filesystem 在有可靠 ID 时签发 Host/卷/文件对象 Installation 身份。纯公共契约迁至 owner /contracts，各 Port 独立协商（game.discovery 0.3.0，其余已有 Port 0.2.0）；移除独立 contracts 包，保留 Core 统一发行、Extension 独立发行和 Schema 4，新增双语 ADR 0012，在组合入口注入 CLI 目录到 Artifact 输入。
 
 - 用 Optique 1.3 命令解析器替换 CLI、daemon 和 dev-cli 中的 oclif。公开参数保持不变，包括空格分隔的子命令、`--json`、`--non-interactive`、`--interactive=false`、`-h` 和 `-v`。补全覆盖 Bash、zsh、fish、PowerShell 和 Nushell。注入测试调用导出的运行函数；已构建入口作为进程运行。
@@ -84,5 +86,9 @@ Core 可执行程序与包使用统一版本；各 Extension 独立版本，分�
 
 - Contract 范围：`>=0.1.0 <0.2.0`；软件：Steam `generic`（格式集成，经合成夹具验证，不承诺所有版本兼容）。
 - 不实现联网补全、可执行入口发现、启动或游戏文件修改；此 Extension 独立于 core 版本。
+
+## konogame.workspace-toml@0.1.0-alpha.0
+
+- Workspace 配置 Port 的随附 TOML 实现。显式选择时使用 `workspace-toml.configuration`。
 
 [English](../../CHANGELOG.md) | [中文](CHANGELOG.md)

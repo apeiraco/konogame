@@ -1,5 +1,7 @@
 # ADR 0011: Effect contracts, composition and lifetime
 
+> Current terminology: [ADR 0013](0013-PORTS-AND-ADAPTER-RESOLUTION.md) defines Feature → Port ← Adapter, Adapter resolution and separate declaration/Port version fields. This record retains its original terminology.
+
 Status: Accepted, 2026-10-26.
 
 ## Context
@@ -18,7 +20,7 @@ Core root assembly remains one native `Layer.effectContext`. Its accessor has ty
 
 ExtensionModule supplies an optional native layer (or activation-context Layer factory) and Effect activate. Each generation owns a Scope and built service context; explicit root overrides win. Only declared active dependency contexts are accessible through dependencyServices. Strict declaration validation, atomic dual-registry catalog commits, lazy binding, staged implementation publication, per-generation completion/failure caching, missing/version/cycle re-evaluation, replay/refresh ownership and restart-after-load constraints remain. Private PubSub exposes read-only Stream observations and snapshots; observers do not synchronize registries.
 
-Cooperative custom Extension cleanup should use [addLifetimeFinalizer](../../../packages/infrastructure/src/foundation/services.ts), which registers a native Scope finalizer and applies interruptible individual/remaining-total budgets without another executor; ordinary acquireRelease/addFinalizer and library releases retain native Scope interruption protection, so 1s/5s is not a universal hard deadline and interruption cannot establish that handles have closed.
+Cooperative custom Extension cleanup should use [addLifetimeFinalizer](../../../packages/infrastructure/src/extension/lifetime.ts), which registers a native Scope finalizer and applies interruptible individual/remaining-total budgets without another executor; ordinary acquireRelease/addFinalizer and library releases retain native Scope interruption protection, so 1s/5s is not a universal hard deadline and interruption cannot establish that handles have closed.
 
 Native Scope/Fiber/Deferred/Clock own cleanup, cancellation and deadlines. Defaults remain discovery/load 15s, activation 30s, total shutdown 5s and individual cleanup 1s. These budgets are cooperative: synchronous/non-yielding code, deliberately uninterruptible effects and uncancellable external operations may outlast them. No custom detached cleanup scheduler, fiber-internal workaround or in-process sandbox is introduced.
 
@@ -40,6 +42,6 @@ Known schema and rule refusals use structured owner tags/issues; applicationRule
 
 ADRs 0004, 0006, 0007 and 0009 retain their original historical text. This ADR supersedes their DI, asynchronous observation, composition handle and lifetime mechanics; their domain boundaries and package ownership remain. Schema/Location/binding/admission/recovery rules from ADRs 0002, 0005, 0008 and test/task-graph rules from ADR 0010 remain current.
 
-See the [architecture](../001-ARCHITECTURE.md), [development guide](../004-DEVELOPMENT.md), [service/lifecycle guide](../006-SERVICES-AND-EXTENSION-LIFECYCLE.md), [infrastructure Layers](../../../packages/infrastructure/src/providers.ts) and [activation contract](../../../packages/infrastructure/src/foundation/types.ts) for the current API. CLI composition is [apps/cli/src/main.ts](../../../apps/cli/src/main.ts); daemon composition is [apps/daemon/src/main.ts](../../../apps/daemon/src/main.ts).
+See the [architecture](../001-ARCHITECTURE.md), [development guide](../004-DEVELOPMENT.md), [service/lifecycle guide](../006-SERVICES-AND-EXTENSION-LIFECYCLE.md), [infrastructure Layers](../../../packages/infrastructure/src/providers.ts) and [activation contract](../../../packages/infrastructure/src/extension/activation-contract.ts) for the current API. CLI composition is [apps/cli/src/main.ts](../../../apps/cli/src/main.ts); daemon composition is [apps/daemon/src/main.ts](../../../apps/daemon/src/main.ts).
 
 [English](0011-EFFECT-CONTRACTS-AND-LIFETIME.md) | [中文](../../zh/adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md)

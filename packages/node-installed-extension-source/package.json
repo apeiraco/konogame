@@ -1,5 +1,5 @@
 {
-  "name": "@konogame/extension-discovery-node",
+  "name": "@konogame/node-installed-extension-source",
   "version": "0.1.0-alpha.0",
   "private": true,
   "type": "module",
@@ -28,6 +28,6 @@
   },
   "konogame": {
     "releaseGroup": "core",
-    "contractRange": ">=0.2.0 <0.3.0"
+    "declarationProtocolRange": ">=0.2.0 <0.3.0"
   }
 }
