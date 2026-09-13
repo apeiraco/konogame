@@ -1,14 +1,14 @@
 import { createReadStream } from "node:fs";
 import { lstat, mkdir, open, opendir, readFile, rename, rm, stat } from "node:fs/promises";
 import { join, posix, relative, resolve, sep } from "node:path";
+import { type IdService } from "@konogame/infrastructure";
 import {
   type Artifact,
   ArtifactError,
   type ArtifactFile,
   type ArtifactReference
-} from "@konogame/contracts";
-import { type IdService } from "@konogame/infrastructure";
-import { SaveError, type SaveStorePort } from "@konogame/save";
+} from "@konogame/infrastructure/contracts";
+import { SaveError, SaveOperation, type SaveStorePort } from "@konogame/save/contracts";
 import { type } from "arktype";
 import { Effect, Exit, Stream } from "effect";
 import { publishArtifact } from "./publication.ts";
@@ -41,8 +41,9 @@ function safeRelativePath(value: string): string {
     /^[A-Za-z]:/.test(value) ||
     posix.normalize(value) !== value ||
     value.split("/").some((part) => !part || part === "." || part === "..")
-  )
+  ) {
     throw new Error(`Unsafe artifact path: ${value}`);
+  }
   return value;
 }
 const artifactIdSchema = type.string.matching(
@@ -80,7 +81,9 @@ function fileBytes(path: string): Stream.Stream<Uint8Array, ArtifactError> {
                   resolve();
                 });
                 stream.on("error", ignoreError);
-                if (!stream.destroyed) stream.destroy();
+                if (!stream.destroyed) {
+                  stream.destroy();
+                }
               })
           )
       );
@@ -120,10 +123,11 @@ export class FilesystemSaveStore implements SaveStorePort {
                   try: () => safeRelativePath(file.path),
                   catch: (cause) => failure("validate-file", cause)
                 });
-                if (seen.has(path))
+                if (seen.has(path)) {
                   return yield* Effect.fail(
                     failure("validate-file", `Duplicate artifact path: ${path}`)
                   );
+                }
                 seen.add(path);
                 const destination = join(pending, "files", ...path.split("/"));
                 // Native mkdir must settle before cancellation can remove staging.
@@ -140,10 +144,11 @@ export class FilesystemSaveStore implements SaveStorePort {
                           const result = yield* io("write-output", () =>
                             handle.write(chunk, offset, chunk.byteLength - offset)
                           );
-                          if (!result.bytesWritten)
+                          if (!result.bytesWritten) {
                             return yield* Effect.fail(
                               failure("write-output", "Writing artifact made no progress")
                             );
+                          }
                           offset += result.bytesWritten;
                         }
                       })
@@ -178,15 +183,18 @@ export class FilesystemSaveStore implements SaveStorePort {
             : Effect.void
       );
     }).pipe(
-      Effect.mapError((cause) => (cause instanceof SaveError ? cause : failure("put", cause)))
+      Effect.mapError((cause) =>
+        cause instanceof SaveError ? cause : failure(SaveOperation.Put, cause)
+      )
     );
   }
 
   open(reference: ArtifactReference): Effect.Effect<Artifact, SaveError> {
     const self = this;
     return Effect.gen(function* () {
-      if (artifactIdSchema(reference.id) instanceof type.errors)
-        return yield* Effect.fail(failure("open", "Invalid artifact reference"));
+      if (artifactIdSchema(reference.id) instanceof type.errors) {
+        return yield* Effect.fail(failure(SaveOperation.Open, "Invalid artifact reference"));
+      }
       const directory = join(self.root, reference.id);
       const content = yield* io("read-manifest", (signal) =>
         readFile(join(directory, "manifest.json"), {
@@ -199,8 +207,9 @@ export class FilesystemSaveStore implements SaveStorePort {
         catch: (cause) => failure("parse-manifest", cause)
       });
       const manifest = artifactManifestSchema(parsed);
-      if (manifest instanceof type.errors || manifest.mediaType !== reference.mediaType)
-        return yield* Effect.fail(failure("open", "Invalid artifact manifest"));
+      if (manifest instanceof type.errors || manifest.mediaType !== reference.mediaType) {
+        return yield* Effect.fail(failure(SaveOperation.Open, "Invalid artifact manifest"));
+      }
       return {
         mediaType: manifest.mediaType,
         metadata: manifest.metadata,
@@ -245,8 +254,12 @@ export function artifactFromDirectory(source: string): Effect.Effect<Artifact, A
         ).pipe(
           Stream.flatMap((entry) => {
             const full = join(directory, entry.name);
-            if (entry.isDirectory()) return walk(full);
-            if (!entry.isFile()) return Stream.empty;
+            if (entry.isDirectory()) {
+              return walk(full);
+            }
+            if (!entry.isFile()) {
+              return Stream.empty;
+            }
             return Stream.succeed({
               path: relative(base, full).split(sep).join("/"),
               open: () => fileBytes(full)
@@ -258,14 +271,14 @@ export function artifactFromDirectory(source: string): Effect.Effect<Artifact, A
   }
   return Effect.gen(function* () {
     const sourceStat = yield* fileIo("inspect-source", () => stat(base));
-    if (!sourceStat.isDirectory())
+    if (!sourceStat.isDirectory()) {
       return yield* Effect.fail(
         artifactFailure("open-directory", "Save source must be a directory")
       );
+    }
     return {
       mediaType: "application/vnd.konogame.save-directory",
       files: walk(base)
     };
   });
 }
-

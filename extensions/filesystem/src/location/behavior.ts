@@ -1,10 +1,14 @@
 import { posix, win32 } from "node:path";
 import {
   type ConfigurationValue,
+  LocationComparisonStatus,
   type LocationContract,
+  type LocationOperation,
   type LocationPort,
+  LocationResolutionStatus,
+  LocationValidationStatus,
   toInternalSchema
-} from "@konogame/contracts";
+} from "@konogame/infrastructure/contracts";
 import { type } from "arktype";
 import { Effect } from "effect";
 import semver from "semver";
@@ -30,14 +34,21 @@ export class FilesystemLocationBehavior implements LocationPort {
     const definition = filesystemLocationTypes.find(
       (definition) => definition.type === location.type
     );
-    if (!definition) throw new Error(`Unsupported filesystem Location type: ${location.type}`);
-    if (!semver.satisfies(location.schemaVersion, definition.schemaRange))
+    if (!definition) {
+      throw new Error(`Unsupported filesystem Location type: ${location.type}`);
+    }
+    if (!semver.satisfies(location.schemaVersion, definition.schemaRange)) {
       throw new Error(`Unsupported filesystem Location schema: ${location.schemaVersion}`);
+    }
     const parsed = locationData.get(location.type)!(location.data);
-    if (parsed instanceof type.errors) throw new Error("Invalid filesystem Location data");
+    if (parsed instanceof type.errors) {
+      throw new Error("Invalid filesystem Location data");
+    }
     const data = parsed as { path: string; rootKey?: string };
     const path = data.path;
-    if (path.includes("\0")) throw new Error("Filesystem path contains a null byte");
+    if (path.includes("\0")) {
+      throw new Error("Filesystem path contains a null byte");
+    }
     const windows =
       context.platform === "windows" ||
       context.platform === "win32" ||
@@ -51,13 +62,17 @@ export class FilesystemLocationBehavior implements LocationPort {
         .every(
           (part) => !part.includes(":") && (part === "." || part === ".." || !/[. ]$/.test(part))
         );
-    if (windows && !safeWindows(path)) throw new Error("Ambiguous Windows filesystem path");
+    if (windows && !safeWindows(path)) {
+      throw new Error("Ambiguous Windows filesystem path");
+    }
     const absolute = (value: string) =>
       paths.isAbsolute(value) &&
       (!windows || /^(?:[a-z]:[\\/]|[\\/]{2}[^\\/]+[\\/][^\\/]+)/i.test(value));
     const relative = location.type === FilesystemLocationType.Relative;
     if (!relative) {
-      if (!absolute(path)) throw new Error("Filesystem Location path must be absolute");
+      if (!absolute(path)) {
+        throw new Error("Filesystem Location path must be absolute");
+      }
       return { path: paths.normalize(path), windows };
     }
     const roots = rootRecord(context.roots);
@@ -69,42 +84,46 @@ export class FilesystemLocationBehavior implements LocationPort {
       !absolute(root) ||
       root.includes("\0") ||
       (windows && !safeWindows(root))
-    )
+    ) {
       throw new Error(`Unknown or invalid Host root: ${data.rootKey}`);
-    if (paths.isAbsolute(path) || (windows && path.includes(":")))
+    }
+    if (paths.isAbsolute(path) || (windows && path.includes(":"))) {
       throw new Error("Filesystem relative Location path must be relative");
+    }
     const resolved = paths.resolve(root, path);
     const suffix = paths.relative(root, resolved);
-    if (suffix === ".." || suffix.startsWith(`..${paths.sep}`) || paths.isAbsolute(suffix))
+    if (suffix === ".." || suffix.startsWith(`..${paths.sep}`) || paths.isAbsolute(suffix)) {
       throw new Error("Filesystem relative Location escapes Host root");
+    }
     return { path: resolved, windows };
   }
 
   validate(
-    input: Parameters<NonNullable<LocationPort["validate"]>>[0]
-  ): ReturnType<NonNullable<LocationPort["validate"]>> {
+    input: Parameters<NonNullable<LocationPort[typeof LocationOperation.Validate]>>[0]
+  ): ReturnType<NonNullable<LocationPort[typeof LocationOperation.Validate]>> {
     return Effect.sync(() => {
       try {
         this.path(input.location, input.context);
-        return { status: "valid" as const };
+        return { status: LocationValidationStatus.Valid };
       } catch (error) {
-        return { status: "invalid" as const, reason: String(error) };
+        return { status: LocationValidationStatus.Invalid, reason: String(error) };
       }
     });
   }
   compare(
-    input: Parameters<NonNullable<LocationPort["compare"]>>[0]
-  ): ReturnType<NonNullable<LocationPort["compare"]>> {
+    input: Parameters<NonNullable<LocationPort[typeof LocationOperation.Compare]>>[0]
+  ): ReturnType<NonNullable<LocationPort[typeof LocationOperation.Compare]>> {
     return Effect.sync(() => {
       if (
         ![input.left, input.right].every((location) =>
           filesystemLocationTypes.some(({ type }) => type === location.type)
         )
-      )
+      ) {
         return {
-          status: "incomparable" as const,
+          status: LocationComparisonStatus.Incomparable,
           reason: "Filesystem cannot compare another Extension's Location"
         };
+      }
       try {
         const left = this.path(input.left, input.context);
         const right = this.path(input.right, input.context);
@@ -118,21 +137,24 @@ export class FilesystemLocationBehavior implements LocationPort {
           return left.windows ? trimmed.toLowerCase() : trimmed;
         };
         return {
-          status: identity(left.path) === identity(right.path) ? "equal" : "different"
+          status:
+            identity(left.path) === identity(right.path)
+              ? LocationComparisonStatus.Equal
+              : LocationComparisonStatus.Different
         };
       } catch (error) {
-        return { status: "unknown" as const, reason: String(error) };
+        return { status: LocationComparisonStatus.Unknown, reason: String(error) };
       }
     });
   }
   resolve(
-    input: Parameters<NonNullable<LocationPort["resolve"]>>[0]
-  ): ReturnType<NonNullable<LocationPort["resolve"]>> {
+    input: Parameters<NonNullable<LocationPort[typeof LocationOperation.Resolve]>>[0]
+  ): ReturnType<NonNullable<LocationPort[typeof LocationOperation.Resolve]>> {
     return Effect.sync(() => {
       try {
         const { path } = this.path(input.location, input.context);
         return {
-          status: "resolved" as const,
+          status: LocationResolutionStatus.Resolved,
           resource: {
             type: "filesystem.path",
             schemaVersion: "1.0.0",
@@ -140,7 +162,7 @@ export class FilesystemLocationBehavior implements LocationPort {
           }
         };
       } catch (error) {
-        return { status: "unavailable" as const, reason: String(error) };
+        return { status: LocationResolutionStatus.Unavailable, reason: String(error) };
       }
     });
   }

@@ -1,7 +1,21 @@
 import { expect, it } from "@effect/vitest";
 import { composeDaemon, startDaemon } from "@konogame/daemon";
+import { workspaceTomlConfigurationAdapter } from "@konogame/extension-workspace-toml";
 import { ADAPTER_RESOLUTION_PLANNER, defineExtensionModule } from "@konogame/infrastructure";
+import { WorkspaceFeature } from "@konogame/workspace/contracts";
 import { Cause, Context, Deferred, Effect, Exit, Fiber, Layer, Scope } from "effect";
+
+it.effect("daemon composition resolves configuration through the bundled TOML Extension", () =>
+  Effect.gen(function* () {
+    const services = yield* Layer.build(composeDaemon());
+    const plan = yield* Context.get(services, ADAPTER_RESOLUTION_PLANNER).plan([
+      WorkspaceFeature.Inspect
+    ]);
+    expect(plan.unavailable).toEqual([]);
+    expect(plan.resolvedAdapters[0]?.adapterId).toBe(workspaceTomlConfigurationAdapter.id);
+    expect(plan.resolvedAdapters[0]?.owner).toEqual(workspaceTomlConfigurationAdapter.owner);
+  })
+);
 
 it.live("daemon waits for startup and releases acquired services after listener failure", () =>
   Effect.gen(function* () {

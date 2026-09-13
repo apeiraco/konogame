@@ -54,7 +54,9 @@ export function publishArtifact(
           );
         }
         // This guards retry starts after both backoff and lstat, not an in-flight syscall.
-        if (lastFailure && !(yield* withinBudget)) return yield* Effect.fail(lastFailure);
+        if (lastFailure && !(yield* withinBudget)) {
+          return yield* Effect.fail(lastFailure);
+        }
         // Only the native syscall is masked; backoff and target inspection remain cancellable.
         yield* Effect.tryPromise({
           try: () => io.rename(source, target),
@@ -86,4 +88,3 @@ export function publishArtifact(
     });
   });
 }
-

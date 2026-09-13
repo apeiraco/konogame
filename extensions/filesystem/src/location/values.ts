@@ -1,4 +1,7 @@
-import { type LocationContract, type LocationTypeDefinition } from "@konogame/contracts";
+import {
+  type LocationContract,
+  type LocationTypeDefinition
+} from "@konogame/infrastructure/contracts";
 
 export const FilesystemLocationType = {
   Absolute: "fs.absolute",
@@ -48,4 +51,3 @@ export function relativeFilesystemLocation(rootKey: string, path: string): Locat
     data: { rootKey, path }
   };
 }
-

@@ -1,12 +1,12 @@
 import { lstat, open, opendir } from "node:fs/promises";
+import { Effect } from "effect";
 import {
   type DiscoveryDirectoryEntry,
   DiscoveryEntryKind,
   type DiscoveryFileInfo,
   type DiscoveryFileSystem,
   DiscoveryFileSystemError
-} from "@konogame/game";
-import { Effect } from "effect";
+} from "./filesystem.ts";
 
 const failure = (operation: string, cause: unknown) =>
   new DiscoveryFileSystemError({
@@ -30,6 +30,15 @@ export class NodeDiscoveryFileSystem implements DiscoveryFileSystem {
               ? DiscoveryEntryKind.File
               : DiscoveryEntryKind.Other,
         size: Number(info.size),
+        ...(info.dev > 0n && info.ino > 0n
+          ? {
+              fileObject: {
+                volumeId: String(info.dev),
+                objectId: String(info.ino),
+                ...(info.birthtimeNs > 0n ? { birthTime: String(info.birthtimeNs) } : {})
+              }
+            }
+          : {}),
         identity: `${info.dev}:${info.ino}:${info.size}:${info.mtimeNs}:${info.ctimeNs}`
       }))
     );
@@ -46,11 +55,14 @@ export class NodeDiscoveryFileSystem implements DiscoveryFileSystem {
           const entries: DiscoveryDirectoryEntry[] = [];
           while (true) {
             const entry = yield* io("read-directory", () => directory.read());
-            if (!entry) break;
-            if (entries.length >= limit)
+            if (!entry) {
+              break;
+            }
+            if (entries.length >= limit) {
               return yield* Effect.fail(
                 failure("list", `Directory entry limit exceeded: ${limit}`)
               );
+            }
             entries.push({
               name: entry.name,
               kind: entry.isSymbolicLink()
@@ -72,10 +84,11 @@ export class NodeDiscoveryFileSystem implements DiscoveryFileSystem {
     const self = this;
     return Effect.gen(function* () {
       const before = yield* self.inspect(path);
-      if (before.kind !== DiscoveryEntryKind.File || before.size > maxBytes)
+      if (before.kind !== DiscoveryEntryKind.File || before.size > maxBytes) {
         return yield* Effect.fail(
           failure("read-text", `Expected a regular file of at most ${maxBytes} bytes`)
         );
+      }
       return yield* Effect.acquireUseRelease(
         io("open-file", () => open(path, "r")),
         (handle) =>
@@ -84,27 +97,32 @@ export class NodeDiscoveryFileSystem implements DiscoveryFileSystem {
             if (
               `${info.dev}:${info.ino}:${info.size}:${info.mtimeNs}:${info.ctimeNs}` !==
               before.identity
-            )
+            ) {
               return yield* Effect.fail(
                 failure("read-text", "Discovery file changed before reading")
               );
+            }
             const buffer = Buffer.alloc(maxBytes + 1);
             let length = 0;
             while (length < buffer.length) {
               const result = yield* io("read-file", () =>
                 handle.read(buffer, length, buffer.length - length, length)
               );
-              if (!result.bytesRead) break;
+              if (!result.bytesRead) {
+                break;
+              }
               length += result.bytesRead;
             }
-            if (length > maxBytes)
+            if (length > maxBytes) {
               return yield* Effect.fail(
                 failure("read-text", "Discovery file exceeds the byte limit")
               );
-            if ((yield* self.inspect(path)).identity !== before.identity)
+            }
+            if ((yield* self.inspect(path)).identity !== before.identity) {
               return yield* Effect.fail(
                 failure("read-text", "Discovery file changed while reading")
               );
+            }
             return yield* Effect.try({
               try: () =>
                 new TextDecoder("utf-8", { fatal: true }).decode(buffer.subarray(0, length)),
@@ -116,4 +134,3 @@ export class NodeDiscoveryFileSystem implements DiscoveryFileSystem {
     });
   }
 }
-

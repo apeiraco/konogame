@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import { expect, it } from "@effect/vitest";
 import { gameDiscoveryImplementation, gameModule, gameModuleSource } from "@konogame/game";
 import {
-  BINDING_SERVICE,
+  ADAPTER_RESOLVER,
   EXTENSION_LIFECYCLE,
   provideInfrastructure
 } from "@konogame/infrastructure";
@@ -65,17 +65,17 @@ it.effect(
           filesystemExtensionSource(options)
         ])
       );
-      const bindings = Context.get(services, BINDING_SERVICE),
+      const adapterResolver = Context.get(services, ADAPTER_RESOLVER),
         lifecycle = Context.get(services, EXTENSION_LIFECYCLE);
       yield* lifecycle.ready;
       expect(constructed).toEqual({ loads: 0, fileSystems: 0, stores: 0 });
       expect(Context.getOption(services, FILESYSTEM_SAVE_STORE)._tag).toBe("None");
       const feature = saveModule.features.find(({ id }) => id === "save.store")!;
-      const plan = yield* bindings.resolve([{ feature }]);
+      const plan = yield* adapterResolver.resolve([{ feature }]);
       expect(plan.unavailable).toEqual([]);
       expect(
         saveStoreImplementation.is(
-          bindings.implementation(plan.bindings[0]!, saveStoreImplementation)
+          adapterResolver.implementation(plan.resolvedAdapters[0]!, saveStoreImplementation)
         )
       ).toBe(true);
       expect(Context.getOption(services, FILESYSTEM_SAVE_STORE)._tag).toBe("None");
@@ -109,7 +109,7 @@ it.effect(
           filesystemExtensionSource(options)
         ]).pipe(Layer.provideMerge(overrides))
       );
-      const selected = Context.get(overridden, BINDING_SERVICE);
+      const selected = Context.get(overridden, ADAPTER_RESOLVER);
       const selectedPlan = yield* selected.resolve([
         {
           feature: gameModule.features[0]!,
@@ -118,7 +118,7 @@ it.effect(
       ]);
       expect(selectedPlan.unavailable).toEqual([]);
       yield* selected
-        .implementation(selectedPlan.bindings[0]!, gameDiscoveryImplementation)
+        .implementation(selectedPlan.resolvedAdapters[0]!, gameDiscoveryImplementation)
         .discover({
           hostId: "synthetic",
           sourceId: "loose",

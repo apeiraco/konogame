@@ -34,8 +34,9 @@ export class FilesystemGameDiscovery implements GameDiscoveryPort {
       const scope = yield* Effect.try({
         try: () => {
           gameDiscoveryInputSchema.assert(input);
-          if (input.sourceKind !== filesystemSourceKind)
+          if (input.sourceKind !== filesystemSourceKind) {
             throw new Error("Filesystem discovery requires a standalone source");
+          }
           return directoryDiscoveryScopeSchema.assert(input.scope);
         },
         catch: failure
@@ -69,14 +70,18 @@ export class FilesystemGameDiscovery implements GameDiscoveryPort {
             suffix === value.replaceAll("\\", "/") ||
             suffix.startsWith(`${value.replaceAll("\\", "/")}/`)
         )
-      )
+      ) {
         return;
+      }
       const remainingDepth = scope.maxDepth - depth;
       const pathKey = process.platform === "win32" ? path.toLowerCase() : path;
-      if ((seen.get(pathKey) ?? -1) >= remainingDepth) return;
+      if ((seen.get(pathKey) ?? -1) >= remainingDepth) {
+        return;
+      }
       seen.set(pathKey, remainingDepth);
-      if (seen.size > 10_000)
+      if (seen.size > 10_000) {
         return yield* Effect.fail(failure("Discovery directory limit exceeded: 10000"));
+      }
       yield* Effect.gen(function* () {
         const info = yield* inspectDiscoveryPath(
           self.fileSystem,
@@ -85,8 +90,9 @@ export class FilesystemGameDiscovery implements GameDiscoveryPort {
         );
         if ((scope.maxDepth === 0 || depth > 0) && !emitted.has(pathKey)) {
           const fingerprint = yield* directoryEvidence(self.fileSystem, path);
-          if ((yield* self.fileSystem.inspect(path)).identity !== info.identity)
+          if ((yield* self.fileSystem.inspect(path)).identity !== info.identity) {
             return yield* Effect.fail(failure("Discovery directory changed before publication"));
+          }
           const object = info.fileObject;
           const reliableObject =
             object &&
@@ -127,7 +133,9 @@ export class FilesystemGameDiscovery implements GameDiscoveryPort {
               });
               return Effect.void;
             }
-            if (entry.kind !== DiscoveryEntryKind.Directory) return Effect.void;
+            if (entry.kind !== DiscoveryEntryKind.Directory) {
+              return Effect.void;
+            }
             return self.scan(
               root,
               join(path, entry.name),

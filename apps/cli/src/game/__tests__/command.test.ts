@@ -58,7 +58,7 @@ function syntheticPreview(root: string) {
     sourceKind: "standalone",
     scope: { paths: [root], maxDepth: 2, exclude: [] },
     discoveryAdapterId: "filesystem.game-discovery",
-    configurationAdapterId: "workspace-toml.configuration",
+    configurationAdapterId: "fixture.configuration",
     adapterResolutionPlan: {
       declarationProtocolVersion: "0.2.0",
       resolvedAdapters: [
