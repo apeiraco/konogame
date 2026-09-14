@@ -152,3 +152,38 @@ it.effect("daemon Scope exposes application finalizer failures", () =>
     expect(calls).toBe(1);
   })
 );
+
+it.live("client disconnect interrupts its workflow and preserves the daemon listener", () =>
+  Effect.gen(function* () {
+    const started = yield* Deferred.make<void>();
+    const finalized = yield* Deferred.make<void>();
+    const application = composeDaemon().pipe(
+      Layer.tap((services) =>
+        Effect.sync(() => {
+          Context.get(services, ADAPTER_RESOLUTION_PLANNER).plan = () =>
+            Effect.gen(function* () {
+              yield* Effect.addFinalizer(() => Deferred.succeed(finalized, undefined));
+              yield* Deferred.succeed(started, undefined);
+              return yield* Effect.never;
+            }).pipe(Effect.scoped);
+        })
+      )
+    );
+    const server = yield* startDaemon({ port: 0, overrides: application });
+    const address = server.address();
+    if (!address || typeof address === "string") {
+      throw new Error("Expected TCP listener");
+    }
+    const base = `http://127.0.0.1:${address.port}`;
+    const controller = new AbortController();
+    const response = yield* Effect.promise(() =>
+      fetch(`${base}/plan`, { signal: controller.signal })
+    ).pipe(Effect.exit, Effect.forkChild);
+    yield* Deferred.await(started);
+    controller.abort();
+    yield* Deferred.await(finalized);
+    expect((yield* Fiber.join(response))._tag).toBe("Failure");
+    expect((yield* Effect.promise(() => fetch(`${base}/health`))).status).toBe(200);
+    expect(server.listening).toBe(true);
+  })
+);

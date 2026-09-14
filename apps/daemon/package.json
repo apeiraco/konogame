@@ -15,7 +15,11 @@
     "@konogame/extension-steam": "workspace:*",
     "@konogame/node-installed-extension-source": "workspace:*",
     "effect": "catalog:",
-    "@effect/platform-node": "catalog:"
+    "@effect/platform-node": "catalog:",
+    "hono": "catalog:",
+    "@hono/node-server": "catalog:",
+    "arktype": "catalog:",
+    "swagger-ui-dist": "catalog:"
   },
   "scripts": {
     "build": "tsdown"

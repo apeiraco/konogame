@@ -37,7 +37,7 @@ Save 首批定义六个 Port/Feature：`save.discover`、`save.export`、`save.i
 
 ## Workspace 配置实验
 
-`packages/workspace` 定义 Workspace Module、契约、严格实验记录、纯覆盖规则，以及检查和编辑用例。`packages/game` 负责发现准入，可以依赖 `workspace`。CLI 与 Daemon 各自合并所需的所有者 Layer。Daemon 提供计划查询，CLI 还可执行 Workspace 检查和实体重命名。
+`packages/workspace` 定义 Workspace Module、契约、严格实验记录、纯覆盖规则，以及检查和编辑用例。`packages/game` 负责发现准入，可以依赖 `workspace`。CLI 与 Daemon 各自合并所需的所有者 Layer。本机 daemon 通过 HTTP 公开目录、Workspace、Game 和 Save 工作流。接口说明位于 `/api/openapi` 和 `/api/openapi.json`。
 
 | Feature | Port / Operation | 必需 Capability | 当前实现 |
 | --- | --- | --- | --- |

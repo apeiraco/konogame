@@ -6,6 +6,8 @@ Core binaries and packages share a version. Extensions have independent versions
 
 ### Changed
 
+- Expose catalog, Workspace, discovery admission and streaming save operations over local daemon HTTP, with offline reference and specification at `/api/openapi` and `/api/openapi.json`.
+
 - Clarify Feature → Port ← Adapter: Ports own Operations, Capabilities are selection guarantees, and Extensions distribute Adapters. Rename selection APIs, source paths and JSON/previews to Adapter resolution; distinguish declarationProtocolVersion/declarationProtocolRange from portVersion/portVersionRange and canonical declaration_protocol/port metadata. Keep owner /contracts entries, protocol/schema/release versions and historical records; add bilingual ADR 0013.
 
 - Separate Extension observations, UUID admission candidates and Workspace entities; compare opaque owner-issued Game/Installation identities without vendor parsing. Steam issues evidence-backed AppID Game identity; filesystem issues Host/volume/file-object Installation identity when reliable IDs exist. Move pure public contracts into owner /contracts entries and negotiate each Port independently (game.discovery 0.3.0; other existing Ports 0.2.0). Remove the standalone contracts package, retain unified core releases, independent Extensions and Schema 4, add bilingual ADR 0012, and inject CLI directory-to-Artifact input in composition.

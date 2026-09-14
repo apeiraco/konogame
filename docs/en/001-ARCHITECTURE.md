@@ -37,7 +37,7 @@ Save starts with six Ports and Features: `save.discover`, `save.export`, `save.i
 
 ## Workspace configuration experiment
 
-`packages/workspace` defines the Workspace Module, its contracts, strict experimental records, pure override rules, and the inspection and edit workflows. `packages/game` admits discoveries and may depend on `workspace`. CLI and daemon each merge the owner Layers they need. The daemon exposes planning. CLI also runs Workspace inspection and entity rename.
+`packages/workspace` defines the Workspace Module, its contracts, strict experimental records, pure override rules, and the inspection and edit workflows. `packages/game` admits discoveries and may depend on `workspace`. CLI and daemon each merge the owner Layers they need. The local daemon exposes the catalog, Workspace, Game and Save workflows over HTTP. Its route descriptions are available at `/api/openapi` and `/api/openapi.json`.
 
 | Feature | Port / Operation | Required Capability | Current implementation |
 | --- | --- | --- | --- |

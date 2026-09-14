@@ -1,17 +1,18 @@
-import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+import { createServer, type Server } from "node:http";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { NodeRuntime } from "@effect/platform-node";
+import { getRequestListener } from "@hono/node-server";
 import { filesystemExtensionSource } from "@konogame/extension-filesystem/providers";
 import { steamExtensionSource } from "@konogame/extension-steam/providers";
 import { workspaceTomlExtensionSource } from "@konogame/extension-workspace-toml/providers";
 import { gameModuleSource } from "@konogame/game";
+import { provideGameAdmission } from "@konogame/game/admission";
 import {
-  ADAPTER_RESOLUTION_PLANNER,
-  type AdapterResolutionPlanner,
   EXTENSION_LIFECYCLE,
   type ExtensionDiscoverySource,
   provideAdapterResolutionPlanner,
+  provideExtensionCatalog,
   provideInfrastructure
 } from "@konogame/infrastructure";
 import { CORE_VERSION } from "@konogame/infrastructure/contracts";
@@ -21,14 +22,14 @@ import {
   parseExtensionRoots
 } from "@konogame/node-installed-extension-source";
 import { saveModuleSource } from "@konogame/save";
-import { SaveFeature } from "@konogame/save/contracts";
+import { provideSaveStoreWorkflow } from "@konogame/save/store";
 import { workspaceModuleSource } from "@konogame/workspace";
+import { provideWorkspaceManagement } from "@konogame/workspace/management";
 import { object } from "@optique/core/constructs";
 import { message } from "@optique/core/message";
 import { defineProgram } from "@optique/core/program";
 import { runSync } from "@optique/run";
 import {
-  Cause,
   Config,
   ConfigProvider,
   Context,
@@ -40,6 +41,8 @@ import {
   Option,
   Runtime
 } from "effect";
+import { createApiApp } from "./api/server.ts";
+import { provideDaemonArtifactInput } from "./artifact-input.ts";
 
 const daemonProgram = defineProgram({
   parser: object({}),
@@ -83,7 +86,11 @@ export function composeDaemon<Error = never>(
   } = {}
 ) {
   const overrides = options.overrides ?? Layer.empty;
-  const dependencies = Layer.merge(installedExtensionFileSystemLayer, overrides);
+  const dependencies = Layer.mergeAll(
+    installedExtensionFileSystemLayer,
+    provideDaemonArtifactInput(),
+    overrides
+  );
   return Layer.unwrap(
     Effect.gen(function* () {
       const installed = options.extensionRoots?.length
@@ -101,61 +108,22 @@ export function composeDaemon<Error = never>(
         ...installed,
         ...(options.discoverySources ?? [])
       ]).pipe(Layer.provideMerge(overrides));
-      return provideAdapterResolutionPlanner().pipe(
-        Layer.provideMerge(infrastructure),
+      const plans = Layer.mergeAll(
+        provideAdapterResolutionPlanner(),
+        provideExtensionCatalog(),
+        overrides
+      ).pipe(Layer.provideMerge(infrastructure));
+      return Layer.mergeAll(
+        provideWorkspaceManagement(),
+        provideGameAdmission(),
+        provideSaveStoreWorkflow(),
+        overrides
+      ).pipe(
+        Layer.provideMerge(plans),
         Layer.tap((services) => Context.get(services, EXTENSION_LIFECYCLE).initialize())
       );
     })
   ).pipe(Layer.provideMerge(dependencies));
-}
-
-function handleRequest(
-  plan: AdapterResolutionPlanner,
-  request: IncomingMessage,
-  response: ServerResponse
-) {
-  return Effect.gen(function* () {
-    const url = new URL(request.url ?? "/", "http://localhost");
-    response.setHeader("content-type", "application/json; charset=utf-8");
-    if (request.method === "GET" && url.pathname === "/health") {
-      response.end(JSON.stringify({ status: "ok" }));
-      return;
-    }
-    if (request.method === "GET" && url.pathname === "/plan") {
-      yield* plan.plan([url.searchParams.get("feature") ?? SaveFeature.Store]).pipe(
-        Effect.match({
-          onSuccess: (plan) => {
-            response.end(JSON.stringify(plan));
-          },
-          onFailure: (error) => {
-            response.statusCode = 400;
-            response.end(
-              JSON.stringify({ error: error instanceof Error ? error.message : String(error) })
-            );
-          }
-        })
-      );
-      return;
-    }
-    response.statusCode = 404;
-    response.end(JSON.stringify({ error: "Not found" }));
-  }).pipe(
-    Effect.onInterrupt(() =>
-      Effect.sync(() => {
-        response.destroy();
-      })
-    ),
-    Effect.catchCause((cause) =>
-      Cause.hasInterrupts(cause)
-        ? Effect.failCause(cause)
-        : Effect.sync(() => {
-            if (!response.headersSent) {
-              response.statusCode = 500;
-            }
-            response.end(JSON.stringify({ error: String(Cause.squash(cause)) }));
-          })
-    )
-  );
 }
 
 function closeServer(server: Server) {
@@ -172,33 +140,19 @@ function closeServer(server: Server) {
 export function createDaemon<Error = never>(options: DaemonOptions<Error> = {}) {
   return Effect.gen(function* () {
     const overrides = yield* Layer.build(options.overrides ?? Layer.empty);
-    const injectedPlan = Context.getOrUndefined(overrides, ADAPTER_RESOLUTION_PLANNER);
     const services = yield* Layer.build(
-      injectedPlan
-        ? Layer.succeed(ADAPTER_RESOLUTION_PLANNER, injectedPlan)
-        : composeDaemon({
-            saveRoot: options.saveRoot,
-            extensionRoots: options.extensionRoots,
-            overrides: Layer.succeedContext(overrides)
-          })
+      composeDaemon({
+        saveRoot: options.saveRoot,
+        extensionRoots: options.extensionRoots,
+        overrides: Layer.succeedContext(overrides)
+      })
     );
-    const plan = Context.get(services, ADAPTER_RESOLUTION_PLANNER);
-    // Node request callbacks enter fibers tracked by this server's scope.
-    const runRequest = yield* FiberSet.makeRuntime<never, void, never>();
+    // Framework callbacks enter fibers tracked by this server's Scope.
+    const runRequest = yield* FiberSet.makeRuntime<never, Response, unknown>();
+    const app = createApiApp(services, runRequest);
     return yield* Effect.acquireRelease(
       Effect.sync(() =>
-        createServer((request, response) => {
-          const fiber = runRequest(Effect.scoped(handleRequest(plan, request, response)));
-          const onClose = () => {
-            if (!response.writableEnded) {
-              fiber.interruptUnsafe();
-            }
-          };
-          response.once("close", onClose);
-          fiber.addObserver(() => {
-            response.off("close", onClose);
-          });
-        })
+        createServer(getRequestListener(app.fetch, { overrideGlobalObjects: false }))
       ),
       closeServer
     );
@@ -215,11 +169,17 @@ export function startDaemon<Error = never>(
         new DaemonError({ message: "Daemon port must be an integer from 0 to 65535" })
       );
     }
+    const host = options.host ?? "127.0.0.1";
+    if (!["127.0.0.1", "::1", "localhost"].includes(host)) {
+      return yield* Effect.fail(
+        new DaemonError({ message: "Daemon host must be a loopback address" })
+      );
+    }
     const server = yield* createDaemon(options);
     yield* Effect.callback<void, DaemonError>((resume) => {
       const onError = (error: Error) => resume(Effect.fail(DaemonError.from(error)));
       server.once("error", onError);
-      server.listen(port, options.host ?? "127.0.0.1", () => {
+      server.listen(port, host, () => {
         server.off("error", onError);
         resume(Effect.void);
       });

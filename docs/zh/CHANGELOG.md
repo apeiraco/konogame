@@ -6,6 +6,8 @@ Core 可执行程序与包使用统一版本；各 Extension 独立版本，分�
 
 ### 变更
 
+- Daemon 通过本机 HTTP 提供目录、Workspace、发现录入与流式存档操作，并在 `/api/openapi` 和 `/api/openapi.json` 提供离线参考与机器规范。
+
 - 明确 Feature → Port ← Adapter：Port 拥有 Operation，Capability 是选择保证，Extension 分发 Adapter。实现选择 API、源码路径和 JSON/预览统一改用 Adapter 解析；区分 declarationProtocolVersion/declarationProtocolRange、portVersion/portVersionRange 及规范 declaration_protocol/port 元数据。保留 owner /contracts 入口、协议/Schema/发行版本和历史记录，新增双语 ADR 0013。
 
 - 分开 Extension 观察、UUID 准入候选与 Workspace 实体，泛化比较 owner 签发的 Game/Installation 身份，不解析厂商数据。Steam 签发有证据的 AppID Game 身份；filesystem 在有可靠 ID 时签发 Host/卷/文件对象 Installation 身份。纯公共契约迁至 owner /contracts，各 Port 独立协商（game.discovery 0.3.0，其余已有 Port 0.2.0）；移除独立 contracts 包，保留 Core 统一发行、Extension 独立发行和 Schema 4，新增双语 ADR 0012，在组合入口注入 CLI 目录到 Artifact 输入。

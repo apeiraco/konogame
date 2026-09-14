@@ -33,7 +33,7 @@ For example, filesystem storage can offer storing an Artifact without offering h
 
 Share domain-facing types, application-client interfaces, view models, design components, and input actions. Keep filesystem access, process launch, credentials, notifications, and window control behind host adapters. Reusable UI must not depend directly on Node or desktop-shell globals.
 
-Browser and desktop clients should reach the same application services through explicit host/transport boundaries. The existing CLI can continue to run locally without a daemon. The current daemon is a localhost health/plan prototype; it is not a task server or a remotely deployable service.
+Browser and desktop clients should reach the same application services through explicit host/transport boundaries. The existing CLI can continue to run locally without a daemon. The first local management client can use the [daemon HTTP API](../009-DAEMON-API.md). Durable tasks and remote access still need separate host decisions.
 
 Show which host owns an installation, a path, and a running task. A path entered in a remote browser refers to the execution host only when that is explicitly established; a browser file selection does not silently become a remote server path. Authentication, authorized host access, and remote deployment require separate decisions before remote operation is offered.
 

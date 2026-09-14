@@ -176,6 +176,9 @@ catalogs:
     '@effect/vitest':
       specifier: 4.0.6
       version: 4.0.6
+    '@hono/node-server':
+      specifier: 2.1.6
+      version: 2.1.6
     '@optique/core':
       specifier: ^1.3.6
       version: 1.3.6
@@ -206,6 +209,9 @@ catalogs:
     execa:
       specifier: 10.2.0
       version: 10.2.0
+    hono:
+      specifier: 4.13.16
+      version: 4.13.16
     node-pty:
       specifier: 1.1.0
       version: 1.1.0
@@ -215,6 +221,9 @@ catalogs:
     smol-toml:
       specifier: ^1.9.1
       version: 1.9.1
+    swagger-ui-dist:
+      specifier: 5.34.1
+      version: 5.34.1
     toml-eslint-parser:
       specifier: ^1.0.3
       version: 1.0.3
@@ -364,6 +373,9 @@ importers:
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.6(effect@4.0.6)(redis@6.3.0)
+      '@hono/node-server':
+        specifier: 'catalog:'
+        version: 2.1.6(hono@4.13.16)
       '@konogame/extension-filesystem':
         specifier: workspace:*
         version: link:../../extensions/filesystem
@@ -394,9 +406,18 @@ importers:
       '@optique/run':
         specifier: 'catalog:'
         version: 1.3.6
+      arktype:
+        specifier: 'catalog:'
+        version: 2.2.8
       effect:
         specifier: 'catalog:'
         version: 4.0.6
+      hono:
+        specifier: 'catalog:'
+        version: 4.13.16
+      swagger-ui-dist:
+        specifier: 'catalog:'
+        version: 5.34.1
 
   extensions/filesystem:
     dependencies:
@@ -613,6 +634,12 @@ packages:
       effect: ^4.0.6
       vitest: '>=5.0.0 <6.0.0'
 
+  '@hono/node-server@2.1.6':
+    resolution: {integrity: sha512-p/KH9MnfNcsm3sR6x4lNgm5j+QN4Et8srKredl9DZfXiyZ1UQ3aQ2YVpFLbqktYN5JI+DB+VZFKM2PqE5hLKjQ==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      hono: ^4 || ^5.0.0-0
+
   '@jridgewell/resolve-uri@3.1.2':
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
     engines: {node: '>=6.0.0'}
@@ -786,6 +813,9 @@ packages:
 
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+
+  '@scarf/scarf@1.4.0':
+    resolution: {integrity: sha512-xxeapPiUXdZAE3che6f3xogoJPeZgig6omHEy1rIY5WVsB3H2BHNnZH+gHG6x91SCWyQCzWGsuL2Hh3ClO5/qQ==}
 
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
@@ -1166,6 +1196,10 @@ packages:
     resolution: {integrity: sha512-X6fBC0pmImC70gvX2zm56go9hx0MyoGVdG0tUCkg/D+Xnh5TJsOZ7iDbOdI3PvmtrDxnu1YdDufpK2QJX1Meqw==}
     engines: {node: '>=20.20.0'}
 
+  hono@4.13.16:
+    resolution: {integrity: sha512-AOLOEhvrV+iH92xXCnFr/5+3KjPKcI3xP63XJtX5spAnkznPdHijlIsUTpi7/9EhWqrTCekw5c5zh1K+YsVw7A==}
+    engines: {node: '>=16.9.0'}
+
   hookable@6.1.2:
     resolution: {integrity: sha512-+abwxtiEA52GCVIsQqut3S/uKTbUwYIp4Pe/vv+6py5XiXBCqMZHg6pA6Y5qhgLSEys0/cYuPbO0z1QFj5ZCmg==}
 
@@ -1398,6 +1432,9 @@ packages:
   strip-indent@4.1.1:
     resolution: {integrity: sha512-SlyRoSkdh1dYP0PzclLE7r0M9sgbFKKMFXpFRUMNuKhQSbC6VQIGzq3E0qsfvGJaUFJPGv6Ws1NZ/haTAjfbMA==}
     engines: {node: '>=12'}
+
+  swagger-ui-dist@5.34.1:
+    resolution: {integrity: sha512-VSr8fXfI93obYaQicLJbLUKGRxDojj/SfRJDDLCioGTUBj4BK/Nj4eE9jCeCAnJxVLi7iS+08PbiZLyrQKBkJQ==}
 
   tinybench@6.2.2:
     resolution: {integrity: sha512-nIZ2N2dFpjBsg2hgitKu7mA+FvsIJuGJOwysRngmVRRmWgR/UyPjwJj8c/fT/dhm8EkHnF5EOogRf+0Z2qrimA==}
@@ -1667,6 +1704,10 @@ snapshots:
       effect: 4.0.6
       vitest: 5.0.5(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5))
 
+  '@hono/node-server@2.1.6(hono@4.13.16)':
+    dependencies:
+      hono: 4.13.16
+
   '@jridgewell/resolve-uri@3.1.2': {}
 
   '@jridgewell/sourcemap-codec@1.6.0': {}
@@ -1768,6 +1809,8 @@ snapshots:
     optional: true
 
   '@rolldown/pluginutils@1.0.1': {}
+
+  '@scarf/scarf@1.4.0': {}
 
   '@sec-ant/readable-stream@0.4.1': {}
 
@@ -2020,6 +2063,8 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
+  hono@4.13.16: {}
+
   hookable@6.1.2: {}
 
   human-signals@8.0.1: {}
@@ -2205,6 +2250,10 @@ snapshots:
   strip-final-newline@4.0.0: {}
 
   strip-indent@4.1.1: {}
+
+  swagger-ui-dist@5.34.1:
+    dependencies:
+      '@scarf/scarf': 1.4.0
 
   tinybench@6.2.2: {}
 
