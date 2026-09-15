@@ -1,5 +1,7 @@
 # ADR 0015 · Daemon HTTP boundary
 
+> Presentation update: WebUI owns the offline reference page and the daemon owns the JSON specification. See the [WebUI guide](../010-WEBUI.md).
+
 Accepted on 2026-11-03.
 
 ## Decision

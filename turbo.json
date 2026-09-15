@@ -18,7 +18,9 @@
     "PATHEXT",
     "TEMP",
     "TMP",
-    "VITEST_*"
+    "VITEST_*",
+    "KONOGAME_TEST_CHROMIUM",
+    "PLAYWRIGHT_BROWSERS_PATH"
   ],
   "tasks": {
     "build": {

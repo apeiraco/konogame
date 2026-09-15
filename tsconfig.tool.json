@@ -17,6 +17,9 @@
   "references": [
     {
       "path": "./scripts/dev-cli/tsconfig.tool.json"
+    },
+    {
+      "path": "./apps/webui/tsconfig.tool.json"
     }
   ]
 }

@@ -37,7 +37,7 @@ Save 首批定义六个 Port/Feature：`save.discover`、`save.export`、`save.i
 
 ## Workspace 配置实验
 
-`packages/workspace` 定义 Workspace Module、契约、严格实验记录、纯覆盖规则，以及检查和编辑用例。`packages/game` 负责发现准入，可以依赖 `workspace`。CLI 与 Daemon 各自合并所需的所有者 Layer。本机 daemon 通过 HTTP 公开目录、Workspace、Game 和 Save 工作流。接口说明位于 `/api/openapi` 和 `/api/openapi.json`。
+`packages/workspace` 定义 Workspace Module、契约、严格实验记录、纯覆盖规则，以及检查和编辑用例。`packages/game` 负责发现准入，可以依赖 `workspace`。CLI 与 Daemon 各自合并所需的所有者 Layer。本机 daemon 通过 HTTP 公开目录、Workspace、Game 和 Save 工作流。接口说明位于 `/developer/openapi` 和 `/api/openapi.json`。
 
 | Feature | Port / Operation | 必需 Capability | 当前实现 |
 | --- | --- | --- | --- |
@@ -124,5 +124,7 @@ Core 在关系检查/loader 前严格校验声明，安全隔离错误 source �
 Extension 签发不透明 {issuer,purpose,value}，issuer 必须等于所选 Adapter 的 owner ID，purpose 区分 game/installation；core 泛化比较完整值，不解析厂商 key。externalRefs 只作展示。Steam 有证据的 AppID 签发 issuer konogame.steam、value app:<AppID> 的 game 身份，不推导账户或安装身份。filesystem 在有正数卷/文件对象 ID 时，结合 Host 与可用出生时间签发 installation 身份；缺少可靠 ID 时省略。路径与 size/mtime/ctime、目录内容指纹都不是稳定身份。
 
 公共纯契约从 owner 包 /contracts 子路径导入；infrastructure 拥有声明/Artifact/Location，Game、Workspace、Save 各自拥有业务 Port，移除独立共享 contracts 包。声明协议 declarationProtocolRange 与逐 Port 协议分开：Feature portVersion、Adapter portVersionRange 在执行前协商；game.discovery 为 0.3.0（>=0.3.0 <0.4.0），其余已有 Port 为 0.2.0。Core 仍统一发包，各 Extension 独立发行。Core/业务不包含厂商枚举、身份解析、路径规则、默认优先级或实现导入；CLI/Daemon 组合可选内置来源，并通过窄服务注入本地 Artifact 输入转换。
+
+WebUI 为每个 Router 实例组装独立的 Effect 服务图，会话与审核状态通过 Preact 信号供视图订阅。服务、读缓存与视图的职责见 [WebUI 指南](010-WEBUI.md)。
 
 [English](../en/001-ARCHITECTURE.md) | [中文](001-ARCHITECTURE.md)

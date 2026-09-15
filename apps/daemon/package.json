@@ -19,7 +19,7 @@
     "hono": "catalog:",
     "@hono/node-server": "catalog:",
     "arktype": "catalog:",
-    "swagger-ui-dist": "catalog:"
+    "@konogame/webui": "workspace:*"
   },
   "scripts": {
     "build": "tsdown"

@@ -1,5 +1,7 @@
 # ADR 0015 · Daemon HTTP 边界
 
+> 展示归属更新：由 WebUI 提供离线参考页，daemon 保留 JSON 规范。见 [WebUI 指南](../010-WEBUI.md)。
+
 2026-11-03 采纳。
 
 ## 决策

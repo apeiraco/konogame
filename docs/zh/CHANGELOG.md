@@ -6,7 +6,15 @@ Core 可执行程序与包使用统一版本；各 Extension 独立版本，分�
 
 ### 变更
 
-- Daemon 通过本机 HTTP 提供目录、Workspace、发现录入与流式存档操作，并在 `/api/openapi` 和 `/api/openapi.json` 提供离线参考与机器规范。
+- WebUI 可在简体中文与英文之间切换并记忆偏好，保留当前审核。缺少 Temporal 的浏览器按需加载本地补齐模块。
+
+- WebUI 视图自动跟踪 Preact 信号。应用上下文采用标准异步资源释放协议；旧浏览器启动时按需补齐相关 API。
+
+- WebUI 通过每个 Router 独立的 Effect Layer 管理 Workspace、库视图与发现审核。Preact 信号向页面提供共享状态；切换工作区会失效并取消旧审核请求。
+
+- 新增本机 WebUI 游戏库、详情、发现审核与确认录入。开发者文档迁至 WebUI 的 `/developer/openapi`，由 Scalar 按需加载。
+
+- Daemon 通过本机 HTTP 提供目录、Workspace、发现录入与流式存档操作，并在 `/developer/openapi` 和 `/api/openapi.json` 提供离线参考与机器规范。
 
 - 明确 Feature → Port ← Adapter：Port 拥有 Operation，Capability 是选择保证，Extension 分发 Adapter。实现选择 API、源码路径和 JSON/预览统一改用 Adapter 解析；区分 declarationProtocolVersion/declarationProtocolRange、portVersion/portVersionRange 及规范 declaration_protocol/port 元数据。保留 owner /contracts 入口、协议/Schema/发行版本和历史记录，新增双语 ADR 0013。
 

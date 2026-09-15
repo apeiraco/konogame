@@ -2,7 +2,7 @@
 
 Run `just build` at the repository root, then `just daemon`. The default listener is `127.0.0.1:38417`. Set `KONOGAME_DAEMON_PORT` to select a port and `KONOGAME_SAVE_ROOT` to choose the save destination. Workspace roots and save source directories are absolute paths on the daemon host. POST requests use `Content-Type: application/json` and accept up to 1 MiB. If a discovery preview exceeds this budget, narrow the scan scope and preview again before admission.
 
-Open `http://127.0.0.1:38417/api/openapi` to browse operations and send requests offline. Clients and code generators can fetch `GET /api/openapi.json` from the same server. The specification describes the paths, request fields and responses.
+Open `http://127.0.0.1:38417/developer/openapi` to browse operations and send requests offline. Clients and code generators can fetch `GET /api/openapi.json` from the same server. The specification describes the paths, request fields and responses.
 
 ## Start with a read
 

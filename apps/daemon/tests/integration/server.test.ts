@@ -130,7 +130,7 @@ it.effect("daemon refuses non-loopback listeners", () =>
   })
 );
 
-it.live("daemon exposes an offline interactive OpenAPI document and catalog routes", () =>
+it.live("daemon exposes OpenAPI JSON and catalog routes without Swagger assets", () =>
   Effect.gen(function* () {
     const base = localAddress(yield* startDaemon({ port: 0 }));
     const document = yield* Effect.promise(async () =>
@@ -146,23 +146,18 @@ it.live("daemon exposes an offline interactive OpenAPI document and catalog rout
         "/api/plan": { post: { requestBody: { required: true } } }
       }
     });
-    const docs = yield* Effect.promise(async () => (await fetch(`${base}/api/openapi`)).text());
-    expect(docs).toContain('src="/api/openapi/assets/swagger-ui-bundle.js"');
-    expect(docs).not.toMatch(/(?:src|href)="https?:/);
-    const initialization = yield* Effect.promise(async () =>
-      (await fetch(`${base}/api/openapi/assets/initialize.js`)).text()
-    );
-    expect(initialization).toContain('url: "/api/openapi.json"');
-    expect(initialization).toContain("validatorUrl: null");
-    expect(initialization).toContain("queryConfigEnabled: false");
-    for (const asset of ["swagger-ui.css", "swagger-ui-bundle.js"]) {
-      const response = yield* Effect.promise(() => fetch(`${base}/api/openapi/assets/${asset}`));
-      expect(response.status).toBe(200);
-      expect((yield* Effect.promise(() => response.text())).length).toBeGreaterThan(1000);
+    for (const path of [
+      "/api/openapi",
+      "/api/openapi/assets/initialize.js",
+      "/api/openapi/assets/swagger-ui.css",
+      "/api/openapi/assets/swagger-ui-bundle.js"
+    ]) {
+      const response = yield* Effect.promise(() =>
+        fetch(`${base}${path}`, { headers: { accept: "text/html" } })
+      );
+      expect(response.status).toBe(404);
+      expect(response.headers.get("content-type")).toContain("application/json");
     }
-    expect(
-      (yield* Effect.promise(() => fetch(`${base}/api/openapi/assets/package.json`))).status
-    ).toBe(404);
     const features = yield* Effect.promise(async () =>
       (await fetch(`${base}/api/features`)).json()
     );

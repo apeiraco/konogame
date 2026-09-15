@@ -32,7 +32,7 @@ just cli workspace recover-import /synthetic/workspace <operation-id> --yes --js
 just daemon
 ```
 
-`just setup` 安装固定工具和 workspace 依赖。CLI 默认把存档写入 `~/.konogame/saves`，可通过 `KONOGAME_SAVE_ROOT` 指定位置。启动 daemon 后，在浏览器打开 `http://127.0.0.1:38417/api/openapi` 查阅本机 API。客户端可从 `/api/openapi.json` 获取规范。
+`just setup` 安装固定工具和 workspace 依赖。CLI 默认把存档写入 `~/.konogame/saves`，可通过 `KONOGAME_SAVE_ROOT` 指定位置。启动 daemon 后，在浏览器打开 `http://127.0.0.1:38417/developer/openapi` 查阅本机 API。客户端可从 `/api/openapi.json` 获取规范。
 
 运行包入口前先构建。各包从 `dist` 导出 tsdown 生成的 ESM JavaScript 和声明文件，测试使用 Vitest。`just check` 转发到 `pnpm check`，执行 Biome、构建、类型检查、测试、文档校验和发布 metadata 校验。`just typecheck` 与 `just test` 转发到对应的 pnpm 脚本。`just dev-cli` 运行仓库工具，包括发布维护。Optique CLI 在 TTY 中提供 clack 提示，无命令时显示菜单，缺失参数可补问。`--non-interactive`、`--interactive=false` 或 `INTERACTIVE=false` 禁用提示（参数 > 环境 > TTY）。JSON/非 TTY 执行不提示，取消不写入。
 
@@ -71,6 +71,7 @@ TypeScript 共享选项位于 `tsconfig.base.json`，各 workspace 有独立的 
 - [ADR 0014 · Workspace TOML Extension](adr/0014-WORKSPACE-TOML-EXTENSION.md)
 - [ADR 0015 · Daemon HTTP](adr/0015-DAEMON-HTTP-BOUNDARY.md)
 - [本机 daemon API](009-DAEMON-API.md)
+- [WebUI 游戏库与发现审核](010-WEBUI.md)
 - [ADR 0010：测试边界与任务图](adr/0010-TEST-BOUNDARIES-AND-TASK-GRAPH.md)
 - [ADR 0011：Effect 契约与生命周期](adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md)
 - [ADR 0009：应用组装](adr/0009-APPLICATION-COMPOSITION.md)

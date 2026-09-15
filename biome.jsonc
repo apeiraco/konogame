@@ -21,7 +21,9 @@
       "!packages/save/src/version.ts",
       "!extensions/filesystem/src/metadata.ts",
       "!extensions/workspace-toml/src/metadata.ts",
-      "!extensions/steam/src/metadata.ts"
+      "!extensions/steam/src/metadata.ts",
+      // TanStack owns the route tree. Skip dependency scanning as well as checking it.
+      "!!apps/webui/src/routeTree.gen.ts"
     ]
   },
   "formatter": {

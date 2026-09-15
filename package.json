@@ -20,7 +20,8 @@
     "daemon": "node apps/daemon/dist/main.js",
     "dev-cli": "node scripts/dev-cli/dist/main.js",
     "lint": "biome check .",
-    "format": "biome check --write ."
+    "format": "biome check --write .",
+    "webui:dev": "pnpm --filter @konogame/webui dev"
   },
   "devDependencies": {
     "@konogame/cli": "workspace:*",
@@ -47,7 +48,9 @@
     "vitest": "catalog:",
     "effect": "catalog:",
     "@effect/platform-node": "catalog:",
-    "@effect/vitest": "catalog:"
+    "@effect/vitest": "catalog:",
+    "@konogame/webui": "workspace:*",
+    "playwright-core": "catalog:"
   },
   "version": "0.1.0-alpha.0",
   "license": "MPL-2.0",

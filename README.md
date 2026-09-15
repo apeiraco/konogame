@@ -32,7 +32,7 @@ just cli workspace recover-import /synthetic/workspace <operation-id> --yes --js
 just daemon
 ```
 
-`just setup` installs the pinned tools and workspace dependencies. The CLI writes saves under `~/.konogame/saves` by default. Set `KONOGAME_SAVE_ROOT` to change it. After starting the daemon, open `http://127.0.0.1:38417/api/openapi` for the local API reference or fetch `/api/openapi.json` for a client.
+`just setup` installs the pinned tools and workspace dependencies. The CLI writes saves under `~/.konogame/saves` by default. Set `KONOGAME_SAVE_ROOT` to change it. After starting the daemon, open `http://127.0.0.1:38417/developer/openapi` for the local API reference or fetch `/api/openapi.json` for a client.
 
 Build before running package entry points. Each package exports its own tsdown-generated ESM JavaScript and declarations from `dist`; Vitest runs tests. `just check` forwards to `pnpm check`, which runs Biome, builds, checks types, runs tests, and validates docs and release metadata. `just typecheck` and `just test` forward to the matching pnpm scripts. `just dev-cli` runs repository tooling, including release maintenance. The Optique CLI offers clack prompts on a TTY; running without a command opens a menu, and missing arguments can be requested. `--non-interactive`, `--interactive=false`, or `INTERACTIVE=false` disable prompts (flags > environment > TTY). JSON/non-TTY execution never prompts; cancellation does not write.
 
@@ -71,6 +71,7 @@ Use the topic guides for supported behavior and procedures, ADRs for decisions, 
 - [ADR 0014 · Workspace TOML Extension](docs/en/adr/0014-WORKSPACE-TOML-EXTENSION.md)
 - [ADR 0015 · Daemon HTTP](docs/en/adr/0015-DAEMON-HTTP-BOUNDARY.md)
 - [Local daemon API](docs/en/009-DAEMON-API.md)
+- [WebUI library and discovery review](docs/en/010-WEBUI.md)
 - [ADR 0010: Test boundaries and task graph](docs/en/adr/0010-TEST-BOUNDARIES-AND-TASK-GRAPH.md)
 - [ADR 0011: Effect contracts and lifetime](docs/en/adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md)
 - [ADR 0009: Application composition](docs/en/adr/0009-APPLICATION-COMPOSITION.md)

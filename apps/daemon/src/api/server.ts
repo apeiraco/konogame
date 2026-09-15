@@ -1,13 +1,12 @@
-import { fileURLToPath } from "node:url";
 import { type HttpBindings } from "@hono/node-server";
-import { serveStatic } from "@hono/node-server/serve-static";
 import { Cause, type Context, Effect, type Exit, type Fiber } from "effect";
 import { Hono, type Context as HonoContext } from "hono";
 import { catalogRoutes, legacyRoutes } from "./catalog.ts";
 import { gameRoutes } from "./game.ts";
-import { createOpenApiDocument, openApiInitialization, openApiPage } from "./openapi.ts";
+import { createOpenApiDocument } from "./openapi.ts";
 import { ApiError, ApiMethod, type ApiRoute, type ApiServices, ApiStatus } from "./route.ts";
 import { saveRoutes } from "./save.ts";
+import { registerWebUi } from "./webui.ts";
 import { workspaceRoutes } from "./workspace.ts";
 
 export const MAX_JSON_BODY_BYTES = 1024 * 1024;
@@ -233,26 +232,12 @@ class ApiServer {
       await next();
     });
     app.get("/api/openapi.json", () => json(createOpenApiDocument(daemonRoutes)));
-    app.get("/api/openapi", (context) => context.html(openApiPage));
-    app.get("/api/openapi/assets/initialize.js", (context) => {
-      context.header("Content-Type", "application/javascript; charset=utf-8");
-      return context.body(openApiInitialization);
-    });
-    for (const filename of ["swagger-ui.css", "swagger-ui-bundle.js"]) {
-      app.get(
-        `/api/openapi/assets/${filename}`,
-        serveStatic({
-          path: fileURLToPath(
-            new URL(filename, import.meta.resolve("swagger-ui-dist/package.json"))
-          )
-        })
-      );
-    }
     for (const route of daemonRoutes) {
       app.on(route.method, route.path.replace(/\{([^}]+)\}/g, ":$1"), (context) =>
         this.execute(route, context)
       );
     }
+    registerWebUi(app);
     app.notFound(() => rejection(ApiStatus.NotFound, "Not found"));
     app.onError(() => rejection(ApiStatus.InternalError, "Internal server error"));
     return app;

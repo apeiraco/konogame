@@ -37,7 +37,7 @@ Save starts with six Ports and Features: `save.discover`, `save.export`, `save.i
 
 ## Workspace configuration experiment
 
-`packages/workspace` defines the Workspace Module, its contracts, strict experimental records, pure override rules, and the inspection and edit workflows. `packages/game` admits discoveries and may depend on `workspace`. CLI and daemon each merge the owner Layers they need. The local daemon exposes the catalog, Workspace, Game and Save workflows over HTTP. Its route descriptions are available at `/api/openapi` and `/api/openapi.json`.
+`packages/workspace` defines the Workspace Module, its contracts, strict experimental records, pure override rules, and the inspection and edit workflows. `packages/game` admits discoveries and may depend on `workspace`. CLI and daemon each merge the owner Layers they need. The local daemon exposes the catalog, Workspace, Game and Save workflows over HTTP. Its route descriptions are available at `/developer/openapi` and `/api/openapi.json`.
 
 | Feature | Port / Operation | Required Capability | Current implementation |
 | --- | --- | --- | --- |
@@ -117,5 +117,7 @@ Tests are classified by the boundary they verify: isolated rules/services are un
 ## Effect contracts and scoped execution
 
 Side-effecting Ports return `Effect<Success, Error, Requirements>` with owner tagged errors; pure rules and schemas remain pure. Composition returns native Layers, and Scope owns streams, handles, listeners and activation generations. Native Fiber/Deferred/Clock replace custom scheduling and cancellation. Promise/run bridging is confined to real process/framework/test boundaries. Cleanup budgets are cooperative, not force termination; recovery journals and structured stderr logging retain actionable evidence when interruption cannot carry an additional finalizer failure. Declaration protocol `0.2.0` requires `>=0.2.0 <0.3.0`; Schema 4 and release versions remain unchanged. See [ADR 0011](adr/0011-EFFECT-CONTRACTS-AND-LIFETIME.md) and the [lifecycle guide](006-SERVICES-AND-EXTENSION-LIFECYCLE.md).
+
+Each WebUI router has its own Effect service graph. Shared session and review state is observable through Preact signals. For service, cache and presentation responsibilities see the [WebUI guide](010-WEBUI.md).
 
 [English](001-ARCHITECTURE.md) | [中文](../zh/001-ARCHITECTURE.md)

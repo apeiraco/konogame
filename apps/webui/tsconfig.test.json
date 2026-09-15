@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.test-base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["node", "vite/client"],
+    "rootDir": ".",
+    "outDir": "./dist-tsc/test",
+    "tsBuildInfoFile": "./dist-tsc/test.tsbuildinfo"
+  },
+  "files": [],
+  "include": ["src/**/__tests__/**/*.ts", "tools/**/__tests__/**/*.ts", "tests/**/*.ts"],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.tool.json" }]
+}

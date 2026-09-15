@@ -45,6 +45,7 @@ import {
 import { type } from "arktype";
 import { Context, Effect, Layer } from "effect";
 import {
+  DiscoveryDisposition,
   type DiscoveryObservation,
   discoveryDiagnosticSchema,
   discoveryObservationSchema,
@@ -71,6 +72,7 @@ import {
   GameDiscoveryUnavailableKind
 } from "./errors.ts";
 
+export { DiscoveryDisposition } from "../discovery/contract.ts";
 export {
   GameDiscoveryConflictError,
   GameDiscoveryConflictKind,
@@ -80,14 +82,6 @@ export {
   GameDiscoveryNotFoundError,
   GameDiscoveryReviewMismatchError
 };
-
-export const DiscoveryDisposition = {
-  NewGame: "new-game",
-  ReuseGame: "reuse-game",
-  ExistingInstallation: "existing-installation",
-  Conflict: "conflict"
-} as const;
-export type DiscoveryDisposition = (typeof DiscoveryDisposition)[keyof typeof DiscoveryDisposition];
 export const GAME_DISCOVERY_PREVIEW_SCHEMA = "game-discovery-preview.3";
 const text = type.string.atLeastLength(1);
 // Temporal instants are Zulu ISO strings with optional fractional seconds. Keep that string.

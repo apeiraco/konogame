@@ -4,10 +4,34 @@ packages:
   - extensions/*
   - scripts/*
 allowBuilds:
+  core-js: false
   "@scarf/scarf": false
   node-pty: true
+  vue-demi: false
 catalogMode: strict
 catalog:
+  "i18next": 26.7.1
+  "@js-temporal/polyfill": 0.5.1
+  "@preact/signals-react": 3.12.0
+  "core-js": 3.51.0
+  "oxc-parser": 0.156.0
+  "esrap": 2.4.0
+  "magic-string": 1.4.3
+  "@preact/signals-core": 1.14.5
+  "@tanstack/react-table": 8.21.3
+  "@mantine/core": 9.7.4
+  "@mantine/hooks": 9.7.4
+  "@scalar/api-reference-react": 0.9.87
+  "@tanstack/react-start": 1.169.4
+  "@tanstack/react-router": 1.170.46
+  "@tanstack/react-query": 5.105.2
+  "@types/react": 19.3.0
+  "@types/react-dom": 19.3.0
+  "@vitejs/plugin-react": 6.2.1
+  "react": 19.3.1
+  "react-dom": 19.3.1
+  "vite": 8.3.5
+  "playwright-core": 1.64.1
   "@ark/json-schema": ^0.0.12
   "@clack/prompts": ^1.8.1
   "@effect/platform-node": 4.0.6
@@ -28,7 +52,6 @@ catalog:
   node-pty: 1.1.0
   semver: ^7.8.5
   smol-toml: ^1.9.1
-  swagger-ui-dist: 5.34.1
   toml-eslint-parser: ^1.0.3
   tsdown: ^0.23.1
   turbo: 2.11.9
@@ -37,3 +60,7 @@ catalog:
   vitest: ^5.0.5
 minimumReleaseAgeExclude:
   - "@hono/node-server@2.1.6"
+  - "@tanstack/query-core@5.105.2"
+  - "@tanstack/react-query@5.105.2"
+  - "@vitejs/plugin-react@6.2.1"
+  - i18next@26.7.1

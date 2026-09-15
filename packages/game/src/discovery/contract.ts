@@ -5,7 +5,7 @@ import {
   locationContractSchema,
   type ModuleDescriptor
 } from "@konogame/infrastructure/contracts";
-import { externalIdentitySchema, token } from "@konogame/workspace";
+import { externalIdentitySchema, token } from "@konogame/workspace/contracts";
 import { type Type, type } from "arktype";
 import { type Effect } from "effect";
 import { GAME_DISCOVERY_PORT } from "../version.ts";
@@ -22,6 +22,14 @@ export const GameCapability = {
   ScopedDiscovery: "discovery.scoped"
 } as const;
 export type GameCapability = (typeof GameCapability)[keyof typeof GameCapability];
+
+export const DiscoveryDisposition = {
+  NewGame: "new-game",
+  ReuseGame: "reuse-game",
+  ExistingInstallation: "existing-installation",
+  Conflict: "conflict"
+} as const;
+export type DiscoveryDisposition = (typeof DiscoveryDisposition)[keyof typeof DiscoveryDisposition];
 export const discoverySourceKindSchema = token;
 export function discoverySourceCapability(sourceKind: string): string {
   return `discovery.source.${sourceKind}`;

@@ -1,6 +1,6 @@
 # 前端体验
 
-状态：提案，2026-10-17。当前仓库尚无图形前端、启动流程或持久任务 API。下述交互模型与技术候选属于后续设计，不代表已实现能力。
+状态：管理模式的首个可用切片见[WebUI 指南](../010-WEBUI.md)。本文继续规划视觉设计、手柄与游玩模式及持久任务。
 
 结合[当前架构](../001-ARCHITECTURE.md)、[Workspace 提案](002-WORKSPACE-CONFIGURATION.md)、[发现提案](003-GAME-DISCOVERY.md)和[迭代计划](001-INITIAL-ITERATIONS.md)阅读。
 
@@ -70,7 +70,7 @@ UI 观察任务，不拥有任务生命周期。本地前台 CLI 操作仍可随
 
 ## 视觉与技术候选
 
-TypeScript UI、React、Vite、TanStack 工具以及 shadcn/ui、Tailwind 等组件/样式方案属于候选，不是固定依赖清单。实现时结合首个交互切片、宿主限制和键盘/手柄验证选择仍在维护的版本与库。无论选哪种库，都需要明确 UI 状态、服务端状态、传输与焦点管理的归属。
+当前采用 React、Mantine、Vite 和 TanStack Start 的 SPA 模式。视觉工作应围绕领域组件、缺图占位、选中态与焦点恢复展开。
 
 过渡动画用来表达上下文连续性，同时保持即时输入反馈。尊重减少动态效果的偏好。如果选择 Motion，可以使用其文档中的减少动画控制，但不能让操作正确性或焦点恢复依赖动画完成。参见 [Motion 无障碍指南](https://motion.dev/docs/react-accessibility)，于 2026-10-17 核对。
 

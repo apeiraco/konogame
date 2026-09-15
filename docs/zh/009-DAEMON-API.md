@@ -2,7 +2,7 @@
 
 在仓库根目录执行 `just build`，再运行 `just daemon`。默认监听地址为 `127.0.0.1:38417`。用 `KONOGAME_DAEMON_PORT` 指定端口，`KONOGAME_SAVE_ROOT` 指定存档写入位置。Workspace 根与存档源目录均使用 daemon 主机上的绝对路径。POST 请求使用 `Content-Type: application/json`，请求体上限为 1 MiB。发现预览超过此限制时需缩小扫描范围后重新预览，再提交录入。
 
-浏览器打开 `http://127.0.0.1:38417/api/openapi` 可离线查看每个操作的字段并发送请求。客户端和代码生成工具读取同一服务的 `GET /api/openapi.json`。字段、请求体、响应结构及具体路径以该规范为准。
+浏览器打开 `http://127.0.0.1:38417/developer/openapi` 可离线查看每个操作的字段并发送请求。客户端和代码生成工具读取同一服务的 `GET /api/openapi.json`。字段、请求体、响应结构及具体路径以该规范为准。
 
 ## 从读取开始
 

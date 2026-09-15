@@ -6,7 +6,15 @@ Core binaries and packages share a version. Extensions have independent versions
 
 ### Changed
 
-- Expose catalog, Workspace, discovery admission and streaming save operations over local daemon HTTP, with offline reference and specification at `/api/openapi` and `/api/openapi.json`.
+- Switch the WebUI between Simplified Chinese and English without losing the current review. Remember the preference locally and load a bundled Temporal polyfill only when needed.
+
+- Automatically track Preact signal reads in WebUI views. The app context uses standard async resource disposal, with missing APIs installed at browser startup.
+
+- Give each WebUI router an independent Effect service graph for Workspace selection, library views and discovery review. Preact signals expose shared state, and switching workspaces invalidates and cancels outstanding review requests.
+
+- Add the local WebUI library, game details, discovery review and confirmed admission. Move the developer reference to the lazy Scalar route at `/developer/openapi`.
+
+- Expose catalog, Workspace, discovery admission and streaming save operations over local daemon HTTP, with offline reference and specification at `/developer/openapi` and `/api/openapi.json`.
 
 - Clarify Feature → Port ← Adapter: Ports own Operations, Capabilities are selection guarantees, and Extensions distribute Adapters. Rename selection APIs, source paths and JSON/previews to Adapter resolution; distinguish declarationProtocolVersion/declarationProtocolRange from portVersion/portVersionRange and canonical declaration_protocol/port metadata. Keep owner /contracts entries, protocol/schema/release versions and historical records; add bilingual ADR 0013.
 

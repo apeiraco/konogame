@@ -60,6 +60,10 @@ manifest = "apps/daemon/package.json"
 name = "@konogame/dev-cli"
 manifest = "scripts/dev-cli/package.json"
 
+[[core_package]]
+name = "@konogame/webui"
+manifest = "apps/webui/package.json"
+
 # Extensions have independent versions, even when their initial version matches core.
 [[extension]]
 id = "konogame.filesystem"

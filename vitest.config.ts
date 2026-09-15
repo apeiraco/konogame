@@ -39,7 +39,10 @@ export default defineConfig({
           isolate: true,
           execArgv: [],
           fileParallelism: true,
-          include: ["{apps,packages,extensions,scripts}/*/src/**/__tests__/**/*.test.ts"],
+          include: [
+            "{apps,packages,extensions,scripts}/*/src/**/__tests__/**/*.test.ts",
+            "apps/webui/tools/**/__tests__/**/*.test.ts"
+          ],
           testTimeout: 10_000,
           hookTimeout: 10_000
         }

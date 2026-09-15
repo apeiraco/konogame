@@ -6,6 +6,9 @@
     },
     {
       "path": "./apps/daemon/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/webui/tsconfig.app.json"
     }
   ]
 }

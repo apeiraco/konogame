@@ -1,0 +1,54 @@
+{
+  "name": "@konogame/webui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build"
+  },
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/client"
+  ],
+  "dependencies": {
+    "@preact/signals-core": "catalog:",
+    "@konogame/game": "workspace:*",
+    "@konogame/workspace": "workspace:*",
+    "@mantine/core": "catalog:",
+    "@mantine/hooks": "catalog:",
+    "@scalar/api-reference-react": "catalog:",
+    "@tanstack/react-query": "catalog:",
+    "@tanstack/react-router": "catalog:",
+    "@tanstack/react-start": "catalog:",
+    "effect": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "@konogame/infrastructure": "workspace:*",
+    "@tanstack/react-table": "catalog:",
+    "@preact/signals-react": "catalog:",
+    "core-js": "catalog:",
+    "i18next": "catalog:",
+    "@js-temporal/polyfill": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "vite": "catalog:",
+    "oxc-parser": "catalog:",
+    "esrap": "catalog:",
+    "magic-string": "catalog:"
+  },
+  "version": "0.1.0-alpha.0",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apeiraco/konogame.git"
+  },
+  "konogame": {
+    "releaseGroup": "core",
+    "declarationProtocolRange": ">=0.2.0 <0.3.0"
+  }
+}

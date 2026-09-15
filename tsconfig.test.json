@@ -47,6 +47,9 @@
     },
     {
       "path": "./packages/node-installed-extension-source/tsconfig.test.json"
+    },
+    {
+      "path": "./apps/webui/tsconfig.test.json"
     }
   ]
 }

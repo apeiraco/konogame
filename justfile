@@ -53,3 +53,12 @@ daemon *args:
 [positional-arguments]
 dev-cli *args:
     node scripts/dev-cli/dist/main.js {{recipe_args}}
+
+# Start the local WebUI development server; run the daemon in another terminal.
+[positional-arguments]
+webui-dev *args:
+    pnpm webui:dev {{recipe_args}}
+
+# Build only the WebUI and its package prerequisites.
+webui-build:
+    pnpm exec turbo run build --filter=@konogame/webui --cache=local:rw

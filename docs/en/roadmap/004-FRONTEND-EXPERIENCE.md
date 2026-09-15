@@ -1,6 +1,6 @@
 # Frontend experience
 
-Status: proposal, 2026-10-17. This repository has no graphical frontend, launch workflow, or durable task API yet. The interaction model and technology candidates below are proposed work, not implemented capabilities.
+The first management slice is available in the [WebUI guide](../010-WEBUI.md). This proposal covers remaining visual design, controller and play interactions, and durable tasks.
 
 Read alongside the [current architecture](../001-ARCHITECTURE.md), [Workspace proposal](002-WORKSPACE-CONFIGURATION.md), [discovery proposal](003-GAME-DISCOVERY.md), and [iteration plan](001-INITIAL-ITERATIONS.md).
 
