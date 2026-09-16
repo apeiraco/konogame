@@ -1,4 +1,5 @@
 import { type HttpBindings } from "@hono/node-server";
+import { WorkspaceBrowseFailureKind } from "@konogame/workspace/contracts";
 import { Cause, type Context, Effect, type Exit, type Fiber } from "effect";
 import { Hono, type Context as HonoContext } from "hono";
 import { catalogRoutes, legacyRoutes } from "./catalog.ts";
@@ -8,12 +9,14 @@ import { ApiError, ApiMethod, type ApiRoute, type ApiServices, ApiStatus } from 
 import { saveRoutes } from "./save.ts";
 import { registerWebUi } from "./webui.ts";
 import { workspaceRoutes } from "./workspace.ts";
+import { workspaceBrowseRoutes } from "./workspace-browse.ts";
 
 export const MAX_JSON_BODY_BYTES = 1024 * 1024;
 
 export const daemonRoutes: readonly ApiRoute[] = [
   ...catalogRoutes,
   ...workspaceRoutes,
+  ...workspaceBrowseRoutes,
   ...gameRoutes,
   ...saveRoutes,
   ...legacyRoutes
@@ -42,6 +45,22 @@ const failureStatuses: Readonly<Record<string, ApiStatus>> = {
   GameDiscoveryUnavailableError: ApiStatus.Unprocessable
 };
 
+// Browse failures are classified by their owner issue kind, never by message text.
+function browseFailureStatus(issue: unknown): ApiStatus {
+  const kind =
+    issue !== null && typeof issue === "object" && "kind" in issue ? issue.kind : undefined;
+  switch (kind) {
+    case WorkspaceBrowseFailureKind.Denied:
+      return ApiStatus.Forbidden;
+    case WorkspaceBrowseFailureKind.Missing:
+      return ApiStatus.NotFound;
+    case WorkspaceBrowseFailureKind.Unsupported:
+      return ApiStatus.Unprocessable;
+    default:
+      return ApiStatus.InternalError;
+  }
+}
+
 function json(value: unknown, status: ApiStatus = ApiStatus.Ok) {
   return Response.json(value, { status });
 }
@@ -58,7 +77,10 @@ function failureResponse(error: unknown) {
     );
   }
   if (error && typeof error === "object" && "_tag" in error && typeof error._tag === "string") {
-    let status = failureStatuses[error._tag];
+    let status =
+      error._tag === "WorkspaceBrowseError" && "issue" in error
+        ? browseFailureStatus(error.issue)
+        : failureStatuses[error._tag];
     const filesystemTags = [
       "WorkspaceFileSystemError",
       "DiscoveryFileSystemError",
@@ -255,7 +277,7 @@ class ApiServer {
         if (contentType !== "application/json") {
           return rejection(
             ApiStatus.UnsupportedMediaType,
-            "Mutations require Content-Type: application/json"
+            "POST requests require Content-Type: application/json"
           );
         }
         body = yield* Effect.tryPromise({

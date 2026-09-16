@@ -17,6 +17,7 @@ Invoke-RestMethod "$base/api/plan" -Method Post -ContentType "application/json" 
 ## 按工作流调用
 
 - **Workspace**。初始化需要一个已存在的根目录。编辑先生成预览，把完整预览连同独立指定的根和确认字段交回 apply。冲突后重新读取并审核；如返回需要恢复，保留 operationId，调用对应的定向恢复操作。
+- **打开工作区**。向 `POST /api/workspace/locations` 发送 `{}` 可列出起点，传入完整 Location 可列出直接子项。可选的整数 `limit` 取值为 1–2000，默认 500。`complete: false` 表示可能有遗漏，即使返回的列表为空。用 `POST /api/workspace/locations/probe` 探测选中的位置。找到标记时，向 `GET /api/workspace/inspect` 传入返回的根，并将探测计划中配置 Adapter 的 ID 作为 `preferredAdapterId`。正式读取成功后才切换工作区。
 - **游戏**。读取游戏库及详情可使用 GET。发现预览需要已有 Host、已配置来源及显式扫描范围。录入时提交审核过的预览、选中的候选和确认。扫描本身不会录入游戏。
 - **存档**。向 `POST /api/saves` 提交本机目录。daemon 流式读取其中的文件，返回存储的 Artifact 引用。JSON 请求只携带目录信息，资产字节留在存储工作流内。
 - **扩展**。可以列举贡献、检查来源与 Adapter 的状态、刷新显式配置的发现来源。刷新结果会区分增加、替换、删除及需要重启的贡献。

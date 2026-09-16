@@ -147,6 +147,23 @@ function generatePreview(
 }
 
 describe("browser discovery review service", () => {
+  effectIt.effect("uses the selected configuration Adapter when generating a preview", () =>
+    Effect.scoped(
+      Effect.gen(function* () {
+        const { review, session, requests } = yield* setup;
+        yield* session.setWorkspaceRoot(root, "synthetic.selected-configuration");
+        review.updateForm({ hostId, paths: "/synthetic/games" });
+        review.updateForm({ sourceId: "loose" });
+        const running = yield* review.preview().pipe(Effect.forkChild);
+        const request = yield* Queue.take(requests);
+        expect(request.body).toMatchObject({
+          configurationAdapterId: "synthetic.selected-configuration"
+        });
+        yield* Deferred.succeed(request.response, preview);
+        yield* Fiber.join(running);
+      })
+    )
+  );
   effectIt.effect("reports local scope errors as semantic values without issuing requests", () =>
     Effect.scoped(
       Effect.gen(function* () {
@@ -243,7 +260,12 @@ describe("browser discovery review service", () => {
           const recovery = yield* review.submit().pipe(Effect.forkChild);
           const recoveryRequest = yield* Queue.take(requests);
           expect(recoveryRequest.path).toBe("/api/workspace/recover-import");
-          expect(recoveryRequest.body).toEqual({ root, operationId, confirmed: true });
+          expect(recoveryRequest.body).toEqual({
+            root,
+            operationId,
+            confirmed: true,
+            preferredAdapterId: preview.configurationAdapterId
+          });
           yield* Deferred.succeed(recoveryRequest.response, {
             status: ImportStatus.Imported,
             operationId
@@ -251,6 +273,51 @@ describe("browser discovery review service", () => {
           yield* Fiber.join(recovery);
           expect(review.state.peek().result?.status).toBe(ImportStatus.Imported);
           expect(invalidations).toEqual([root, root]);
+        })
+      )
+    );
+  });
+
+  it("distinguishes a cancelled confirmation from one closed by a completed submission", async () => {
+    await Effect.runPromise(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const { review, requests } = yield* setup;
+          yield* generatePreview(review, requests);
+          review.select({ [candidateId]: true });
+          review.openConfirmation(ConfirmationKind.Admit);
+          review.closeConfirmation();
+          expect(review.state.peek().closedBySubmission).toBe(false);
+          review.openConfirmation(ConfirmationKind.Admit);
+          review.confirm(true);
+          const running = yield* review.submit().pipe(Effect.forkChild);
+          yield* Deferred.fail(
+            (yield* Queue.take(requests)).response,
+            new ApiRequestError(409, { status: ImportStatus.RecoveryRequired, operationId })
+          );
+          yield* Fiber.join(running);
+          expect(review.state.peek()).toMatchObject({
+            confirmation: undefined,
+            closedBySubmission: true
+          });
+          // Opening and cancelling recovery is a cancellation, even though a result already exists.
+          review.openConfirmation(ConfirmationKind.Recover);
+          expect(review.state.peek().closedBySubmission).toBe(false);
+          review.closeConfirmation();
+          expect(review.state.peek()).toMatchObject({
+            confirmation: undefined,
+            closedBySubmission: false
+          });
+          review.openConfirmation(ConfirmationKind.Recover);
+          review.confirm(true);
+          const recovery = yield* review.submit().pipe(Effect.forkChild);
+          const recoveryResult = { status: ImportStatus.Imported, operationId };
+          yield* Deferred.succeed((yield* Queue.take(requests)).response, recoveryResult);
+          yield* Fiber.join(recovery);
+          expect(review.state.peek()).toMatchObject({
+            result: recoveryResult,
+            closedBySubmission: true
+          });
         })
       )
     );

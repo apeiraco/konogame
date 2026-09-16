@@ -14,13 +14,15 @@ import {
   LocationPortId
 } from "@konogame/infrastructure/contracts";
 import { SaveOperation, SavePort } from "@konogame/save/contracts";
-import { filesystemLocationTypes } from "./location/values.ts";
+import { WorkspaceOperation, WorkspacePort } from "@konogame/workspace/contracts";
+import { FilesystemLocationType, filesystemLocationTypes } from "./location/values.ts";
 import { adapterPortVersionRanges, extensionMetadata } from "./metadata.ts";
 
 export const filesystemSourceKind = "standalone";
 const saveStoreAdapterId = "filesystem.save-store";
 const locationAdapterId = "filesystem.location";
 const gameDiscoveryAdapterId = "filesystem.game-discovery";
+const workspaceLocationBrowserAdapterId = "filesystem.workspace-location-browser";
 
 export const filesystemSaveStoreAdapter: AdapterDescriptor = {
   id: saveStoreAdapterId,
@@ -58,6 +60,18 @@ export const filesystemGameDiscoveryAdapter: AdapterDescriptor = {
     discoverySourceCapability(filesystemSourceKind)
   ]
 };
+export const filesystemWorkspaceLocationBrowserAdapter: AdapterDescriptor = {
+  id: workspaceLocationBrowserAdapterId,
+  owner: { kind: AdapterOwnerKind.Extension, id: extensionMetadata.id },
+  port: WorkspacePort.LocationBrowser,
+  portVersionRange: adapterPortVersionRanges[workspaceLocationBrowserAdapterId],
+  declarationProtocolRange: extensionMetadata.declarationProtocolRange,
+  operations: [WorkspaceOperation.List],
+  capabilities: [],
+  locations: filesystemLocationTypes
+    .filter(({ type }) => type === FilesystemLocationType.Absolute)
+    .map(({ type, schemaRange }) => ({ type, schemaRange }))
+};
 export const filesystemManifest: ExtensionManifest = {
   ...extensionMetadata,
   activationEvents: [],
@@ -66,7 +80,8 @@ export const filesystemManifest: ExtensionManifest = {
     adapters: [
       filesystemSaveStoreAdapter,
       filesystemLocationAdapter,
-      filesystemGameDiscoveryAdapter
+      filesystemGameDiscoveryAdapter,
+      filesystemWorkspaceLocationBrowserAdapter
     ]
   }
 };

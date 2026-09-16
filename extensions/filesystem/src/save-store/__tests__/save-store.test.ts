@@ -14,7 +14,9 @@ import { artifactFromDirectory, FilesystemSaveStore } from "../store.ts";
 
 const native = vi.hoisted(() => ({
   readers: [] as ReadStream[],
-  rejectedPublication: undefined as undefined | { error: Error; calls: number },
+  rejectedPublication: undefined as
+    | undefined
+    | { error: Error; calls: number; started?(): void; wait?: Promise<void> },
   parents: undefined as undefined | { started(): void; wait: Promise<void>; events: string[] },
   manifest: undefined as undefined | { started(): void; wait: Promise<void>; events: string[] },
   publication: undefined as
@@ -76,25 +78,29 @@ vi.mock("node:fs/promises", async (original) => {
       const rejected = native.rejectedPublication;
       if (rejected) {
         rejected.calls++;
+        rejected.started?.();
+        await rejected.wait;
         throw rejected.error;
       }
-      native.manifest?.events.push("publish");
       const publication = native.publication;
       if (publication) {
-        publication.started();
-        await publication.wait;
         try {
           await module.rename(...args);
           publication.outcomes.push({ status: "fulfilled", from: args[0], to: args[1] });
-          publication.events.push("publish");
         } catch (error) {
           publication.outcomes.push({ status: "rejected", from: args[0], to: args[1], error });
-          publication.events.push("publish-failed");
           throw error;
         }
+        // Hold completion only after a real rename succeeds. Windows EPERM attempts
+        // remain visible to the production retry policy before cancellation starts.
+        publication.started();
+        await publication.wait;
+        publication.events.push("publish");
         return;
       }
-      return module.rename(...args);
+      await module.rename(...args);
+      // A rejected native attempt is not a publication.
+      native.manifest?.events.push("publish");
     },
     rm: async (...args: Parameters<typeof module.rm>) => {
       if (native.parents && String(args[0]).includes(".pending-")) {
@@ -262,15 +268,24 @@ it.live("native publication finishes before cancellation can run staging cleanup
     const interrupting = yield* Effect.forkScoped(Fiber.interrupt(writing), {
       startImmediately: true
     });
+    const beforePublishedContent = yield* Effect.exit(
+      Effect.promise(() =>
+        readFile(join(String(outcomes.at(-1)!.to), "files/slot/save.bin"), "utf8")
+      )
+    );
     const beforePublication = events.slice();
     gate.resolve();
     yield* Fiber.join(interrupting);
     const exit = yield* Fiber.await(writing);
-    assert.deepEqual(
-      outcomes.map((outcome) => outcome.status),
-      ["fulfilled"],
-      inspect(outcomes)
+    assert.equal(
+      Exit.isSuccess(beforePublishedContent) && beforePublishedContent.value,
+      "complete"
     );
+    assert.equal(outcomes.filter((outcome) => outcome.status === "fulfilled").length, 1);
+    for (const outcome of outcomes.filter((outcome) => outcome.status === "rejected")) {
+      assert.equal(process.platform, "win32", inspect(outcomes));
+      assert.equal((outcome.error as NodeJS.ErrnoException).code, "EPERM", inspect(outcomes));
+    }
     assert.equal(Exit.hasInterrupts(exit), true);
     assert.equal(
       Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause),
@@ -284,6 +299,50 @@ it.live("native publication finishes before cancellation can run staging cleanup
     assert.equal(
       names.some((name) => name.startsWith(".pending-")),
       false
+    );
+  })
+);
+
+it.live("cancellation after native EPERM removes staging without retrying publication", () =>
+  Effect.gen(function* () {
+    const root = yield* Effect.promise(() => directory("cancel-denied-publication"));
+    yield* Effect.promise(() => writeFile(join(root, "unrelated.txt"), "preserve"));
+    const entered = yield* Deferred.make<void>();
+    const gate = Promise.withResolvers<void>();
+    const original = Object.assign(new Error("Synthetic native publication temporarily denied"), {
+      code: "EPERM",
+      syscall: "rename"
+    });
+    const rejected = {
+      error: original,
+      calls: 0,
+      started: () => {
+        Deferred.doneUnsafe(entered, Effect.void);
+      },
+      wait: gate.promise
+    };
+    native.rejectedPublication = rejected;
+    const writing = yield* Effect.forkScoped(
+      new FilesystemSaveStore(root, new UuidIdService()).put({
+        mediaType: "application/test",
+        files: Stream.succeed(makeFile("slot/save.bin", ["complete"]))
+      })
+    );
+    yield* Deferred.await(entered);
+    const interrupting = yield* Effect.forkScoped(Fiber.interrupt(writing), {
+      startImmediately: true
+    });
+    const beforeSettle = yield* Effect.promise(() => readdir(root));
+    gate.resolve();
+    yield* Fiber.join(interrupting);
+    const exit = yield* Fiber.await(writing);
+    assert.equal(beforeSettle.filter((name) => name.startsWith(".pending-")).length, 1);
+    assert.equal(Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause), true);
+    assert.equal(rejected.calls, 1);
+    assert.deepEqual(yield* Effect.promise(() => readdir(root)), ["unrelated.txt"]);
+    assert.equal(
+      yield* Effect.promise(() => readFile(join(root, "unrelated.txt"), "utf8")),
+      "preserve"
     );
   })
 );

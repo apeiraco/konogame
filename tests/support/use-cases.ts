@@ -35,6 +35,8 @@ import {
 import {
   type AdapterDescriptor,
   DECLARATION_PROTOCOL_RANGE,
+  type LocationPort,
+  type LocationTypeDefinition,
   locationImplementation,
   type ModuleDescriptor
 } from "@konogame/infrastructure/contracts";
@@ -49,9 +51,16 @@ import {
   type ConfigurationHistoryPort,
   configurationHistoryImplementation,
   type WorkspaceConfigurationPort,
+  type WorkspaceLocationBrowserPort,
   workspaceConfigurationImplementation,
+  workspaceLocationBrowserImplementation,
   workspaceModuleSource
 } from "@konogame/workspace";
+import {
+  provideWorkspaceBrowse,
+  WORKSPACE_BROWSE,
+  type WorkspaceBrowseService
+} from "@konogame/workspace/browse";
 import {
   provideWorkspaceManagement,
   WORKSPACE_MANAGEMENT,
@@ -63,6 +72,7 @@ export interface UseCases {
   readonly plan: AdapterResolutionPlanner;
   readonly catalog: ExtensionCatalogService;
   readonly workspace: WorkspaceManagementService;
+  readonly browse: WorkspaceBrowseService;
   readonly admission: GameDiscoveryService;
   readonly save: SaveStoreWorkflow;
 }
@@ -73,6 +83,7 @@ export function provideOwnerLayers<R, E>(core: Layer.Layer<R, E>) {
   );
   return Layer.mergeAll(
     provideWorkspaceManagement(),
+    provideWorkspaceBrowse(),
     provideGameAdmission(),
     provideSaveStoreWorkflow()
   ).pipe(Layer.provideMerge(plans));
@@ -83,6 +94,7 @@ export function useCases(
     | ADAPTER_RESOLUTION_PLANNER
     | EXTENSION_CATALOG
     | WORKSPACE_MANAGEMENT
+    | WORKSPACE_BROWSE
     | GAME_ADMISSION
     | SAVE_STORE_WORKFLOW
   >
@@ -91,6 +103,7 @@ export function useCases(
     plan: Context.get(context, ADAPTER_RESOLUTION_PLANNER),
     catalog: Context.get(context, EXTENSION_CATALOG),
     workspace: Context.get(context, WORKSPACE_MANAGEMENT),
+    browse: Context.get(context, WORKSPACE_BROWSE),
     admission: Context.get(context, GAME_ADMISSION),
     save: Context.get(context, SAVE_STORE_WORKFLOW)
   };
@@ -102,7 +115,13 @@ export function createApplication(
   configurations: ReadonlyMap<string, WorkspaceConfigurationPort> = new Map(),
   histories: ReadonlyMap<string, ConfigurationHistoryPort> = new Map(),
   discoveries: ReadonlyMap<string, GameDiscoveryPort> = new Map(),
-  dependencies: { readonly ids?: IdService; readonly temporal?: TemporalService } = {}
+  dependencies: { readonly ids?: IdService; readonly temporal?: TemporalService } = {},
+  extras: {
+    readonly browsers?: ReadonlyMap<string, WorkspaceLocationBrowserPort>;
+    readonly locationBehaviors?: ReadonlyMap<string, LocationPort>;
+    /** Location type definitions contributed by an Extension owner ID. */
+    readonly locationTypes?: ReadonlyMap<string, readonly LocationTypeDefinition[]>;
+  } = {}
 ) {
   const adapters = [
     ...descriptors.filter((item) => item.id !== filesystemLocationAdapter.id),
@@ -138,6 +157,18 @@ export function createApplication(
             configurationHistoryImplementation,
             history
           );
+        }
+        const browser = extras.browsers?.get(descriptor.id);
+        if (browser) {
+          return context.registerAdapter(
+            descriptor.id,
+            workspaceLocationBrowserImplementation,
+            browser
+          );
+        }
+        const behavior = extras.locationBehaviors?.get(descriptor.id);
+        if (behavior) {
+          return context.registerAdapter(descriptor.id, locationImplementation, behavior);
         }
         const discovery = discoveries.get(descriptor.id);
         if (discovery) {
@@ -180,7 +211,9 @@ export function createApplication(
           adapters: owned,
           ...(id === filesystemLocationAdapter.owner.id
             ? { locations: filesystemLocationTypes }
-            : {})
+            : extras.locationTypes?.has(id)
+              ? { locations: [...extras.locationTypes.get(id)!] }
+              : {})
         }
       },
       load: () =>

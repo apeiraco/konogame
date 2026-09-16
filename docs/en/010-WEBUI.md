@@ -4,10 +4,10 @@ WebUI is a browser client for a local Workspace. Vite and TanStack Start build a
 
 ## From discovery to the library
 
-1. Open the library and select the absolute root of an existing Workspace. Paths refer to the daemon host.
+1. Enter the absolute root of an existing Workspace on the welcome page, or later through the Workspace control in the top bar. Paths refer to the daemon host. **Browse workspaces…** opens a tree of daemon-side locations: expanding a folder lists only its direct children, and selecting one checks only that folder for a Workspace marker. Typed and browsed paths both switch the session only after the formal Workspace read succeeds; a failure is explained in place and keeps the current Workspace.
 2. Open discovery, choose a configured Host and source, and specify exactly which directory to scan. Request a preview.
-3. Review the candidates, evidence and conflicts. Select the records to admit and confirm explicitly. Scan and review again if the preview is stale.
-4. Return to the library and open the admitted game's details to inspect its installations. Cards use a local artwork fallback. When you enter details from the keyboard, return to continue from the same game.
+3. Review the tally of new games, additions to existing games, already recorded installations and conflicts. The selection bar and the confirmation dialog count selected candidates by result; candidates sharing one game identity become one game and an equivalent location is written once, so the outcome reports the records actually written. Confirmation needs an explicit check. A stale or failed submission closes the review and offers a fresh preview with the same scope; only a recovery-required result offers recovery.
+4. Return to the library. Switch between cover and list density, filter by status, host or source, and open details with Enter. With a host or source filter, each card shows the state of the installations inside that filter. Esc or the back link returns focus to the same game. Covers are generated and labelled as such; no real artwork source exists yet.
 
 ## State and lifetime
 
@@ -50,6 +50,10 @@ Run `just build` followed by `just daemon` and open `http://127.0.0.1:38417/`. F
 
 The browser end-to-end test drives Chromium with Playwright. Use local Chrome, install a test browser with `pnpm exec playwright-core install chromium`, or set `KONOGAME_TEST_CHROMIUM` to an executable. `just check` builds the frontend and runs the real browser workflow.
 
-Iteration 10 delivers a functional prototype. Iteration 11 can redesign its information layout, visual language, theme, cards and controls. Explicit review, same-origin access, navigation and focus behavior are the handoff requirements.
+## Visual language
+
+Iteration 11 replaces the prototype presentation with an archive-shelf language: warm paper or ink surfaces, serif display type from local system fonts, and a single vermilion accent. Light and dark schemes follow the operating system. Installation states and discovery results combine a label with a marker shape, so meaning never depends on colour alone. One thick focus outline is used everywhere; selection uses a blue rail and tint, and hover only lifts or tints. Decorative motion stops under the reduced-motion preference. Below 760 px the navigation docks at the bottom edge, and candidate rows become stacked cards.
+
+Theme tokens live in [the theme](../../apps/webui/src/infrastructure/theme/theme.ts) and [the stylesheet](../../apps/webui/src/styles.css). Gamepad input has not been verified on a real device; keyboard movement, confirmation and return are verified.
 
 [English](010-WEBUI.md) | [中文](../zh/010-WEBUI.md)

@@ -32,14 +32,14 @@ test("keeps SSR locale deterministic, restores preferences only on hydration, an
     await first.hydrate();
     expect(locale.language.peek()).toBe(InterfaceLanguage.English);
     expect(locale.isHydrated.peek()).toBe(true);
-    expect(locale.translator.peek()("library:gamesCount", { count: 1, visible: 1 })).toBe(
-      "1 / 1 game"
+    expect(locale.translator.peek()("library:gamesFiltered", { count: 1, visible: 1 })).toBe(
+      "Showing 1 of 1 game"
     );
-    expect(locale.translator.peek()("library:gamesCount", { count: 2, visible: 1 })).toBe(
-      "1 / 2 games"
+    expect(locale.translator.peek()("library:gamesFiltered", { count: 2, visible: 1 })).toBe(
+      "Showing 1 of 2 games"
     );
-    expect(locale.translator.peek()("library:gamesCount", { count: 2000, visible: 1200 })).toBe(
-      "1,200 / 2,000 games"
+    expect(locale.translator.peek()("library:gamesFiltered", { count: 2000, visible: 1200 })).toBe(
+      "Showing 1,200 of 2,000 games"
     );
     expect(independent.language.peek()).toBe(defaultLanguage);
     expect(independent.isHydrated.peek()).toBe(false);
@@ -72,7 +72,7 @@ test.each(["unsupported", "denied"])("keeps locale usable when storage is %s", a
   expect(locale.language.peek()).toBe(defaultLanguage);
   await runUiEffect(locale.setLanguage(InterfaceLanguage.English));
   expect(locale.translator.peek()("common:error.network")).toBe(
-    "Cannot connect to the local daemon"
+    "Cannot reach the local daemon. Check that it is still running."
   );
 });
 

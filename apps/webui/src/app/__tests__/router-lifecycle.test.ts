@@ -30,7 +30,7 @@ test.each(["pagehide", "HMR"])(
         provideSessionStorage(() => ({
           getItem: () => {
             reads++;
-            return "/synthetic/restored";
+            return JSON.stringify({ root: "/synthetic/restored" });
           },
           setItem: () => {}
         }))

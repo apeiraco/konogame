@@ -96,6 +96,14 @@ just cli workspace explain C:/Synthetic/Library --installation-id <installation-
 
 List/show 关联 Game、安装、Host/source 声明、原始 Location 和校验/可用性；来源过滤要求选择 Host，未知 Location 类型仍可读取并明确不可用。这不启动游戏，也不认证资源存在。Explain 返回七层、有效值/来源、显式清除与逐 Feature Adapter 解析可用性/原因；仅指定安装的 explain 会推导所属 Host，显式矛盾选择会被拒绝，旧 inspect 选择契约不变。位置状态独立报告，不附加为通用 Feature Adapter 解析限制，因此未知 Location 不阻断 Artifact 存储或元数据编辑。选择还可使用 `--game-id`/`--host-id`，`--overrides-json` 提供不持久化调用层。`--feature` 可重复，`--adapter` 选择配置读取；评估 Adapter 解析可能激活兼容 Extension，但不执行所选资产操作。
 
+## 浏览查找已有 Workspace
+
+浏览发生在打开任何 Workspace 之前，因此不需要 Host 或已保存的偏好。Feature `workspace.browse` 为 `workspace.location-browser` Port 解析 Adapter；随附的 filesystem Extension 提供 `filesystem.workspace-location-browser`，按层列出目录作为 `fs.absolute` Location，达到上限时标记列表不完整。Feature `workspace.probe` 使用配置 Port：Location 先经 Location Port 解析，再由 `workspace-toml.configuration` 判断该资源下是否有 `.konogame/workspace.toml`，并返回它自己用于正式读取的根。每个浏览条目都是值对象（Location、显示名、能否展开），浏览结果不代表 Workspace 身份。调用方完整转发 Location，从不读取其数据。存在标记不代表配置可读，打开时仍走正式读取。配置 Adapter 不支持 `probe` 时，手填路径照常可用。访问范围按 daemon 进程权限，Host 根和发现范围在这里不授予任何权限。
+
+filesystem 浏览 Adapter 每次最多检查 2,000 个条目，普通文件也计数，并可再读一项判断是否截断。因此即使返回的子项少于请求数量，结果仍可能为 `complete: false`。
+
+浏览 Adapter 在列出起点和展开位置前调用可注入的访问策略，默认使用 daemon 进程权限。手填路径、标记探测和正式读取各有独立的访问入口。若部署需要统一限制可访问的根，还需要在这些入口执行相同的限制。
+
 ## 持久化与恢复限制
 
 TOML Extension 通过 `workspace.configuration` 的 `initialize`、`recover-initialize`、`edit`、`recover-edit` Operation 拥有这些算法，对应 Capability 为 `configuration.initialize`、`configuration.initialize-recovery`、`configuration.edit`、`configuration.edit-recovery`；已有 read/rename/import/recovery 继续区分。Workspace 审核见 [service.ts](../../packages/workspace/src/management/service.ts)，[领域编辑计划](../../packages/workspace/src/model/edits.ts)重建有效记录，[持久化](../../extensions/workspace-toml/src/operations/management.ts)和 [TOML token 编辑](../../extensions/workspace-toml/src/toml/edit.ts)负责 I/O 与原文保留。

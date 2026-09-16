@@ -5,6 +5,7 @@ import {
   type EXTENSION_REGISTRY
 } from "@konogame/infrastructure";
 import { type SAVE_STORE_WORKFLOW } from "@konogame/save/store";
+import { type WORKSPACE_BROWSE } from "@konogame/workspace/browse";
 import { type WORKSPACE_MANAGEMENT } from "@konogame/workspace/management";
 import { Data, type Effect, type Scope } from "effect";
 import { type DAEMON_ARTIFACT_INPUT } from "../artifact-input.ts";
@@ -14,6 +15,7 @@ export type ApiServices =
   | EXTENSION_CATALOG
   | EXTENSION_REGISTRY
   | WORKSPACE_MANAGEMENT
+  | WORKSPACE_BROWSE
   | GAME_ADMISSION
   | SAVE_STORE_WORKFLOW
   | DAEMON_ARTIFACT_INPUT;

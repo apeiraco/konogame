@@ -617,6 +617,9 @@ importers:
 
   extensions/workspace-toml:
     dependencies:
+      '@konogame/extension-filesystem':
+        specifier: workspace:*
+        version: link:../filesystem
       '@konogame/infrastructure':
         specifier: workspace:*
         version: link:../../packages/infrastructure

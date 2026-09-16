@@ -1,4 +1,11 @@
+import { type LocationContract } from "@konogame/infrastructure/contracts";
 import { type Effect } from "effect";
+import {
+  type WorkspaceBrowseError,
+  type WorkspaceBrowseListing,
+  type WorkspaceProbeInput,
+  type WorkspaceProbeResult
+} from "../model/browse.ts";
 import {
   type EditConfigurationInput,
   type EditConfigurationResult,
@@ -42,6 +49,21 @@ export interface WorkspaceConfigurationPort {
   recoverImport?(
     input: RecoverImportConfigurationInput
   ): Effect.Effect<ImportConfigurationResult, WorkspaceConfigurationError>;
+  /** Looks for this format's configuration marker without reading or validating records. */
+  probe?(
+    input: WorkspaceProbeInput
+  ): Effect.Effect<WorkspaceProbeResult, WorkspaceConfigurationError>;
+}
+
+/**
+ * Lists one level of locations where a Workspace might be opened. Without a location, the Adapter
+ * returns its own starting points. It never inspects grandchildren or Workspace configuration.
+ */
+export interface WorkspaceLocationBrowserPort {
+  list(input: {
+    readonly location?: LocationContract;
+    readonly limit: number;
+  }): Effect.Effect<WorkspaceBrowseListing, WorkspaceBrowseError>;
 }
 
 // Operations belong to the Port; support and capabilities belong to AdapterDescriptor.

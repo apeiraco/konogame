@@ -81,7 +81,7 @@ test("releases the native Scope even when query cancellation rejects", async () 
 });
 
 test("builds independent native Layer graphs, honors root overrides and releases owned services", async () => {
-  const stored = new Map([[workspaceSessionKey, "/synthetic/a"]]);
+  const stored = new Map([[workspaceSessionKey, JSON.stringify({ root: "/synthetic/a" })]]);
   let released = 0;
   const overrides = Layer.merge(
     Layer.effect(
@@ -133,7 +133,7 @@ test("builds independent native Layer graphs, honors root overrides and releases
 
 test("owner Layers replace session, library and review without constructing default observers", async () => {
   const session = new WorkspaceSession(() => ({
-    getItem: () => "/synthetic/override",
+    getItem: () => JSON.stringify({ root: "/synthetic/override" }),
     setItem: () => {}
   }));
   const library = new LibraryService(unusedHttp);

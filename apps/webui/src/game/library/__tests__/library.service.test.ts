@@ -6,7 +6,7 @@ import {
   DAEMON_HTTP,
   type DaemonHttpService
 } from "../../../infrastructure/http/daemon-http.ts";
-import { LibraryAvailability } from "../library.model.ts";
+import { LibraryAvailability, LibraryLayout } from "../library.model.ts";
 import { LIBRARY_SERVICE, provideLibrary } from "../library.service.ts";
 
 function libraryLayer(http: DaemonHttpService) {
@@ -122,5 +122,34 @@ describe("library UI service", () => {
         expect(detailUrl.searchParams.get("root")).toBe("/synthetic/a b&c");
       }).pipe(Effect.provide(libraryLayer(http)));
     }
+  );
+});
+
+describe("library reading preferences", () => {
+  it.effect("shares the layout across Workspaces, keeps it finite and clears filters at once", () =>
+    Effect.gen(function* () {
+      const library = yield* LIBRARY_SERVICE;
+      expect(library.layout.value).toBe(LibraryLayout.Wall);
+      library.setLayout(LibraryLayout.List);
+      expect(library.layout.value).toBe(LibraryLayout.List);
+      library.setLayout("poster");
+      expect(library.layout.value).toBe(LibraryLayout.Wall);
+
+      const wall = library.wall("/synthetic/workspace");
+      wall.setQuery("moon");
+      wall.selectHost("host-a");
+      wall.selectSource("source-a");
+      wall.setAvailability(LibraryAvailability.Unverified);
+      wall.rememberGame("game-a");
+      wall.clearFilters();
+      expect(wall.filter.value).toEqual({
+        query: "",
+        hostId: "",
+        sourceId: "",
+        availability: LibraryAvailability.All
+      });
+      // Clearing filters is not a navigation and keeps the pending return target.
+      expect(wall.returnFocusId.value).toBe("game-a");
+    }).pipe(Effect.provide(libraryLayer(unavailableHttp())))
   );
 });

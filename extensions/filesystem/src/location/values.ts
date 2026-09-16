@@ -10,6 +10,11 @@ export const FilesystemLocationType = {
 export type FilesystemLocationType =
   (typeof FilesystemLocationType)[keyof typeof FilesystemLocationType];
 export const FILESYSTEM_LOCATION_SCHEMA = "1.0.0";
+/** Resource type returned when a filesystem Location resolves on the daemon host. */
+export const FilesystemResourceType = { Path: "filesystem.path" } as const;
+export const FILESYSTEM_PATH_RESOURCE_SCHEMA_V1 = "1.0.0";
+export type FilesystemResourceType =
+  (typeof FilesystemResourceType)[keyof typeof FilesystemResourceType];
 export const filesystemLocationTypes: LocationTypeDefinition[] = [
   {
     type: FilesystemLocationType.Absolute,

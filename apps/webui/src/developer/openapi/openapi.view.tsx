@@ -1,3 +1,4 @@
+import { useComputedColorScheme } from "@mantine/core";
 import { type ApiReferenceReact } from "@scalar/api-reference-react";
 import { ClientOnly } from "@tanstack/react-router";
 import { type ComponentProps, lazy, Suspense } from "react";
@@ -35,7 +36,6 @@ export const localApiReferenceConfiguration = {
   customFetch: fetchLocalApi,
   persistAuth: false,
   urlRouting: false,
-  forceDarkModeState: "dark",
   hideClientButton: true,
   showDeveloperTools: "never"
 } satisfies ComponentProps<typeof ApiReferenceReact>["configuration"];
@@ -44,19 +44,37 @@ export function ApiReferencePage() {
   const locale = useWebUIService(LOCALE);
   const t = locale.translator.value;
   const language = locale.language.value;
-  const loading = <p role="status">{t("developer:loading")}</p>;
+  // The viewer follows the product shell's resolved colour scheme.
+  const scheme = useComputedColorScheme("dark");
+  const loading = (
+    <p role="status" className="kg-hint">
+      {t("developer:loading")}
+    </p>
+  );
   return (
-    <section aria-label={t("developer:reference")} className="api-reference">
-      <ClientOnly fallback={loading}>
-        <Suspense fallback={loading}>
-          <ScalarReference
-            configuration={{
-              ...localApiReferenceConfiguration,
-              localization: { locale: language }
-            }}
-          />
-        </Suspense>
-      </ClientOnly>
+    <section aria-labelledby="developer-title" className="kg-page kg-developer">
+      <header className="kg-page-head" data-compact>
+        <div>
+          <p className="kg-eyebrow">{t("developer:eyebrow")}</p>
+          <h1 id="developer-title" className="kg-display">
+            {t("developer:reference")}
+          </h1>
+          <p className="kg-lede">{t("developer:description")}</p>
+        </div>
+      </header>
+      <div className="kg-api-reference">
+        <ClientOnly fallback={loading}>
+          <Suspense fallback={loading}>
+            <ScalarReference
+              configuration={{
+                ...localApiReferenceConfiguration,
+                forceDarkModeState: scheme,
+                localization: { locale: language }
+              }}
+            />
+          </Suspense>
+        </ClientOnly>
+      </div>
     </section>
   );
 }

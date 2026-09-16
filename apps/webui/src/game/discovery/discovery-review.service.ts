@@ -47,6 +47,8 @@ export interface DiscoveryReviewState {
   readonly result?: AdmissionResult;
   readonly consumed: boolean;
   readonly confirmation?: ConfirmationKind;
+  /** True when the dialog closed because its submission completed, not because it was cancelled. */
+  readonly closedBySubmission: boolean;
   readonly confirmed: boolean;
   readonly previewPending: boolean;
   readonly admissionPending: boolean;
@@ -69,6 +71,7 @@ function initialState(): DiscoveryReviewState {
     selection: {},
     consumed: false,
     confirmed: false,
+    closedBySubmission: false,
     previewPending: false,
     admissionPending: false
   };
@@ -173,7 +176,7 @@ export class DiscoveryReview {
     ) {
       return;
     }
-    this.patch({ confirmation: kind, confirmed: false });
+    this.patch({ confirmation: kind, confirmed: false, closedBySubmission: false });
   }
 
   confirm(confirmed: boolean): void {
@@ -184,7 +187,7 @@ export class DiscoveryReview {
 
   closeConfirmation(): void {
     if (!this.isBusy()) {
-      this.patch({ confirmation: undefined, confirmed: false });
+      this.patch({ confirmation: undefined, confirmed: false, closedBySubmission: false });
     }
   }
 
@@ -239,7 +242,13 @@ export class DiscoveryReview {
       yield* self.http
         .request<GameDiscoveryPreview>("/api/game-discovery-previews", {
           method: "POST",
-          body: JSON.stringify({ root, hostId: form.hostId, sourceId: form.sourceId, scope })
+          body: JSON.stringify({
+            root,
+            hostId: form.hostId,
+            sourceId: form.sourceId,
+            scope,
+            configurationAdapterId: self.session.configurationAdapterId.peek()
+          })
         })
         .pipe(
           Effect.match({
@@ -283,7 +292,13 @@ export class DiscoveryReview {
         return;
       }
       const body = recover
-        ? { root, operationId: state.result?.operationId, confirmed: true }
+        ? {
+            root,
+            operationId: state.result?.operationId,
+            confirmed: true,
+            preferredAdapterId:
+              state.preview?.configurationAdapterId ?? self.session.configurationAdapterId.peek()
+          }
         : {
             root,
             preview: state.preview,
@@ -318,12 +333,22 @@ export class DiscoveryReview {
           Effect.match({
             onSuccess: (result) => {
               if (generation === self.generation) {
-                self.patch({ result, confirmation: undefined, confirmed: false });
+                self.patch({
+                  result,
+                  confirmation: undefined,
+                  confirmed: false,
+                  closedBySubmission: true
+                });
               }
             },
             onFailure: (admissionError) => {
               if (generation === self.generation) {
-                self.patch({ admissionError, confirmation: undefined, confirmed: false });
+                self.patch({
+                  admissionError,
+                  confirmation: undefined,
+                  confirmed: false,
+                  closedBySubmission: true
+                });
               }
             }
           }),

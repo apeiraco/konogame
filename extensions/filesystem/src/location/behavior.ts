@@ -12,7 +12,12 @@ import {
 import { type } from "arktype";
 import { Effect } from "effect";
 import semver from "semver";
-import { FilesystemLocationType, filesystemLocationTypes } from "./values.ts";
+import {
+  FILESYSTEM_PATH_RESOURCE_SCHEMA_V1,
+  FilesystemLocationType,
+  FilesystemResourceType,
+  filesystemLocationTypes
+} from "./values.ts";
 
 export { filesystemLocationAdapter } from "../manifest.ts";
 export * from "./values.ts";
@@ -156,8 +161,8 @@ export class FilesystemLocationBehavior implements LocationPort {
         return {
           status: LocationResolutionStatus.Resolved,
           resource: {
-            type: "filesystem.path",
-            schemaVersion: "1.0.0",
+            type: FilesystemResourceType.Path,
+            schemaVersion: FILESYSTEM_PATH_RESOURCE_SCHEMA_V1,
             data: { path }
           }
         };

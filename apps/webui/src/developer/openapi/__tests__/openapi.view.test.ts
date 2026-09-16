@@ -1,3 +1,4 @@
+import { MantineProvider } from "@mantine/core";
 import { type QueryClient } from "@tanstack/react-query";
 import {
   createMemoryHistory,
@@ -29,7 +30,9 @@ it.each([
     const routeTree = createRootRouteWithContext<{
       appContext: WebUIAppContext;
       queryClient: QueryClient;
-    }>()({ component: ApiReferencePage });
+    }>()({
+      component: () => createElement(MantineProvider, null, createElement(ApiReferencePage))
+    });
     const router = createRouter({
       routeTree,
       history: createMemoryHistory({ initialEntries: ["/"] }),

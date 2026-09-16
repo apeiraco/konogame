@@ -10,7 +10,17 @@ import {
   WORKSPACE_SCHEMA
 } from "@konogame/workspace/contracts";
 import { describe, expect, it } from "vitest";
-import { filterGames, LibraryAvailability, type LibraryFilter } from "../library.model.ts";
+import {
+  filterGames,
+  gameInstallationState,
+  generatedCover,
+  hasActiveFilter,
+  InstallationState,
+  installationState,
+  LibraryAvailability,
+  type LibraryFilter,
+  scopedInstallations
+} from "../library.model.ts";
 import { type GameView, type InstallationView } from "../library.read-model.ts";
 
 function installation(hostId: string, sourceId: string, available: boolean): InstallationView {
@@ -121,5 +131,114 @@ describe("library filters", () => {
     expect(library).toEqual([game, earlier]);
     expect(filterGames([game], { ...baseFilter, query: "  COLLECTOR  " })).toEqual([game]);
     expect(filterGames([game], { ...baseFilter, query: "synthetic-moon" })).toEqual([game]);
+  });
+});
+
+function unverified(hostId: string): InstallationView {
+  const base = installation(hostId, "standalone", false);
+  return {
+    ...base,
+    id: `${hostId}-unverified`,
+    location: { type: "synthetic.unknown", schemaVersion: "9.0.0", data: {} },
+    locationStatus: {
+      ...base.locationStatus,
+      validation: {
+        status: LocationValidationStatus.Unverified,
+        reason: "Unknown synthetic type"
+      }
+    }
+  };
+}
+
+describe("installation display state", () => {
+  it("prefers an available installation, then an unverified one, before unavailable", () => {
+    const available = installation("host-a", "steam", true);
+    const unavailable = installation("host-a", "standalone", false);
+    expect(installationState(available)).toBe(InstallationState.Available);
+    expect(installationState(unavailable)).toBe(InstallationState.Unavailable);
+    expect(installationState(unverified("host-a"))).toBe(InstallationState.Unverified);
+    expect(gameInstallationState([])).toBe(InstallationState.None);
+    expect(gameInstallationState([unavailable, unverified("host-a")])).toBe(
+      InstallationState.Unverified
+    );
+    expect(gameInstallationState([unverified("host-a"), unavailable, available])).toBe(
+      InstallationState.Available
+    );
+  });
+
+  it("filters unverified locations separately from unavailable ones", () => {
+    const unknownGame = {
+      ...game,
+      id: "019a0000-0000-7000-8000-000000000004",
+      installations: [unverified("host-a")]
+    };
+    const unavailableGame = {
+      ...game,
+      id: "019a0000-0000-7000-8000-000000000005",
+      installations: [installation("host-a", "standalone", false)]
+    };
+    expect(
+      filterGames([unknownGame, unavailableGame], {
+        ...baseFilter,
+        availability: LibraryAvailability.Unverified
+      })
+    ).toEqual([unknownGame]);
+    expect(
+      filterGames([unknownGame, unavailableGame], {
+        ...baseFilter,
+        availability: LibraryAvailability.Unavailable
+      })
+    ).toEqual([unavailableGame]);
+  });
+
+  it("reports whether any filter narrows the library", () => {
+    expect(hasActiveFilter(baseFilter)).toBe(false);
+    expect(hasActiveFilter({ ...baseFilter, query: "   " })).toBe(false);
+    expect(hasActiveFilter({ ...baseFilter, query: "moon" })).toBe(true);
+    expect(hasActiveFilter({ ...baseFilter, availability: LibraryAvailability.Uninstalled })).toBe(
+      true
+    );
+  });
+});
+
+describe("generated cover", () => {
+  it("derives a stable style from the Game ID and the first grapheme of the title", () => {
+    const first = generatedCover(game.id, "  synthetic Moon", "en");
+    expect(generatedCover(game.id, "  synthetic Moon", "en")).toEqual(first);
+    expect(first.glyph).toBe("S");
+    expect(generatedCover(game.id, "👩‍🚀 Voyage").glyph).toBe("👩‍🚀");
+    expect(generatedCover(game.id, "月の庭").glyph).toBe("月");
+    expect(generatedCover(game.id, "").glyph).toBe("?");
+  });
+});
+
+describe("filter-scoped card state", () => {
+  it("reports the state of the installations the Host filter admitted, and the global state without it", () => {
+    // The shared game has host-a unavailable and host-b available.
+    const hostA = { ...baseFilter, hostId: "host-a" };
+    const unavailableOnA = filterGames([game], {
+      ...hostA,
+      availability: LibraryAvailability.Unavailable
+    });
+    expect(unavailableOnA).toEqual([game]);
+    expect(gameInstallationState(scopedInstallations(game.installations, hostA))).toBe(
+      InstallationState.Unavailable
+    );
+    expect(scopedInstallations(game.installations, hostA)).toHaveLength(1);
+    expect(
+      gameInstallationState(
+        scopedInstallations(game.installations, { ...baseFilter, hostId: "host-b" })
+      )
+    ).toBe(InstallationState.Available);
+    expect(gameInstallationState(scopedInstallations(game.installations, baseFilter))).toBe(
+      InstallationState.Available
+    );
+    expect(
+      scopedInstallations(game.installations, {
+        ...baseFilter,
+        hostId: "host-b",
+        sourceId: "standalone"
+      })
+    ).toEqual([]);
   });
 });

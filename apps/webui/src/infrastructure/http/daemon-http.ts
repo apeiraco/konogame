@@ -1,7 +1,10 @@
 import { Context, Data, Effect, Layer } from "effect";
 
-export function rootQuery(root: string) {
-  return new URLSearchParams({ root }).toString();
+export function rootQuery(root: string, preferredAdapterId?: string) {
+  return new URLSearchParams({
+    root,
+    ...(preferredAdapterId ? { preferredAdapterId } : {})
+  }).toString();
 }
 
 export class ApiRequestError extends Data.TaggedError("ApiRequestError")<{

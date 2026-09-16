@@ -15,6 +15,7 @@ import {
   provideLocalePreferences
 } from "../infrastructure/i18n/locale.service.ts";
 import { workspaceKeys } from "../workspace/workspace.query-keys.ts";
+import { WORKSPACE_OPEN, workspaceOpenLayer } from "../workspace/workspace-open.service.ts";
 import { provideWorkspaceQuery, WORKSPACE_QUERY } from "../workspace/workspace-query.service.ts";
 import {
   provideSessionStorage,
@@ -27,6 +28,7 @@ export type WebUIServiceKeys =
   | DAEMON_HTTP
   | WORKSPACE_QUERY
   | WORKSPACE_SESSION
+  | WORKSPACE_OPEN
   | LIBRARY_SERVICE
   | DISCOVERY_REVIEW
   | REVIEW_CACHE
@@ -122,7 +124,10 @@ export async function createWebUIAppContext(
     ownerLayer(overrides, WORKSPACE_QUERY, provideWorkspaceQuery()),
     ownerLayer(overrides, DISCOVERY_REVIEW, discoveryReviewLayer)
   ).pipe(Layer.provideMerge(dependencies));
-  const context = await runUiEffect(Layer.buildWithScope(layer, scope));
+  const opener = ownerLayer(overrides, WORKSPACE_OPEN, workspaceOpenLayer).pipe(
+    Layer.provideMerge(layer)
+  );
+  const context = await runUiEffect(Layer.buildWithScope(opener, scope));
   return new WebUIAppContext(
     Context.add(context, Scope.Scope, scope),
     queryClient,

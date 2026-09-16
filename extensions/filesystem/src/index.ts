@@ -6,6 +6,7 @@ import {
 } from "@konogame/infrastructure";
 import { locationImplementation } from "@konogame/infrastructure/contracts";
 import { saveStoreImplementation } from "@konogame/save";
+import { workspaceLocationBrowserImplementation } from "@konogame/workspace";
 import { Effect, Layer, Option } from "effect";
 import { FilesystemGameDiscovery } from "./game-discovery/adapter.ts";
 import { NodeDiscoveryFileSystem } from "./game-discovery/io.ts";
@@ -13,14 +14,20 @@ import { FilesystemLocationBehavior } from "./location/behavior.ts";
 import {
   filesystemGameDiscoveryAdapter,
   filesystemLocationAdapter,
-  filesystemSaveStoreAdapter
+  filesystemSaveStoreAdapter,
+  filesystemWorkspaceLocationBrowserAdapter
 } from "./manifest.ts";
 import {
   FILESYSTEM_SAVE_STORE,
   type FilesystemExtensionOptions,
-  GAME_DISCOVERY_FILESYSTEM
+  GAME_DISCOVERY_FILESYSTEM,
+  WORKSPACE_BROWSE_ACCESS_POLICY,
+  WORKSPACE_BROWSE_FILESYSTEM
 } from "./providers.ts";
 import { FilesystemSaveStore } from "./save-store/store.ts";
+import { FilesystemWorkspaceLocationBrowser } from "./workspace-browse/adapter.ts";
+import { NodeWorkspaceBrowseFileSystem } from "./workspace-browse/io.ts";
+import { ProcessWorkspaceBrowseAccessPolicy } from "./workspace-browse/policy.ts";
 
 export { FilesystemGameDiscovery } from "./game-discovery/adapter.ts";
 export * from "./game-discovery/evidence.ts";
@@ -32,6 +39,9 @@ export * from "./location/values.ts";
 export * from "./manifest.ts";
 export * from "./providers.ts";
 export * from "./save-store/store.ts";
+export { FilesystemWorkspaceLocationBrowser } from "./workspace-browse/adapter.ts";
+export * from "./workspace-browse/io.ts";
+export * from "./workspace-browse/policy.ts";
 
 export function createFilesystemExtensionModule(options: FilesystemExtensionOptions) {
   const store = Layer.effect(
@@ -53,7 +63,21 @@ export function createFilesystemExtensionModule(options: FilesystemExtensionOpti
           Option.getOrElse(() => new NodeDiscoveryFileSystem())
         )
       ),
-      store
+      store,
+      Layer.effect(
+        WORKSPACE_BROWSE_FILESYSTEM,
+        Effect.map(
+          Effect.serviceOption(WORKSPACE_BROWSE_FILESYSTEM),
+          Option.getOrElse(() => new NodeWorkspaceBrowseFileSystem())
+        )
+      ),
+      Layer.effect(
+        WORKSPACE_BROWSE_ACCESS_POLICY,
+        Effect.map(
+          Effect.serviceOption(WORKSPACE_BROWSE_ACCESS_POLICY),
+          Option.getOrElse(() => new ProcessWorkspaceBrowseAccessPolicy())
+        )
+      )
     ),
     activate
   });
@@ -61,8 +85,12 @@ export function createFilesystemExtensionModule(options: FilesystemExtensionOpti
 
 export function activate(context: ExtensionActivationContext) {
   return Effect.gen(function* () {
-    const fileSystem = yield* GAME_DISCOVERY_FILESYSTEM;
-    const store = yield* FILESYSTEM_SAVE_STORE;
+    const [fileSystem, store, browseFileSystem, browseAccessPolicy] = yield* Effect.all([
+      GAME_DISCOVERY_FILESYSTEM,
+      FILESYSTEM_SAVE_STORE,
+      WORKSPACE_BROWSE_FILESYSTEM,
+      WORKSPACE_BROWSE_ACCESS_POLICY
+    ]);
     yield* context.registerAdapter(filesystemSaveStoreAdapter.id, saveStoreImplementation, store);
     yield* context.registerAdapter(
       filesystemLocationAdapter.id,
@@ -73,6 +101,11 @@ export function activate(context: ExtensionActivationContext) {
       filesystemGameDiscoveryAdapter.id,
       gameDiscoveryImplementation,
       new FilesystemGameDiscovery(fileSystem)
+    );
+    yield* context.registerAdapter(
+      filesystemWorkspaceLocationBrowserAdapter.id,
+      workspaceLocationBrowserImplementation,
+      new FilesystemWorkspaceLocationBrowser(browseFileSystem, browseAccessPolicy)
     );
   });
 }

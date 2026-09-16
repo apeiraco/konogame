@@ -26,7 +26,8 @@ export const workspaceTomlConfigurationAdapter: AdapterDescriptor = {
     WorkspaceOperation.RecoverEdit,
     WorkspaceOperation.Rename,
     WorkspaceOperation.Import,
-    WorkspaceOperation.RecoverImport
+    WorkspaceOperation.RecoverImport,
+    WorkspaceOperation.Probe
   ],
   capabilities: [
     WorkspaceCapability.Records,

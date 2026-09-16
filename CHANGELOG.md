@@ -6,6 +6,10 @@ Core binaries and packages share a version. Extensions have independent versions
 
 ### Changed
 
+- Redesign the WebUI as an archive-shelf library with light and dark schemes, cover and list densities, labelled generated covers, and designed states for missing workspaces, empty libraries, unverified locations and multiple installations. Discovery shows a disposition tally, the selected candidates by result, a matching confirmation ledger, the records actually written, and a fresh-preview path after stale submissions. Library cards report the installation state inside the active Host/source filter. Narrow screens dock navigation at the bottom.
+
+- Browse daemon-side locations to open a Workspace. The Workspace Module adds `workspace.browse` on the new `workspace.location-browser` Port (0.2.0) and `workspace.probe` on the configuration Port. `POST /api/workspace/locations` lists one level, and `POST /api/workspace/locations/probe` checks only the selected location for a configuration marker. Typed and browsed paths both switch the WebUI session only after the formal Workspace read succeeds.
+
 - Switch the WebUI between Simplified Chinese and English without losing the current review. Remember the preference locally and load a bundled Temporal polyfill only when needed.
 
 - Automatically track Preact signal reads in WebUI views. The app context uses standard async resource disposal, with missing APIs installed at browser startup.
@@ -79,6 +83,7 @@ Core binaries and packages share a version. Extensions have independent versions
 
 - `filesystem.save-store` for streamed multi-file saves.
 - `filesystem.workspace-configuration` for strict TOML inspection and entity rename/recovery.
+- `filesystem.workspace-location-browser` lists direct child directories as `fs.absolute` Locations, stops at the requested limit and maps native permission and missing-directory errors.
 
 ### Compatibility
 
@@ -99,5 +104,6 @@ Core binaries and packages share a version. Extensions have independent versions
 ## konogame.workspace-toml@0.1.0-alpha.0
 
 - Bundled TOML implementation of the Workspace configuration Port. Use `workspace-toml.configuration` for explicit selection.
+- The `probe` operation reports whether a resolved `filesystem.path` resource holds `.konogame/workspace.toml`, without reading or validating records.
 
 [English](CHANGELOG.md) | [中文](docs/zh/CHANGELOG.md)

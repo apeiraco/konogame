@@ -33,10 +33,10 @@ test("translates an existing transport failure at display time and preserves dae
   });
   await router.load();
   const render = () => renderToString(createElement(RouterProvider, { router }));
-  expect(render()).toContain("无法连接本地守护进程");
+  expect(render()).toContain("无法连接本机 daemon");
   await runUiEffect(Context.get(appContext.context, LOCALE).setLanguage(InterfaceLanguage.English));
   const english = render();
-  expect(english).toContain("Cannot connect to the local daemon");
+  expect(english).toContain("Cannot reach the local daemon");
   expect(english).toContain("Retry");
   error = new ApiRequestError(409, {
     error: { tag: "WorkspaceConflict", message: "External diagnostic", issues: [{ path: "root" }] }

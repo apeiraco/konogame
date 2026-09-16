@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@konogame/workspace": "workspace:*",
+    "@konogame/extension-filesystem": "workspace:*",
     "arktype": "catalog:",
     "uuid": "catalog:",
     "toml-eslint-parser": "catalog:",

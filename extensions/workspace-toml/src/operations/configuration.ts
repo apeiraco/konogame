@@ -19,6 +19,7 @@ import {
   recordFileKey,
   validateRelationships,
   type WorkspaceConfigurationPort,
+  type WorkspaceProbeInput,
   type WorkspaceSnapshot
 } from "@konogame/workspace";
 import { Effect } from "effect";
@@ -40,6 +41,7 @@ import {
 } from "./errors.ts";
 import { WorkspaceConfigurationImporter, type WorkspaceImportFileSystem } from "./import.ts";
 import { WorkspaceConfigurationManager, type WorkspaceManagementFileSystem } from "./management.ts";
+import { probeConfiguration } from "./probe.ts";
 import { renameConfiguration } from "./rename.ts";
 
 export { parseConfigurationToml } from "../toml/parser.ts";
@@ -466,6 +468,9 @@ export class TomlWorkspaceConfiguration implements WorkspaceConfigurationPort {
   ) {
     this.importer = new WorkspaceConfigurationImporter(importFileSystem, locationBehavior);
     this.manager = new WorkspaceConfigurationManager(managementFileSystem);
+  }
+  probe(input: WorkspaceProbeInput): ReturnType<NonNullable<WorkspaceConfigurationPort["probe"]>> {
+    return probeConfiguration(this.nodeFileSystem, input);
   }
   read(input: { root: string }): ReturnType<NonNullable<WorkspaceConfigurationPort["read"]>> {
     return loadConfigurationState(input.root).pipe(

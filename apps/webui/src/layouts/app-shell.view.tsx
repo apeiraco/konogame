@@ -1,75 +1,70 @@
-import { Badge, Button, Group, NativeSelect, Text, TextInput } from "@mantine/core";
+import { NativeSelect } from "@mantine/core";
 import { Link, useHydrated } from "@tanstack/react-router";
-import { type FormEvent, type ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
 import { useWebUIService } from "../app/use-webui-service.ts";
+import { CodeIcon, DiscoverIcon, LibraryIcon } from "../infrastructure/components/icons.tsx";
 import { runUiEffect } from "../infrastructure/effect/run-ui-effect.ts";
 import {
   InterfaceLanguage,
   isInterfaceLanguage,
   LOCALE
 } from "../infrastructure/i18n/locale.service.ts";
-import { WORKSPACE_SESSION } from "../workspace/workspace-session.service.ts";
+import { WorkspaceSwitcher } from "../workspace/workspace-switcher.view.tsx";
 
 export function AppShell({ children }: { readonly children: ReactNode }) {
   const hydrated = useHydrated();
-  const session = useWebUIService(WORKSPACE_SESSION);
   const locale = useWebUIService(LOCALE);
   const t = locale.translator.value;
   const language = locale.language.value;
   const localeHydrated = locale.isHydrated.value;
-  const sessionHydrated = session.isHydrated.value;
-  const workspaceRoot = session.workspaceRoot.value;
-  const draftRoot = session.draftRoot.value;
-  function openWorkspace(event: FormEvent) {
-    event.preventDefault();
-    void runUiEffect(session.setWorkspaceRoot(draftRoot.trim()));
-  }
+  const main = useRef<HTMLElement>(null);
   return (
-    <div className="app-shell">
-      <aside className="app-sidebar">
-        <Link to="/" className="brand">
-          <span className="brand-mark">こ</span>
-          <span>
-            konogame<small>このゲーム</small>
+    <div className="kg-shell">
+      <button type="button" className="kg-skip-link" onClick={() => main.current?.focus()}>
+        {t("shell:skipToContent")}
+      </button>
+      <header className="kg-topbar">
+        <Link to="/" className="kg-brand" aria-label={t("shell:brandHome")}>
+          <span className="kg-brand-seal" aria-hidden="true">
+            こ
+          </span>
+          <span className="kg-brand-word">
+            konogame
+            <small>{t("shell:brandTagline")}</small>
           </span>
         </Link>
-        <Text className="nav-caption" size="xs">
-          {t("shell:workspace")}
-        </Text>
-        <nav aria-label={t("shell:mainNavigation")}>
+        <nav aria-label={t("shell:mainNavigation")} className="kg-nav">
           <Link
             to="/"
-            activeOptions={{ exact: true }}
-            activeProps={{ className: "nav-link active" }}
-            className="nav-link"
+            activeOptions={{ exact: true, includeSearch: false }}
+            className="kg-nav-link"
+            activeProps={{ "aria-current": "page", className: "is-active" }}
           >
-            <span aria-hidden>▦</span>
-            {t("shell:library")}
+            <LibraryIcon />
+            <span>{t("shell:library")}</span>
           </Link>
-          <Link to="/discovery" activeProps={{ className: "nav-link active" }} className="nav-link">
-            <span aria-hidden>⌕</span>
-            {t("shell:discovery")}
+          <Link
+            to="/discovery"
+            className="kg-nav-link"
+            activeProps={{ "aria-current": "page", className: "is-active" }}
+          >
+            <DiscoverIcon />
+            <span>{t("shell:discovery")}</span>
           </Link>
         </nav>
-        <div className="app-sidebar-bottom">
-          <Badge variant="dot" color="teal">
-            {t("shell:localWorkspace")}
-          </Badge>
-          <Link to="/developer/openapi" className="developer-link">
-            {t("shell:developerReference")}
-          </Link>
-          <Text size="xs" c="dimmed">
-            {t("shell:experimental")}
-          </Text>
+        <div className="kg-topbar-tools">
+          <WorkspaceSwitcher />
           <NativeSelect
             id="interface-language"
             data-testid="interface-language"
-            label={t("shell:language")}
+            aria-label={t("shell:language")}
+            className="kg-language"
+            size="xs"
             value={language}
             disabled={!hydrated || !localeHydrated}
             data={[
-              { value: InterfaceLanguage.Chinese, label: "简体中文" },
-              { value: InterfaceLanguage.English, label: "English" }
+              { value: InterfaceLanguage.Chinese, label: "中文" },
+              { value: InterfaceLanguage.English, label: "EN" }
             ]}
             onChange={(event) => {
               const selected = event.currentTarget.value;
@@ -79,43 +74,18 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
             }}
           />
         </div>
-      </aside>
-      <div className="main-column">
-        <header className="workspace-bar">
-          <div>
-            <Text fw={600} size="sm">
-              {t("shell:myWorkspace")}
-            </Text>
-            <Text c="dimmed" size="xs">
-              {workspaceRoot || t("shell:selectWorkspace")}
-            </Text>
-          </div>
-          <form onSubmit={openWorkspace} className="workspace-form">
-            <Group gap="xs">
-              <TextInput
-                aria-label={t("shell:absolutePath")}
-                placeholder={t("shell:pathPlaceholder")}
-                value={draftRoot}
-                disabled={!hydrated || !sessionHydrated}
-                onChange={(event) => {
-                  session.setDraftRoot(event.currentTarget.value);
-                }}
-                size="xs"
-              />
-              <Button
-                type="submit"
-                size="xs"
-                variant="light"
-                disabled={!hydrated || !sessionHydrated || !draftRoot.trim()}
-              >
-                {t("shell:open")}
-              </Button>
-            </Group>
-          </form>
-        </header>
-        <main className="page-content">{children}</main>
-        <footer className="app-footer">{t("shell:footer")}</footer>
-      </div>
+      </header>
+      <main id="main" ref={main} tabIndex={-1} className="kg-main">
+        {children}
+      </main>
+      <footer className="kg-footer">
+        <span>{t("shell:footerLocal")}</span>
+        <Link to="/developer/openapi" className="kg-footer-link">
+          <CodeIcon size={14} />
+          {t("shell:developerReference")}
+        </Link>
+        <span>{t("shell:footerExperimental")}</span>
+      </footer>
     </div>
   );
 }

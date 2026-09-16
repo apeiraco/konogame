@@ -5,7 +5,7 @@ import {
   type DaemonHttpService,
   rootQuery
 } from "../../infrastructure/http/daemon-http.ts";
-import { LibraryAvailability, type LibraryFilter } from "./library.model.ts";
+import { LibraryAvailability, type LibraryFilter, LibraryLayout } from "./library.model.ts";
 import { type GameDetail, type Library } from "./library.read-model.ts";
 
 export class LibraryWallState {
@@ -32,6 +32,15 @@ export class LibraryWallState {
     this.currentFilter.value = { ...this.currentFilter.peek(), sourceId };
   }
 
+  clearFilters() {
+    this.currentFilter.value = {
+      query: "",
+      hostId: "",
+      sourceId: "",
+      availability: LibraryAvailability.All
+    };
+  }
+
   setAvailability(value: string | null) {
     const availability =
       Object.values(LibraryAvailability).find((item) => item === value) ?? LibraryAvailability.All;
@@ -51,8 +60,16 @@ export class LibraryWallState {
 
 export class LibraryService {
   private readonly walls = new Map<string, LibraryWallState>();
+  // Density is a reader preference shared by every Workspace opened in this router.
+  private readonly currentLayout = signal<LibraryLayout>(LibraryLayout.Wall);
+  readonly layout: ReadonlySignal<LibraryLayout> = this.currentLayout;
 
   constructor(private readonly http: DaemonHttpService) {}
+
+  setLayout(value: string | null) {
+    this.currentLayout.value =
+      Object.values(LibraryLayout).find((item) => item === value) ?? LibraryLayout.Wall;
+  }
 
   wall(workspaceRoot: string): LibraryWallState {
     let state = this.walls.get(workspaceRoot);
@@ -63,13 +80,13 @@ export class LibraryService {
     return state;
   }
 
-  readLibrary(workspaceRoot: string) {
-    return this.http.request<Library>(`/api/games?${rootQuery(workspaceRoot)}`);
+  readLibrary(workspaceRoot: string, preferredAdapterId?: string) {
+    return this.http.request<Library>(`/api/games?${rootQuery(workspaceRoot, preferredAdapterId)}`);
   }
 
-  readGame(workspaceRoot: string, gameId: string) {
+  readGame(workspaceRoot: string, gameId: string, preferredAdapterId?: string) {
     return this.http.request<GameDetail>(
-      `/api/games/${encodeURIComponent(gameId)}?${rootQuery(workspaceRoot)}`
+      `/api/games/${encodeURIComponent(gameId)}?${rootQuery(workspaceRoot, preferredAdapterId)}`
     );
   }
 }

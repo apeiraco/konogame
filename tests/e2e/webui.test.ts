@@ -51,8 +51,86 @@ it.live(
           return route.continue();
         });
         await page.goto(origin);
-        await page.getByRole("textbox", { name: "工作空间绝对路径" }).fill(fixture.workspace);
-        await page.getByRole("button", { name: "打开", exact: true }).click();
+        const configurationAdapterId = "workspace-toml.configuration";
+        const selectedLocation = {
+          type: "synthetic.navigation",
+          schemaVersion: "1.0.0",
+          data: { token: "selected-workspace" }
+        };
+        await page.route("**/api/workspace/locations", (route) =>
+          route.fulfill({
+            json: route.request().postDataJSON().location
+              ? { entries: [], complete: false }
+              : {
+                  entries: [
+                    { location: selectedLocation, label: "Synthetic workspace", canBrowse: true }
+                  ],
+                  complete: true
+                }
+          })
+        );
+        await page.route("**/api/workspace/locations/probe", (route) => {
+          expect(route.request().postDataJSON()).toEqual({ location: selectedLocation });
+          return route.fulfill({
+            json: {
+              status: "present",
+              root: fixture.workspace,
+              adapterResolutionPlan: { resolvedAdapters: [{ adapterId: configurationAdapterId }] }
+            }
+          });
+        });
+        const configurationReads: string[] = [];
+        page.on("request", (request) => {
+          const url = new URL(request.url());
+          if (url.pathname === "/api/workspace/inspect" || url.pathname.startsWith("/api/games")) {
+            configurationReads.push(url.searchParams.get("preferredAdapterId") ?? "");
+          }
+        });
+        let releaseRead!: () => void;
+        const readGate = new Promise<void>((resolve) => {
+          releaseRead = resolve;
+        });
+        let canceledRead!: () => void;
+        const reading = new Promise<void>((resolve) => {
+          canceledRead = resolve;
+        });
+        await page.route(
+          "**/api/workspace/inspect?**",
+          async (route) => {
+            canceledRead();
+            await readGate;
+            await route.fulfill({ json: {} });
+          },
+          { times: 1 }
+        );
+        const browseButton = page.getByRole("button", { name: "浏览工作区…" });
+        await browseButton.click();
+        const browserDialog = page.getByRole("dialog", { name: "浏览工作区" });
+        await browserDialog
+          .getByRole("treeitem", { name: "Synthetic workspace", exact: true })
+          .click();
+        await browserDialog.getByText("找到工作区配置").waitFor();
+        await browserDialog
+          .getByRole("treeitem", { name: "Synthetic workspace", exact: true })
+          .focus();
+        await page.keyboard.press("ArrowRight");
+        await browserDialog.getByText("只显示前面的条目").waitFor();
+        expect(await browserDialog.getByText("没有子文件夹").count()).toBe(0);
+        await browserDialog.getByRole("button", { name: "打开工作区" }).click();
+        await reading;
+        await browserDialog.getByRole("button", { name: "取消", exact: true }).click();
+        releaseRead();
+        await browserDialog.waitFor({ state: "detached" });
+        await page.getByRole("heading", { name: "打开你的游戏工作区" }).waitFor();
+        await page.locator(":focus").and(browseButton).waitFor();
+        await browseButton.click();
+        await browserDialog
+          .getByRole("treeitem", { name: "Synthetic workspace", exact: true })
+          .click();
+        await browserDialog.getByText("找到工作区配置").waitFor();
+        await browserDialog.getByRole("button", { name: "打开工作区" }).click();
+        await page.getByRole("heading", { name: "书架还是空的" }).waitFor();
+        expect(configurationReads.every((id) => id === configurationAdapterId)).toBe(true);
         await page.getByRole("navigation").getByRole("link", { name: "发现游戏" }).click();
         const admissions: string[] = [];
         const previews: string[] = [];
@@ -118,12 +196,13 @@ it.live(
         expect(await language.inputValue()).toBe("en");
         expect(await page.title()).toBe("Konogame · Library");
         await language.selectOption("zh-CN");
-        await page.getByRole("button", { name: /返回游戏墙/ }).waitFor();
+        await page.getByRole("link", { name: "返回游戏库" }).waitFor();
+        expect(configurationReads.every((id) => id === configurationAdapterId)).toBe(true);
         // Enter from the wall again so a real history entry carries the focus target.
-        await page.getByRole("button", { name: /返回游戏墙/ }).click();
+        await page.getByRole("link", { name: "返回游戏库" }).click();
         await card.focus();
         await page.keyboard.press("Enter");
-        await page.getByRole("button", { name: /返回游戏墙/ }).click();
+        await page.getByRole("link", { name: "返回游戏库" }).click();
         await page.locator(':focus[aria-label="查看 Synthetic Steam Game"]').waitFor();
         const spec = page.waitForResponse(
           (response) => new URL(response.url()).pathname === "/api/openapi.json" && response.ok()

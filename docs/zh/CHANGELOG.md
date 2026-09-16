@@ -6,6 +6,10 @@ Core 可执行程序与包使用统一版本；各 Extension 独立版本，分�
 
 ### 变更
 
+- WebUI 重新设计为“档案书架”式游戏库：支持明暗配色、封面与列表两种密度、带标记的生成封面，并为未打开工作区、空库、未验证位置和多处安装设计专门状态。发现页显示结果分类统计、按结果分类的所选候选、一致的确认清单与实际写入的记录，并在提交陈旧时引导用相同范围重新预览。游戏卡片按当前主机/来源筛选范围显示安装状态。窄屏导航停靠在底部。
+
+- 可浏览 daemon 一侧的位置来打开工作区。Workspace Module 新增 `workspace.browse`（新的 `workspace.location-browser` Port，0.2.0）和配置 Port 上的 `workspace.probe`。`POST /api/workspace/locations` 列出一层位置，`POST /api/workspace/locations/probe` 只检查所选位置是否有配置标记。手填路径与浏览所选路径都在正式读取 Workspace 成功后，才切换 WebUI 会话。
+
 - WebUI 可在简体中文与英文之间切换并记忆偏好，保留当前审核。缺少 Temporal 的浏览器按需加载本地补齐模块。
 
 - WebUI 视图自动跟踪 Preact 信号。应用上下文采用标准异步资源释放协议；旧浏览器启动时按需补齐相关 API。
@@ -80,6 +84,7 @@ Core 可执行程序与包使用统一版本；各 Extension 独立版本，分�
 
 - `filesystem.save-store`：流式多文件存档存储。
 - `filesystem.workspace-configuration`：严格 TOML 检查与实体重命名、恢复。
+- `filesystem.workspace-location-browser`：把直接子目录列为 `fs.absolute` Location，达到请求上限即停止，并映射原生的无权限与目录缺失错误。
 
 ### 兼容性
 
@@ -100,5 +105,6 @@ Core 可执行程序与包使用统一版本；各 Extension 独立版本，分�
 ## konogame.workspace-toml@0.1.0-alpha.0
 
 - Workspace 配置 Port 的随附 TOML 实现。显式选择时使用 `workspace-toml.configuration`。
+- `probe` 操作只判断解析得到的 `filesystem.path` 资源下是否存在 `.konogame/workspace.toml`，不读取也不校验记录。
 
 [English](../../CHANGELOG.md) | [中文](CHANGELOG.md)

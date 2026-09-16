@@ -7,7 +7,11 @@ import {
   type ModuleDescriptor
 } from "@konogame/infrastructure/contracts";
 import { type Type, type } from "arktype";
-import { WORKSPACE_CONFIGURATION_PORT, WORKSPACE_HISTORY_PORT } from "../version.ts";
+import {
+  WORKSPACE_CONFIGURATION_PORT,
+  WORKSPACE_HISTORY_PORT,
+  WORKSPACE_LOCATION_BROWSER_PORT
+} from "../version.ts";
 import {
   UniformNameProblem,
   WorkspaceConflictError,
@@ -321,6 +325,21 @@ export const workspaceModule: ModuleDescriptor = {
       portVersion: WORKSPACE_HISTORY_PORT.version,
       operation: WorkspaceOperation.List,
       requiredCapabilities: [WorkspaceCapability.VersionedHistory]
+    },
+    // Browsing and probing run before any Workspace is open, so they need no Host or settings.
+    {
+      id: WorkspaceFeature.Browse,
+      port: WorkspacePort.LocationBrowser,
+      portVersion: WORKSPACE_LOCATION_BROWSER_PORT.version,
+      operation: WorkspaceOperation.List,
+      requiredCapabilities: []
+    },
+    {
+      id: WorkspaceFeature.Probe,
+      port: WorkspacePort.Configuration,
+      portVersion: WORKSPACE_CONFIGURATION_PORT.version,
+      operation: WorkspaceOperation.Probe,
+      requiredCapabilities: []
     }
   ]
 };

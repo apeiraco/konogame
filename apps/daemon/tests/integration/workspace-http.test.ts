@@ -17,7 +17,8 @@ import {
   InitializeStatus,
   RecordKind,
   RenameStatus,
-  WORKSPACE_SCHEMA
+  WORKSPACE_SCHEMA,
+  workspaceBrowseListingSchema
 } from "@konogame/workspace/contracts";
 import { workspaceEditPreviewSchema } from "@konogame/workspace/management";
 import { Effect, Layer } from "effect";
@@ -399,5 +400,67 @@ it.live(
         status: 422,
         body: { status: "failed", reason: expect.any(String) }
       });
+    })
+);
+
+it.live(
+  "HTTP Workspace browsing lists one level, probes only the selection and leaves opening to the formal read",
+  () =>
+    Effect.gen(function* () {
+      const f = yield* fixture();
+      expect((yield* f.request("/api/workspace/initialize", f.input)).status).toBe(200);
+      const broken = join(f.root, "broken");
+      yield* Effect.promise(async () => {
+        await mkdir(join(broken, ".konogame"), { recursive: true });
+        await writeFile(join(broken, ".konogame", "workspace.toml"), "not = [valid");
+        await mkdir(join(f.root, "plain"));
+      });
+      const at = (path: string) => ({
+        type: "fs.absolute",
+        schemaVersion: "1.0.0",
+        data: { path }
+      });
+      const listing = yield* f.request("/api/workspace/locations", { location: at(f.root) });
+      expect(listing.status).toBe(200);
+      // The route response projection adds the Adapter resolution plan to the owner listing.
+      const { adapterResolutionPlan: _plan, ...listed } = listing.body as Record<string, unknown>;
+      const body = workspaceBrowseListingSchema.assert(listed);
+      expect(body.complete).toBe(true);
+      expect(body.entries.map((item) => item.label)).toEqual(
+        expect.arrayContaining(["broken", "plain"])
+      );
+      const entry = (label: string) => {
+        const found = body.entries.find((item) => item.label === label);
+        assert.ok(found, `missing ${label}`);
+        return found;
+      };
+
+      expect(
+        (yield* f.request("/api/workspace/locations/probe", { location: at(f.root) })).body
+      ).toMatchObject({ status: "present", root: f.root });
+      expect(
+        (yield* f.request("/api/workspace/locations/probe", { location: entry("plain").location }))
+          .body
+      ).toMatchObject({ status: "absent" });
+      const brokenProbe = yield* f.request("/api/workspace/locations/probe", {
+        location: entry("broken").location
+      });
+      expect(brokenProbe.body).toMatchObject({ status: "present", root: broken });
+      // A marker does not prove a readable configuration: the formal read rejects it.
+      const read = yield* f.request(
+        `/api/workspace/inspect?${new URLSearchParams({ root: broken })}`
+      );
+      expect(read.status).toBeGreaterThanOrEqual(400);
+
+      const missing = yield* f.request("/api/workspace/locations", {
+        location: at(join(f.root, "absent"))
+      });
+      expect(missing).toMatchObject({
+        status: 404,
+        body: { error: { tag: "WorkspaceBrowseError", issues: { kind: "missing" } } }
+      });
+      expect((yield* f.request("/api/workspace/locations?root=x", {})).status).toBe(400);
+      expect((yield* f.request("/api/workspace/locations", { limit: 1.5 })).status).toBe(400);
+      expect((yield* f.request("/api/workspace/locations", null)).status).toBe(400);
     })
 );

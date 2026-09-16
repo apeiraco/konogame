@@ -125,7 +125,9 @@ it.effect("Workspace uses the same Extension descriptors and Feature resolution 
       WorkspaceFeature.Rename,
       WorkspaceFeature.Import,
       WorkspaceFeature.RecoverImport,
-      WorkspaceFeature.History
+      WorkspaceFeature.History,
+      WorkspaceFeature.Browse,
+      WorkspaceFeature.Probe
     ]);
     const plan = yield* app.plan.plan(yield* app.plan.features());
     assert.equal(plan.resolvedAdapters[0]?.adapterId, configurationAdapter.id);

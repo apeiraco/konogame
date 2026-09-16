@@ -12,15 +12,26 @@ import {
   saveModuleSource,
   saveStoreImplementation
 } from "@konogame/save";
-import { Context, Effect, Layer } from "effect";
+import { workspaceLocationBrowserImplementation, workspaceModuleSource } from "@konogame/workspace";
+import {
+  WorkspaceBrowseError,
+  WorkspaceBrowseFailureKind,
+  WorkspaceFeature,
+  workspaceModule
+} from "@konogame/workspace/contracts";
+import { Context, Effect, Exit, Layer } from "effect";
 import { vi } from "vitest";
 import { type DiscoveryFileSystem } from "../game-discovery/filesystem.ts";
 import { filesystemManifest } from "../manifest.ts";
 import {
   FILESYSTEM_SAVE_STORE,
   filesystemExtensionSource,
-  GAME_DISCOVERY_FILESYSTEM
+  GAME_DISCOVERY_FILESYSTEM,
+  WORKSPACE_BROWSE_ACCESS_POLICY,
+  WORKSPACE_BROWSE_FILESYSTEM
 } from "../providers.ts";
+import { type WorkspaceBrowseFileSystem } from "../workspace-browse/io.ts";
+import { type WorkspaceBrowseAccessPolicy } from "../workspace-browse/policy.ts";
 
 const constructed = vi.hoisted(() => ({ loads: 0, fileSystems: 0, stores: 0 }));
 vi.mock("../index.ts", async (original) => {
@@ -57,7 +68,7 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const options = { saveRoot: resolve("synthetic-unwritten-save-root") };
-      expect(filesystemManifest.contributes.adapters).toHaveLength(3);
+      expect(filesystemManifest.contributes.adapters).toHaveLength(4);
       const services = yield* Layer.build(
         provideInfrastructure({}, [
           saveModuleSource(),
@@ -128,5 +139,55 @@ it.effect(
       expect(observations.length).toBeGreaterThan(0);
       expect(Context.get(overridden, FILESYSTEM_SAVE_STORE)).toBe(store);
       expect(constructed).toEqual({ loads: 1, fileSystems: 1, stores: 1 });
+    })
+);
+
+it.effect(
+  "uses the root browse access policy before the lazily activated browser performs I/O",
+  () =>
+    Effect.gen(function* () {
+      let checks = 0;
+      const denied = new WorkspaceBrowseError({
+        issue: { kind: WorkspaceBrowseFailureKind.Denied },
+        message: "Synthetic browsing policy denied access"
+      });
+      const policy: WorkspaceBrowseAccessPolicy = {
+        check: () =>
+          Effect.sync(() => {
+            checks++;
+          }).pipe(Effect.andThen(Effect.fail(denied)))
+      };
+      const fileSystem: WorkspaceBrowseFileSystem = {
+        startingPoints: () => Effect.die("Denied browser reached filesystem"),
+        listDirectories: () => Effect.die("Denied browser reached filesystem")
+      };
+      const overrides = Layer.merge(
+        Layer.succeed(WORKSPACE_BROWSE_ACCESS_POLICY, policy),
+        Layer.succeed(WORKSPACE_BROWSE_FILESYSTEM, fileSystem)
+      );
+      const services = yield* Layer.build(
+        provideInfrastructure({}, [
+          workspaceModuleSource(),
+          filesystemExtensionSource({ saveRoot: resolve("synthetic-unwritten-save-root") })
+        ]).pipe(Layer.provideMerge(overrides))
+      );
+      const resolver = Context.get(services, ADAPTER_RESOLVER);
+      const feature = workspaceModule.features.find(({ id }) => id === WorkspaceFeature.Browse)!;
+      const plan = yield* resolver.resolve([{ feature }]);
+      expect(plan.unavailable).toEqual([]);
+      const browser = resolver.implementation(
+        plan.resolvedAdapters[0]!,
+        workspaceLocationBrowserImplementation
+      );
+      const result = yield* Effect.exit(browser.list({ limit: 1 }));
+      expect(Exit.isFailure(result)).toBe(true);
+      if (Exit.isFailure(result)) {
+        expect(result.cause.reasons).toContainEqual(
+          expect.objectContaining({ _tag: "Fail", error: denied })
+        );
+      }
+      expect(checks).toBe(1);
+      expect(Context.get(services, WORKSPACE_BROWSE_ACCESS_POLICY)).toBe(policy);
+      expect(Context.get(services, WORKSPACE_BROWSE_FILESYSTEM)).toBe(fileSystem);
     })
 );

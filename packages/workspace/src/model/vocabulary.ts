@@ -45,11 +45,14 @@ export const WorkspaceFeature = {
   Rename: "workspace.rename",
   Import: "workspace.import",
   RecoverImport: "workspace.recover-import",
-  History: "workspace.history"
+  History: "workspace.history",
+  Browse: "workspace.browse",
+  Probe: "workspace.probe"
 } as const;
 export type WorkspaceFeature = (typeof WorkspaceFeature)[keyof typeof WorkspaceFeature];
 export const WorkspacePort = {
   Configuration: "workspace.configuration",
+  LocationBrowser: "workspace.location-browser",
   History: "workspace.history"
 } as const;
 export type WorkspacePort = (typeof WorkspacePort)[keyof typeof WorkspacePort];
@@ -64,7 +67,8 @@ export const WorkspaceOperation = {
   RecoverImport: "recover-import",
   List: "list",
   FindOperation: "find-operation",
-  Record: "record"
+  Record: "record",
+  Probe: "probe"
 } as const;
 export type WorkspaceOperation = (typeof WorkspaceOperation)[keyof typeof WorkspaceOperation];
 export const WorkspaceCapability = {

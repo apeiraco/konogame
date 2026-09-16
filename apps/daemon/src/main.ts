@@ -24,6 +24,7 @@ import {
 import { saveModuleSource } from "@konogame/save";
 import { provideSaveStoreWorkflow } from "@konogame/save/store";
 import { workspaceModuleSource } from "@konogame/workspace";
+import { provideWorkspaceBrowse } from "@konogame/workspace/browse";
 import { provideWorkspaceManagement } from "@konogame/workspace/management";
 import { object } from "@optique/core/constructs";
 import { message } from "@optique/core/message";
@@ -115,6 +116,7 @@ export function composeDaemon<Error = never>(
       ).pipe(Layer.provideMerge(infrastructure));
       return Layer.mergeAll(
         provideWorkspaceManagement(),
+        provideWorkspaceBrowse(),
         provideGameAdmission(),
         provideSaveStoreWorkflow(),
         overrides

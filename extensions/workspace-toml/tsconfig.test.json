@@ -23,6 +23,9 @@
     },
     {
       "path": "../../packages/workspace/tsconfig.test.json"
+    },
+    {
+      "path": "../filesystem/tsconfig.lib.json"
     }
   ]
 }

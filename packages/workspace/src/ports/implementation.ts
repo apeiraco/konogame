@@ -1,7 +1,11 @@
 import { type ImplementationPort, implementationSchema } from "@konogame/infrastructure/contracts";
 import { Context } from "effect";
 import { WorkspaceOperation, WorkspacePort } from "../model/vocabulary.ts";
-import { type ConfigurationHistoryPort, type WorkspaceConfigurationPort } from "./contracts.ts";
+import {
+  type ConfigurationHistoryPort,
+  type WorkspaceConfigurationPort,
+  type WorkspaceLocationBrowserPort
+} from "./contracts.ts";
 
 export class WORKSPACE_CONFIGURATION extends Context.Service<
   WORKSPACE_CONFIGURATION,
@@ -22,7 +26,8 @@ export const workspaceConfigurationImplementation: ImplementationPort<WorkspaceC
       [WorkspaceOperation.Read]: "read",
       [WorkspaceOperation.Rename]: "rename",
       [WorkspaceOperation.Import]: "import",
-      [WorkspaceOperation.RecoverImport]: "recoverImport"
+      [WorkspaceOperation.RecoverImport]: "recoverImport",
+      [WorkspaceOperation.Probe]: "probe"
     },
     is: implementationSchema(["read"])
   };
@@ -36,3 +41,13 @@ export const configurationHistoryImplementation: ImplementationPort<Configuratio
   },
   is: implementationSchema(["list", "read", "record", "findOperation"])
 };
+export class WORKSPACE_LOCATION_BROWSER extends Context.Service<
+  WORKSPACE_LOCATION_BROWSER,
+  WorkspaceLocationBrowserPort
+>()(WorkspacePort.LocationBrowser) {}
+export const workspaceLocationBrowserImplementation: ImplementationPort<WorkspaceLocationBrowserPort> =
+  {
+    id: WorkspacePort.LocationBrowser,
+    operations: { [WorkspaceOperation.List]: "list" },
+    is: implementationSchema(["list"])
+  };

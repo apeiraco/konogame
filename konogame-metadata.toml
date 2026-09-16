@@ -73,7 +73,7 @@ version = "0.1.0-alpha.0"
 declaration_protocol_range = ">=0.2.0 <0.3.0"
 source = "extensions/filesystem/src/metadata.ts"
 software = { node = ">=26" }
-port_version_ranges = { "filesystem.save-store" = ">=0.2.0 <0.3.0", "filesystem.location" = ">=0.2.0 <0.3.0", "filesystem.game-discovery" = ">=0.3.0 <0.4.0" }
+port_version_ranges = { "filesystem.save-store" = ">=0.2.0 <0.3.0", "filesystem.location" = ">=0.2.0 <0.3.0", "filesystem.game-discovery" = ">=0.3.0 <0.4.0", "filesystem.workspace-location-browser" = ">=0.2.0 <0.3.0" }
 
 [[extension]]
 id = "konogame.steam"
@@ -134,6 +134,13 @@ source = "packages/game/src/version.ts"
 
 [[port]]
 id = "workspace.configuration"
+version = "0.2.0"
+supported_range = ">=0.2.0 <0.3.0"
+package = "@konogame/workspace"
+source = "packages/workspace/src/version.ts"
+
+[[port]]
+id = "workspace.location-browser"
 version = "0.2.0"
 supported_range = ">=0.2.0 <0.3.0"
 package = "@konogame/workspace"
