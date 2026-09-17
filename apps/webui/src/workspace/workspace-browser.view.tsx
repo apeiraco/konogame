@@ -21,6 +21,7 @@ import {
   type WorkspaceLocation,
   type WorkspaceLocationListing
 } from "./workspace.read-model.ts";
+import { indentDepth, treeLevel } from "./workspace-browse.model.ts";
 import { WORKSPACE_OPEN } from "./workspace-open.service.ts";
 import { WORKSPACE_QUERY } from "./workspace-query.service.ts";
 
@@ -74,6 +75,8 @@ function combineListings(results: readonly UseQueryResult<WorkspaceLocationListi
     ({ data, error, isPending, isError }): ListingResult => ({ data, error, isPending, isError })
   );
 }
+
+const nodeLevel = (value: string) => treeLevel(value, SEPARATOR);
 
 function sameExpansion(
   left: Readonly<Record<string, boolean>>,
@@ -158,6 +161,8 @@ export function WorkspaceBrowserDialog({
   const failure = opener.failure.value;
   const [expanded, setExpanded] = useState<Readonly<Record<string, boolean>>>({});
   const [selected, setSelected] = useState<string | undefined>(undefined);
+  // The level being read: the focused row, else the selected one. Purely presentational.
+  const [focusedValue, setFocusedValue] = useState<string | undefined>(undefined);
   const tree = useTree({
     expandedState: expanded,
     // Tree re-initializes whenever its data changes; ignore updates with unchanged content so
@@ -249,6 +254,12 @@ export function WorkspaceBrowserDialog({
     }
   }
 
+  const anchor = focusedValue ?? selected;
+  const anchorLevel = anchor ? nodeLevel(anchor) : 1;
+  const indent = (value: string, base: number) => ({
+    paddingInlineStart: `calc(${base}px + ${indentDepth(nodeLevel(value), anchorLevel)} * var(--kg-tree-indent))`
+  });
+
   function renderNode({
     node,
     expanded: isExpanded,
@@ -263,6 +274,7 @@ export function WorkspaceBrowserDialog({
         <div
           {...elementProps}
           className={`${elementProps.className} kg-tree-note`}
+          style={{ ...elementProps.style, ...indent(node.value, 32) }}
           data-kind={marker.kind}
         >
           {marker.kind === PseudoKind.Loading && t("workspace:listLoading")}
@@ -277,6 +289,8 @@ export function WorkspaceBrowserDialog({
       <div
         {...elementProps}
         className={`${elementProps.className} kg-tree-node`}
+        style={{ ...elementProps.style, ...indent(node.value, 8) }}
+        data-flattened={nodeLevel(node.value) < anchorLevel - 1 || undefined}
         // A treeitem is otherwise named by its whole expanded subtree; name it by its own label.
         ref={(element) => {
           element?.parentElement?.setAttribute("aria-label", String(node.label));
@@ -330,6 +344,20 @@ export function WorkspaceBrowserDialog({
           aria-label={t("workspace:browseTree")}
           renderNode={renderNode}
           onKeyDown={onTreeKeyDown}
+          onFocus={(event) => {
+            const value =
+              event.target instanceof HTMLElement
+                ? event.target.closest<HTMLElement>("[data-value]")?.dataset.value
+                : undefined;
+            if (value) {
+              setFocusedValue(value);
+            }
+          }}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              setFocusedValue(undefined);
+            }
+          }}
         />
       </div>
       <div className="kg-browser-status" aria-live="polite">

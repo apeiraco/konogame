@@ -1733,7 +1733,8 @@ details.kg-raw summary:hover {
 /* Motion is decoration only; nothing depends on it. */
 @media (prefers-reduced-motion: reduce) {
   .kg-card .kg-cover,
-  .kg-candidates tbody tr {
+  .kg-candidates tbody tr,
+  .kg-tree-node {
     transition: none;
   }
   .kg-card[data-layout="wall"]:hover .kg-cover,
@@ -1796,12 +1797,18 @@ fieldset.kg-tally {
   border-radius: 8px;
   background: var(--kg-surface);
 }
+.kg-tree-frame {
+  --kg-tree-indent: 20px;
+}
+/* Indentation is set per row from its level; only block and end padding live here. */
 .kg-tree-node {
   display: flex;
   align-items: center;
   gap: 8px;
   min-height: 32px;
-  padding: 4px 8px;
+  padding-block: 4px;
+  padding-inline-end: 8px;
+  transition: padding-inline-start 120ms var(--kg-ease);
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
@@ -1836,8 +1843,15 @@ li[role="treeitem"]:focus-visible > .kg-tree-node {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+/* Ancestors above the current parent share one column; a dotted rule marks the compression. */
+.kg-tree-node[data-flattened] {
+  color: var(--kg-muted);
+  /* Drawn as a background so the guide takes no width and columns stay aligned. */
+  background: linear-gradient(var(--kg-line-strong) 50%, transparent 0) 0 0 / 2px 4px repeat-y;
+}
 .kg-tree-note {
-  padding: 4px 8px 4px 32px;
+  padding-block: 4px;
+  padding-inline-end: 8px;
   color: var(--kg-muted);
   font-size: 13px;
 }
