@@ -1,0 +1,71 @@
+# Canonical project and release metadata. Use dev-cli release to synchronize projections.
+schema_version = 1
+
+[project]
+name = "konogame"
+display_name = "Konogame"
+version = "0.1.0-alpha.0"
+description = "An extensible, capability-oriented framework for managing game assets."
+license = "MPL-2.0"
+repository_url = "https://github.com/apeiraco/konogame"
+
+# Protocol versions evolve separately from npm package release versions.
+[contract]
+version = "0.1.0"
+supported_range = ">=0.1.0 <0.2.0"
+package = "@konogame/contracts"
+source = "packages/contracts/src/version.ts"
+
+[tooling.typescript]
+config = "tsconfig.json"
+
+[release]
+tag_prefix = "v"
+changelog = "CHANGELOG.md"
+translations = { zh = "docs/zh/CHANGELOG.md" }
+
+[[core_package]]
+name = "konogame"
+manifest = "package.json"
+
+[[core_package]]
+name = "@konogame/contracts"
+manifest = "packages/contracts/package.json"
+
+[[core_package]]
+name = "@konogame/workspace"
+manifest = "packages/workspace/package.json"
+
+[[core_package]]
+name = "@konogame/save"
+manifest = "packages/save/package.json"
+
+[[core_package]]
+name = "@konogame/application"
+manifest = "packages/application/package.json"
+
+[[core_package]]
+name = "@konogame/local-runtime"
+manifest = "apps/shared/package.json"
+
+[[core_package]]
+name = "@konogame/cli"
+manifest = "apps/cli/package.json"
+
+[[core_package]]
+name = "@konogame/daemon"
+manifest = "apps/daemon/package.json"
+
+[[core_package]]
+name = "@konogame/dev-cli"
+manifest = "scripts/dev-cli/package.json"
+
+# Extensions have independent versions, even when their initial version matches core.
+[[extension]]
+id = "konogame.filesystem"
+package = "@konogame/extension-filesystem"
+manifest = "extensions/filesystem/package.json"
+version = "0.1.0-alpha.0"
+contract_range = ">=0.1.0 <0.2.0"
+source = "extensions/filesystem/src/metadata.ts"
+software = { node = ">=26" }

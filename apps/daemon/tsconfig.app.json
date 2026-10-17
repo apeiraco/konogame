@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist-tsc/app",
+    "tsBuildInfoFile": "./dist-tsc/app.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "dist-tsc", "src/**/__tests__/**"],
+  "references": [
+    {
+      "path": "../shared/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/contracts/tsconfig.lib.json"
+    }
+  ]
+}

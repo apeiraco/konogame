@@ -1,0 +1,51 @@
+{
+  "name": "konogame",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.9.1",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "build": "pnpm -r --sort run build",
+    "typecheck": "tsc --build",
+    "test": "pnpm build && vitest run",
+    "check": "pnpm lint && pnpm build && pnpm typecheck && vitest run && pnpm dev-cli check-docs && pnpm dev-cli release check",
+    "cli": "node apps/cli/dist/main.js",
+    "daemon": "node apps/daemon/dist/main.js",
+    "dev-cli": "node scripts/dev-cli/dist/main.js",
+    "lint": "biome check .",
+    "format": "biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@konogame/application": "workspace:*",
+    "@konogame/cli": "workspace:*",
+    "@konogame/contracts": "workspace:*",
+    "@konogame/daemon": "workspace:*",
+    "@konogame/dev-cli": "workspace:*",
+    "@konogame/extension-filesystem": "workspace:*",
+    "@konogame/local-runtime": "workspace:*",
+    "@konogame/save": "workspace:*",
+    "@konogame/workspace": "workspace:*",
+    "@types/node": "^26.6.2",
+    "@types/semver": "^7.8.0",
+    "oxfmt": "0.73.0",
+    "oxlint": "1.88.0",
+    "tsdown": "^0.23.1",
+    "typescript": "^7.0.2",
+    "uuid": "^14.0.3",
+    "vitest": "^5.0.5"
+  },
+  "version": "0.1.0-alpha.0",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apeiraco/konogame.git"
+  },
+  "konogame": {
+    "releaseGroup": "core",
+    "contractRange": ">=0.1.0 <0.2.0"
+  },
+  "description": "An extensible, capability-oriented framework for managing game assets."
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!!**/node_modules",
+      "!!**/dist",
+      "!!**/dist-tsc",
+      "!!projections",
+      // These projections belong to dev-cli release sync.
+      "!packages/contracts/src/version.ts",
+      "!extensions/filesystem/src/metadata.ts"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "none"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "suspicious": { "noConstEnum": "error" },
+      "style": {
+        // Record graphs and AST indices are validated before these assertions.
+        "noNonNullAssertion": "off",
+        "noEnum": "error",
+        "useImportType": {
+          "level": "error",
+          "options": { "style": "inlineType" }
+        },
+        "useExportType": {
+          "level": "error",
+          "options": { "style": "inlineType" }
+        },
+        "useNodejsImportProtocol": "error"
+      }
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": { "organizeImports": "on" }
+    }
+  },
+  "overrides": [
+    {
+      // Preserve the release synchronizer's deterministic JSON serialization.
+      "includes": ["**/package.json"],
+      "formatter": { "enabled": false }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./dist-tsc/test",
+    "tsBuildInfoFile": "./dist-tsc/test.tsbuildinfo"
+  },
+  "files": [],
+  "include": ["tests/e2e/**/*.test.ts", "tests/support/**/*.ts"],
+  "exclude": ["node_modules", "dist", "dist-tsc", "projections"],
+  "references": [
+    {
+      "path": "./packages/contracts/tsconfig.test.json"
+    },
+    {
+      "path": "./packages/workspace/tsconfig.test.json"
+    },
+    {
+      "path": "./packages/save/tsconfig.test.json"
+    },
+    {
+      "path": "./packages/application/tsconfig.test.json"
+    },
+    {
+      "path": "./extensions/filesystem/tsconfig.test.json"
+    },
+    {
+      "path": "./apps/shared/tsconfig.test.json"
+    },
+    {
+      "path": "./apps/cli/tsconfig.test.json"
+    },
+    {
+      "path": "./apps/daemon/tsconfig.test.json"
+    },
+    {
+      "path": "./scripts/dev-cli/tsconfig.test.json"
+    }
+  ]
+}

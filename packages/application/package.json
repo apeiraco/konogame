@@ -1,0 +1,32 @@
+{
+  "name": "@konogame/application",
+  "version": "0.1.0-alpha.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "monorepo-tsc": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@konogame/workspace": "workspace:*",
+    "@konogame/contracts": "workspace:*",
+    "@konogame/save": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsdown"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apeiraco/konogame.git"
+  },
+  "konogame": {
+    "releaseGroup": "core",
+    "contractRange": ">=0.1.0 <0.2.0"
+  }
+}

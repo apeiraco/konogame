@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./dist-tsc/tool",
+    "tsBuildInfoFile": "./dist-tsc/tool.tsbuildinfo"
+  },
+  "include": [
+    "tsdown.shared.ts",
+    "vitest.config.ts",
+    "apps/*/tsdown.config.ts",
+    "packages/*/tsdown.config.ts",
+    "extensions/*/tsdown.config.ts",
+    "scripts/*/tsdown.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", "dist-tsc", "projections"],
+  "references": [
+    {
+      "path": "./scripts/dev-cli/tsconfig.tool.json"
+    }
+  ]
+}

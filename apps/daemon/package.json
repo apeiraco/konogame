@@ -1,0 +1,36 @@
+{
+  "name": "@konogame/daemon",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@konogame/local-runtime": "workspace:*",
+    "@oclif/core": "^5.1.8",
+    "@konogame/contracts": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsdown"
+  },
+  "exports": {
+    ".": {
+      "monorepo-tsc": "./src/main.ts",
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apeiraco/konogame.git"
+  },
+  "konogame": {
+    "releaseGroup": "core",
+    "contractRange": ">=0.1.0 <0.2.0"
+  },
+  "bin": {
+    "konogame-daemon": "./dist/main.js"
+  }
+}

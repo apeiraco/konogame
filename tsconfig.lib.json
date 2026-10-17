@@ -1,0 +1,23 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/contracts/tsconfig.lib.json"
+    },
+    {
+      "path": "./packages/workspace/tsconfig.lib.json"
+    },
+    {
+      "path": "./packages/save/tsconfig.lib.json"
+    },
+    {
+      "path": "./packages/application/tsconfig.lib.json"
+    },
+    {
+      "path": "./extensions/filesystem/tsconfig.lib.json"
+    },
+    {
+      "path": "./apps/shared/tsconfig.lib.json"
+    }
+  ]
+}

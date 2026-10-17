@@ -1,0 +1,47 @@
+{
+  "name": "@konogame/dev-cli",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "monorepo-tsc": "./src/main.ts",
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "@oclif/core": "^5.1.8",
+    "semver": "^7.8.5",
+    "smol-toml": "^1.9.1",
+    "toml-eslint-parser": "^1.0.3",
+    "zod": "^4.6.7"
+  },
+  "bin": {
+    "konogame-dev": "./dist/main.js"
+  },
+  "oclif": {
+    "bin": "konogame-dev",
+    "topicSeparator": " ",
+    "commands": {
+      "strategy": "explicit",
+      "target": "./dist/commands.js",
+      "identifier": "commands"
+    }
+  },
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apeiraco/konogame.git"
+  },
+  "konogame": {
+    "releaseGroup": "core",
+    "contractRange": ">=0.1.0 <0.2.0"
+  }
+}

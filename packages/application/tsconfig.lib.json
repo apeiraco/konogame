@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist-tsc/lib",
+    "tsBuildInfoFile": "./dist-tsc/lib.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "dist-tsc", "src/**/__tests__/**"],
+  "references": [
+    {
+      "path": "../workspace/tsconfig.lib.json"
+    },
+    {
+      "path": "../contracts/tsconfig.lib.json"
+    },
+    {
+      "path": "../save/tsconfig.lib.json"
+    }
+  ]
+}

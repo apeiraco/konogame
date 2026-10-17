@@ -1,0 +1,38 @@
+{
+  "name": "@konogame/extension-filesystem",
+  "version": "0.1.0-alpha.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "monorepo-tsc": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@konogame/workspace": "workspace:*",
+    "@konogame/contracts": "workspace:*",
+    "@konogame/save": "workspace:*",
+    "uuid": "^14.0.3",
+    "toml-eslint-parser": "^1.0.3"
+  },
+  "scripts": {
+    "build": "tsdown"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apeiraco/konogame.git"
+  },
+  "konogame": {
+    "releaseGroup": "extension",
+    "extensionId": "konogame.filesystem",
+    "contractRange": ">=0.1.0 <0.2.0",
+    "software": {
+      "node": ">=26"
+    }
+  }
+}
